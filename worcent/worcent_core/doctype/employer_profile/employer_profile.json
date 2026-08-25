@@ -15,9 +15,13 @@
   "column_break_head",
   "freelancer_profile",
   "plan",
+  "erp_customer",
+  "referred_by_code",
   "section_break_profile",
   "logo",
   "industry",
+  "country",
+  "preferred_currency",
   "column_break_profile",
   "bio",
   "section_break_trust",
@@ -97,6 +101,19 @@
    "options": "Employer Plan"
   },
   {
+   "fieldname": "erp_customer",
+   "fieldtype": "Link",
+   "label": "Accounting Customer Record",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "referred_by_code",
+   "fieldtype": "Link",
+   "label": "Referred By",
+   "options": "Referral Code"
+  },
+  {
    "fieldname": "section_break_profile",
    "fieldtype": "Section Break",
    "label": "Profile"
@@ -110,6 +127,19 @@
    "fieldname": "industry",
    "fieldtype": "Data",
    "label": "Industry"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
+  },
+  {
+   "description": "Wallet balance is always tracked internally in the platform currency (USD); this only controls what currency amounts are *displayed* in.",
+   "fieldname": "preferred_currency",
+   "fieldtype": "Link",
+   "label": "Preferred Display Currency",
+   "options": "Currency"
   },
   {
    "fieldname": "column_break_profile",

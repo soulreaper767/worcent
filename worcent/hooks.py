@@ -15,6 +15,7 @@ fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"Worcent Admin", "Freelancer", "Employer", "Office Manager", "Franchise Owner",
 		"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager", "Agency Manager",
+		"Accounts Manager", "Office Managing Partner",
 	]]]},
 ]
 
@@ -26,6 +27,8 @@ app_include_js = "/assets/worcent/js/worcent.js"
 
 web_include_css = "/assets/worcent/css/worcent.css"
 web_include_js = "/assets/worcent/js/worcent.js"
+
+brand_html = '<span class="wc-brand-mark"><svg viewBox="0 0 32 32" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="9" fill="#14805e"/><path d="M8 11L13 21L16 14L19 21L24 11" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="wc-brand-word">Worcent</span></span>'
 
 # Website route rules
 # ------------------
@@ -68,6 +71,12 @@ permission_query_conditions = {
 	"Wallet": "worcent.worcent_core.permissions.wallet_query_conditions",
 	"Support Ticket": "worcent.worcent_core.permissions.support_ticket_query_conditions",
 	"Assisted Request": "worcent.worcent_core.permissions.assisted_request_query_conditions",
+	"Wallet Transaction": "worcent.worcent_core.permissions.wallet_transaction_query_conditions",
+	"Platform Earning": "worcent.worcent_core.permissions.platform_earning_query_conditions",
+	"Payout Account": "worcent.worcent_core.permissions.payout_account_query_conditions",
+	"Withdrawal Request": "worcent.worcent_core.permissions.withdrawal_request_query_conditions",
+	"Referral Code": "worcent.worcent_core.permissions.referral_code_query_conditions",
+	"Referral": "worcent.worcent_core.permissions.referral_query_conditions",
 }
 
 has_permission = {
@@ -76,4 +85,10 @@ has_permission = {
 	"Wallet": "worcent.worcent_core.permissions.wallet_has_permission",
 	"Support Ticket": "worcent.worcent_core.permissions.support_ticket_has_permission",
 	"Assisted Request": "worcent.worcent_core.permissions.assisted_request_has_permission",
+	"Wallet Transaction": "worcent.worcent_core.permissions.wallet_transaction_has_permission",
+	"Platform Earning": "worcent.worcent_core.permissions.platform_earning_has_permission",
+	"Payout Account": "worcent.worcent_core.permissions.payout_account_has_permission",
+	"Withdrawal Request": "worcent.worcent_core.permissions.withdrawal_request_has_permission",
+	"Referral Code": "worcent.worcent_core.permissions.referral_code_has_permission",
+	"Referral": "worcent.worcent_core.permissions.referral_has_permission",
 }

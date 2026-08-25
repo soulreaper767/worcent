@@ -9,6 +9,7 @@
   "status",
   "column_break_1",
   "slots_available",
+  "session_fee",
   "section_break_1",
   "specialties",
   "bio"
@@ -40,6 +41,13 @@
    "fieldname": "slots_available",
    "fieldtype": "Int",
    "label": "Slots Available"
+  },
+  {
+   "default": "0",
+   "description": "Per-mentorship fee charged to the mentee, in USD. 0 = free mentoring.",
+   "fieldname": "session_fee",
+   "fieldtype": "Currency",
+   "label": "Session Fee (USD)"
   },
   {
    "fieldname": "section_break_1",

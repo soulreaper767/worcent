@@ -11,7 +11,15 @@
   "platform_currency",
   "default_employer_plan",
   "kyc_required_for_payout",
-  "enable_public_profiles"
+  "enable_public_profiles",
+  "section_break_bonuses",
+  "signup_bonus_amount",
+  "column_break_bonuses",
+  "verification_bonus_amount",
+  "default_platform_fee_percent",
+  "section_break_support",
+  "whatsapp_support_number",
+  "support_email"
  ],
  "fields": [
   {
@@ -27,7 +35,7 @@
    "label": "Dispute Response Window (days)"
   },
   {
-   "default": "20",
+   "default": "100",
    "fieldname": "min_withdrawal_amount",
    "fieldtype": "Currency",
    "label": "Minimum Withdrawal Amount"
@@ -60,6 +68,54 @@
    "fieldname": "enable_public_profiles",
    "fieldtype": "Check",
    "label": "Enable Public Profiles"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_bonuses",
+   "fieldtype": "Section Break",
+   "label": "Bonuses"
+  },
+  {
+   "default": "5",
+   "fieldname": "signup_bonus_amount",
+   "fieldtype": "Currency",
+   "label": "Sign-up Bonus (USD)"
+  },
+  {
+   "fieldname": "column_break_bonuses",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "5",
+   "fieldname": "verification_bonus_amount",
+   "fieldtype": "Currency",
+   "label": "Verification Bonus (USD)"
+  },
+  {
+   "default": "5",
+   "description": "Fallback platform commission % used where no more specific slab/fee applies (e.g. mentorship session fees).",
+   "fieldname": "default_platform_fee_percent",
+   "fieldtype": "Percent",
+   "label": "Default Platform Fee %"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_support",
+   "fieldtype": "Section Break",
+   "label": "Support Contacts"
+  },
+  {
+   "default": "15550100",
+   "description": "E.164 format, digits only, no + or spaces. Placeholder until a real support line is provided.",
+   "fieldname": "whatsapp_support_number",
+   "fieldtype": "Data",
+   "label": "WhatsApp Support Number"
+  },
+  {
+   "default": "support@worcent.test",
+   "fieldname": "support_email",
+   "fieldtype": "Data",
+   "label": "Support Email"
   }
  ],
  "issingle": 1,

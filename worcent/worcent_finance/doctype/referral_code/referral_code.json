@@ -1,0 +1,148 @@
+{
+ "actions": [],
+ "autoname": "field:code",
+ "creation": "2026-08-25 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "code",
+  "owner_user",
+  "column_break_head",
+  "status",
+  "section_break_1",
+  "signup_bonus_referred",
+  "column_break_bonus",
+  "commission_percent_referrer",
+  "section_break_stats",
+  "total_signups",
+  "column_break_stats",
+  "total_commission_earned"
+ ],
+ "fields": [
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Referral Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "owner_user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Owner (Referral Agent)",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Active\nDisabled"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Reward Structure"
+  },
+  {
+   "default": "5",
+   "description": "One-time wallet bonus credited to whoever signs up with this code.",
+   "fieldname": "signup_bonus_referred",
+   "fieldtype": "Currency",
+   "label": "Sign-up Bonus for Referred User (USD)"
+  },
+  {
+   "fieldname": "column_break_bonus",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "% of what the PLATFORM earns (not the transaction value) from the referred user's first commission/fee-generating transaction, credited to the referrer.",
+   "fieldname": "commission_percent_referrer",
+   "fieldtype": "Percent",
+   "label": "Referrer Commission % (of platform earning)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_stats",
+   "fieldtype": "Section Break",
+   "label": "Statistics"
+  },
+  {
+   "fieldname": "total_signups",
+   "fieldtype": "Int",
+   "label": "Total Signups",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_stats",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_commission_earned",
+   "fieldtype": "Currency",
+   "label": "Total Commission Earned",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Finance",
+ "name": "Referral Code",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Finance Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Referral Agent"
+  },
+  {
+   "read": 1,
+   "role": "Freelancer"
+  },
+  {
+   "read": 1,
+   "role": "Employer"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -31,15 +31,17 @@
  "show_attachments": 0,
  "show_list": 0,
  "show_sidebar": 1,
- "success_message": "Thanks! Your freelancer profile is under review — we'll notify you once it's approved.",
- "success_url": "/freelancer-register",
+ "success_message": "Thanks! Your freelancer profile is live. Welcome to Worcent.",
+ "success_url": "/desk/my-freelance",
  "title": "Become a Freelancer",
  "web_form_fields": [
   {"fieldname": "headline", "fieldtype": "Data", "label": "Headline", "reqd": 1},
   {"fieldname": "hourly_rate", "fieldtype": "Currency", "label": "Hourly Rate", "reqd": 1},
   {"fieldname": "availability", "fieldtype": "Select", "label": "Availability", "options": "Full Time\nPart Time\nNot Available"},
+  {"fieldname": "country", "fieldtype": "Link", "label": "Country", "options": "Country"},
   {"fieldname": "bio", "fieldtype": "Text Editor", "label": "About Me"},
   {"fieldname": "profile_photo", "fieldtype": "Attach Image", "label": "Profile Photo"},
-  {"fieldname": "languages", "fieldtype": "Small Text", "label": "Languages"}
+  {"fieldname": "languages", "fieldtype": "Small Text", "label": "Languages"},
+  {"fieldname": "referred_by_code", "fieldtype": "Link", "label": "Referral Code", "options": "Referral Code", "reqd": 0}
  ]
 }

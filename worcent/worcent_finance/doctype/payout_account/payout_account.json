@@ -1,0 +1,227 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-08-25 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "party_type",
+  "party",
+  "account_type",
+  "is_default",
+  "column_break_1",
+  "currency",
+  "status",
+  "section_break_bank",
+  "account_holder_name",
+  "bank_name",
+  "account_number",
+  "iban",
+  "swift_bic",
+  "column_break_bank",
+  "branch_name",
+  "branch_address",
+  "bank_country",
+  "section_break_other",
+  "paypal_email",
+  "other_method_label",
+  "other_method_details"
+ ],
+ "fields": [
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Party Type",
+   "options": "Freelancer Profile\nEmployer Profile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Party",
+   "options": "party_type",
+   "reqd": 1
+  },
+  {
+   "default": "Bank Transfer",
+   "fieldname": "account_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Payout Method",
+   "options": "Bank Transfer\nPayPal\nOther",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Default Payout Account"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Payout Currency",
+   "options": "Currency"
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Active\nDisabled"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "section_break_bank",
+   "fieldtype": "Section Break",
+   "label": "Bank Details"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "account_holder_name",
+   "fieldtype": "Data",
+   "label": "Account Holder Name"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "bank_name",
+   "fieldtype": "Data",
+   "label": "Bank Name"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "account_number",
+   "fieldtype": "Data",
+   "label": "Account Number"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "iban",
+   "fieldtype": "Data",
+   "label": "IBAN"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "swift_bic",
+   "fieldtype": "Data",
+   "label": "SWIFT / BIC Code"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "column_break_bank",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "branch_name",
+   "fieldtype": "Data",
+   "label": "Branch Name"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "branch_address",
+   "fieldtype": "Small Text",
+   "label": "Branch Address"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Bank Transfer'",
+   "fieldname": "bank_country",
+   "fieldtype": "Link",
+   "label": "Bank Country",
+   "options": "Country"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.account_type!='Bank Transfer'",
+   "fieldname": "section_break_other",
+   "fieldtype": "Section Break",
+   "label": "Other Details"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='PayPal'",
+   "fieldname": "paypal_email",
+   "fieldtype": "Data",
+   "label": "PayPal Email"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Other'",
+   "fieldname": "other_method_label",
+   "fieldtype": "Data",
+   "label": "Method Name"
+  },
+  {
+   "depends_on": "eval:doc.account_type=='Other'",
+   "fieldname": "other_method_details",
+   "fieldtype": "Small Text",
+   "label": "Details"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Finance",
+ "name": "Payout Account",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Finance Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Accounts Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Freelancer",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Employer",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

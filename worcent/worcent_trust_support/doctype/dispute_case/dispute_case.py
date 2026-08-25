@@ -4,6 +4,9 @@ from frappe.model.document import Document
 from frappe.model.naming import set_name_by_naming_series
 from frappe.utils import add_days, today
 
+ARBITRATION_ROLES = {"Dispute Arbitrator", "Worcent Admin", "System Manager", "Finance Manager"}
+RESOLUTION_STATUSES = ("Resolved-Freelancer", "Resolved-Employer", "Resolved-Split")
+
 
 class DisputeCase(Document):
 	def autoname(self):
@@ -23,8 +26,25 @@ class DisputeCase(Document):
 			return
 		if self.status == "Open":
 			self.mark_contract_disputed()
-		elif self.status in ("Resolved-Freelancer", "Resolved-Employer", "Resolved-Split"):
+		elif self.status in RESOLUTION_STATUSES:
 			self.resolve()
+
+	@frappe.whitelist()
+	def resolve_case(self, resolution, split_freelancer_percent=None, resolution_notes=None):
+		if resolution not in RESOLUTION_STATUSES:
+			frappe.throw(_("Invalid resolution."))
+		if not ARBITRATION_ROLES.intersection(frappe.get_roles()):
+			frappe.throw(_("Only a Dispute Arbitrator or Admin/Finance can resolve a dispute."))
+		if self.status in RESOLUTION_STATUSES:
+			frappe.throw(_("This dispute is already resolved."))
+
+		self.status = resolution
+		if resolution_notes:
+			self.resolution_notes = resolution_notes
+		if resolution == "Resolved-Split":
+			self.split_freelancer_percent = split_freelancer_percent
+		self.save(ignore_permissions=True)
+		return self.status
 
 	def mark_contract_disputed(self):
 		frappe.db.set_value("Contract", self.contract, "status", "Disputed")

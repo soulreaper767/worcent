@@ -5,76 +5,72 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "mentor_program",
-  "mentee",
-  "status",
+  "referral_code",
+  "referred_type",
+  "referred_profile",
   "column_break_1",
-  "fee_charged",
-  "payment_status",
-  "section_break_1",
-  "session_notes"
+  "status",
+  "signup_bonus_paid",
+  "commission_paid"
  ],
  "fields": [
   {
-   "fieldname": "mentor_program",
+   "fieldname": "referral_code",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Mentor",
-   "options": "Mentor Program",
+   "label": "Referral Code",
+   "options": "Referral Code",
    "reqd": 1
   },
   {
-   "fieldname": "mentee",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Mentee",
-   "options": "Freelancer Profile",
-   "reqd": 1
-  },
-  {
-   "default": "Requested",
-   "fieldname": "status",
+   "fieldname": "referred_type",
    "fieldtype": "Select",
+   "label": "Referred Type",
+   "options": "Freelancer Profile\nEmployer Profile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "referred_profile",
+   "fieldtype": "Dynamic Link",
    "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Status",
-   "options": "Requested\nAccepted\nRejected\nCompleted"
+   "label": "Referred Profile",
+   "options": "referred_type",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_1",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "fee_charged",
-   "fieldtype": "Currency",
-   "label": "Fee Charged (USD)",
-   "read_only": 1
-  },
-  {
-   "default": "Not Applicable",
-   "fieldname": "payment_status",
+   "default": "Signed Up",
+   "fieldname": "status",
    "fieldtype": "Select",
-   "label": "Payment Status",
-   "options": "Not Applicable\nPending\nPaid",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Signed Up\nRewarded"
+  },
+  {
+   "default": "0",
+   "fieldname": "signup_bonus_paid",
+   "fieldtype": "Currency",
+   "label": "Sign-up Bonus Paid (to referred user)",
    "read_only": 1
   },
   {
-   "fieldname": "section_break_1",
-   "fieldtype": "Section Break",
-   "label": "Session"
-  },
-  {
-   "fieldname": "session_notes",
-   "fieldtype": "Text Editor",
-   "label": "Session Notes"
+   "default": "0",
+   "fieldname": "commission_paid",
+   "fieldtype": "Currency",
+   "label": "Commission Paid (to referrer)",
+   "read_only": 1
   }
  ],
  "links": [],
  "modified": "2026-08-25 00:00:00.000000",
  "modified_by": "Administrator",
- "module": "Worcent Trust Support",
- "name": "Mentorship Request",
+ "module": "Worcent Finance",
+ "name": "Referral",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
@@ -97,10 +93,8 @@
    "write": 1
   },
   {
-   "create": 1,
    "read": 1,
-   "role": "Freelancer",
-   "write": 1
+   "role": "Referral Agent"
   }
  ],
  "sort_field": "creation",

@@ -3,6 +3,12 @@
    variables so it stays coherent with light/dark themes.
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body.web-page, .wc-home, .wc-section, .navbar, .web-footer {
+	font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 :root {
 	--wc-primary: #14805e;
 	--wc-primary-dark: #0f6249;
@@ -159,4 +165,105 @@
 	.wc-hero-inner h1 { font-size: 28px; }
 	.wc-section { padding: var(--wc-space-4) var(--wc-space-3); }
 	.wc-profile-header { flex-direction: column; align-items: flex-start; }
+}
+
+/* ==========================================================================
+   Navbar — overriding Frappe's default Bootstrap chrome for a proper
+   product-marketing look: sticky, blurred on scroll, custom brand mark.
+   ========================================================================== */
+.navbar { background: #fff !important; border-bottom: 1px solid var(--wc-border); padding: 14px 0; position: sticky; top: 0; z-index: 999; transition: box-shadow 0.2s ease, background 0.2s ease; }
+.navbar.wc-navbar-scrolled { box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: rgba(255,255,255,0.92) !important; backdrop-filter: saturate(180%) blur(8px); }
+.navbar-brand { display: flex; align-items: center; }
+.wc-brand-mark { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 19px; color: var(--gray-900, #111827); }
+.wc-brand-mark svg { flex: none; }
+.navbar .nav-link { color: var(--gray-700, #374151) !important; font-weight: 600; font-size: 14.5px; position: relative; padding: 8px 14px !important; }
+.navbar .nav-link::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 2px; height: 2px; background: var(--wc-primary); transform: scaleX(0); transform-origin: left; transition: transform 0.18s ease; }
+.navbar .nav-link:hover::after { transform: scaleX(1); }
+.navbar .nav-link:hover { color: var(--wc-primary) !important; }
+.wc-nav-cta { display: flex; align-items: center; margin-left: 8px; }
+.wc-btn-sm { padding: 8px 18px; font-size: 13.5px; }
+
+.wc-nav-dropdown { position: relative; }
+.wc-nav-dropdown-toggle { display: flex; align-items: center; gap: 5px; }
+.wc-caret { transition: transform 0.15s ease; opacity: 0.6; }
+.wc-nav-dropdown:hover .wc-caret { transform: rotate(180deg); }
+.wc-nav-dropdown-menu { position: absolute; top: 100%; left: 0; min-width: 260px; background: #fff; border: 1px solid var(--wc-border); border-radius: var(--wc-radius); box-shadow: var(--wc-shadow-lg); padding: 8px; opacity: 0; visibility: hidden; transform: translateY(6px); transition: all 0.16s ease; z-index: 1000; }
+.wc-nav-dropdown-menu-right { left: auto; right: 0; }
+.wc-nav-dropdown:hover .wc-nav-dropdown-menu, .wc-nav-dropdown.wc-open .wc-nav-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.wc-nav-dropdown-menu a { display: flex; flex-direction: column; gap: 1px; padding: 10px 12px; border-radius: var(--wc-radius-sm); text-decoration: none; }
+.wc-nav-dropdown-menu a:hover { background: var(--gray-50, #f9fafb); text-decoration: none; }
+.wc-nav-dropdown-menu a strong { color: var(--gray-900, #111827); font-size: 14px; }
+.wc-nav-dropdown-menu a span { color: var(--wc-text-muted); font-size: 12.5px; }
+.wc-nav-avatar { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--wc-primary); color: #fff; font-weight: 700; font-size: 13px; }
+
+/* Reveal-on-scroll */
+.wc-reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.wc-reveal.wc-visible { opacity: 1; transform: translateY(0); }
+
+/* Floating decorative shapes in hero */
+.wc-hero { position: relative; overflow: hidden; }
+.wc-hero-shape { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.08); pointer-events: none; }
+.wc-hero-shape-1 { width: 220px; height: 220px; top: -60px; left: -60px; animation: wc-float 7s ease-in-out infinite; }
+.wc-hero-shape-2 { width: 160px; height: 160px; bottom: -50px; right: 8%; animation: wc-float 9s ease-in-out infinite reverse; }
+.wc-hero-shape-3 { width: 90px; height: 90px; top: 20%; right: 18%; background: rgba(245,158,11,0.18); animation: wc-float 6s ease-in-out infinite; }
+@keyframes wc-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+
+/* Stats strip */
+.wc-stats-strip { max-width: none; background: var(--gray-900, #111827); padding: var(--wc-space-4); }
+.wc-stats-grid { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--wc-space-3); text-align: center; }
+.wc-stat-num { font-size: 30px; font-weight: 800; color: #fff; }
+.wc-stat-label { color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 2px; }
+
+/* How it works */
+.wc-steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--wc-space-4); }
+.wc-step-card { text-align: center; padding: var(--wc-space-4) var(--wc-space-3); border-radius: var(--wc-radius); background: var(--wc-surface); border: 1px solid var(--wc-border); transition: all 0.2s ease; }
+.wc-step-card:hover { transform: translateY(-4px); box-shadow: var(--wc-shadow-lg); }
+.wc-step-num { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--wc-primary); color: #fff; font-weight: 800; margin-bottom: var(--wc-space-2); }
+.wc-step-card h3 { font-size: 17px; margin-bottom: 6px; }
+.wc-step-card p { color: var(--wc-text-muted); font-size: 14px; margin: 0; }
+
+/* Why Worcent cards */
+.wc-why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--wc-space-3); }
+.wc-why-card { padding: var(--wc-space-3); border-radius: var(--wc-radius); border: 1px solid var(--wc-border); background: var(--wc-surface); transition: all 0.2s ease; }
+.wc-why-card:hover { border-color: var(--wc-primary); box-shadow: var(--wc-shadow-lg); transform: translateY(-3px); }
+.wc-why-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(20,128,94,0.1); color: var(--wc-primary); display: flex; align-items: center; justify-content: center; margin-bottom: var(--wc-space-2); }
+.wc-why-card h3 { font-size: 15.5px; margin-bottom: 4px; }
+.wc-why-card p { color: var(--wc-text-muted); font-size: 13.5px; margin: 0; }
+
+@media (max-width: 900px) {
+	.wc-steps-grid, .wc-why-grid { grid-template-columns: 1fr; }
+	.wc-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.wc-footer { background: var(--gray-900, #0f172a); color: rgba(255,255,255,0.75); padding-top: var(--wc-space-5); }
+.wc-footer-main { max-width: 1280px; margin: 0 auto; padding: 0 var(--wc-space-4) var(--wc-space-4); display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: var(--wc-space-4); }
+.wc-footer-brand-col .wc-brand-mark { color: #fff; }
+.wc-footer-tagline { color: rgba(255,255,255,0.55); font-size: 13.5px; margin: 12px 0 16px; max-width: 320px; }
+.wc-footer-social { display: flex; gap: 10px; }
+.wc-footer-social a { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: #fff; transition: background 0.15s ease; }
+.wc-footer-social a:hover { background: var(--wc-primary); }
+.wc-footer-col h4 { color: #fff; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 14px; }
+.wc-footer-col a { display: block; color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 10px; text-decoration: none; transition: color 0.15s ease; }
+.wc-footer-col a:hover { color: #fff; text-decoration: none; }
+.wc-footer .footer-info { border-top: 1px solid rgba(255,255,255,0.1); padding: var(--wc-space-3) 0; color: rgba(255,255,255,0.45); font-size: 13px; }
+.wc-footer .footer-powered a, .wc-footer .footer-info a { color: rgba(255,255,255,0.65); }
+@media (max-width: 900px) {
+	.wc-footer-main { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+	.wc-footer-main { grid-template-columns: 1fr; }
+}
+
+/* Floating action buttons */
+.wc-whatsapp-float { position: fixed; right: 24px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%; background: #25d366; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.4); z-index: 998; transition: transform 0.15s ease; }
+.wc-whatsapp-float:hover { transform: scale(1.08); color: #fff; }
+.wc-back-to-top { position: fixed; right: 24px; bottom: 92px; width: 44px; height: 44px; border-radius: 50%; background: var(--gray-900, #111827); color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--wc-shadow-lg); z-index: 998; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; }
+.wc-back-to-top.wc-visible { opacity: 1; visibility: visible; transform: translateY(0); }
+.wc-back-to-top:hover { background: var(--wc-primary); }
+@media (max-width: 500px) {
+	.wc-whatsapp-float { right: 16px; bottom: 16px; width: 50px; height: 50px; }
+	.wc-back-to-top { right: 16px; bottom: 78px; width: 40px; height: 40px; }
 }

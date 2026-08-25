@@ -22,23 +22,77 @@ def _wallet_txn(wallet_name, transaction_type, direction, amount, balance_after,
 	).insert(ignore_permissions=True)
 
 
+def _record_earning(earning_type, amount, party_type=None, party=None, reference_doctype=None, reference_name=None, remarks=None):
+	if not amount:
+		return None
+	earning = frappe.get_doc(
+		{
+			"doctype": "Platform Earning",
+			"earning_type": earning_type,
+			"amount": amount,
+			"party_type": party_type,
+			"party": party,
+			"reference_doctype": reference_doctype,
+			"reference_name": reference_name,
+			"remarks": remarks,
+		}
+	)
+	earning.insert(ignore_permissions=True)
+	return earning
+
+
+def _recompute_completion(contract_name):
+	totals = frappe.db.sql(
+		"""select
+			coalesce(sum(amount), 0) as total,
+			coalesce(sum(case when status = 'Released' then amount else 0 end), 0) as released
+		from `tabMilestone` where contract = %s""",
+		contract_name,
+		as_dict=True,
+	)[0]
+	percent = (flt(totals.released) / flt(totals.total) * 100) if totals.total else 0
+	frappe.db.set_value("Contract", contract_name, "completion_percent", round(percent, 2))
+
+
 def fund_milestone(milestone_name):
-	"""Employer funds a milestone: debit their wallet, hold amount in escrow."""
+	"""Employer funds a milestone: they pay the milestone amount *plus* the
+	platform's marketplace fee on top (charged and recognised as platform
+	earning immediately — it isn't held in escrow and isn't refundable, same
+	as a real payment-processing/service fee). Only the milestone amount
+	itself goes into escrow, refundable to the employer if a dispute
+	resolves in their favour."""
 	milestone = frappe.get_doc("Milestone", milestone_name)
 	contract = frappe.get_doc("Contract", milestone.contract)
 
-	employer_wallet = frappe.get_doc("Wallet", ensure_wallet("Employer Profile", contract.employer))
-	if flt(employer_wallet.balance) < flt(milestone.amount):
-		frappe.throw(_("Insufficient wallet balance to fund this milestone. Top up your wallet first."))
+	employer_rate = get_employer_fee_rate(contract.employer)
+	fee_amount = flt(milestone.amount) * employer_rate / 100
+	total_charge = flt(milestone.amount) + fee_amount
 
-	employer_wallet.balance = flt(employer_wallet.balance) - flt(milestone.amount)
+	employer_wallet = frappe.get_doc("Wallet", ensure_wallet("Employer Profile", contract.employer))
+	if flt(employer_wallet.balance) < total_charge:
+		frappe.throw(
+			_("Insufficient wallet balance. This milestone needs {0} (includes a {1}% platform fee). Top up your wallet first.").format(
+				frappe.utils.fmt_money(total_charge, currency="USD"), employer_rate
+			)
+		)
+
+	employer_wallet.balance = flt(employer_wallet.balance) - total_charge
 	employer_wallet.held_in_escrow = flt(employer_wallet.held_in_escrow) + flt(milestone.amount)
 	employer_wallet.save(ignore_permissions=True)
 
 	_wallet_txn(
-		employer_wallet.name, "Escrow Fund", "Debit", milestone.amount, employer_wallet.balance,
-		"Milestone", milestone.name,
+		employer_wallet.name, "Escrow Fund", "Debit", milestone.amount, flt(employer_wallet.balance) + fee_amount,
+		"Milestone", milestone.name, remarks="Milestone amount moved to escrow",
 	)
+	if fee_amount:
+		_wallet_txn(
+			employer_wallet.name, "Platform Fee", "Debit", fee_amount, employer_wallet.balance,
+			"Milestone", milestone.name, remarks=f"Platform fee ({employer_rate}%)",
+		)
+		_record_earning(
+			"Employer Fee", fee_amount, "Employer Profile", contract.employer,
+			"Milestone", milestone.name, f"{employer_rate}% marketplace fee on milestone funding",
+		)
 
 	escrow = frappe.get_doc(
 		{"doctype": "Escrow Transaction", "milestone": milestone.name, "amount": milestone.amount, "status": "Held"}
@@ -50,8 +104,9 @@ def fund_milestone(milestone_name):
 
 
 def release_milestone(milestone_name):
-	"""Client approves (or auto-release fires): pay freelancer net of
-	commission, deduct employer marketplace fee, close out escrow."""
+	"""Client approves (or auto-release fires): pay freelancer net of their
+	commission, close out escrow, record the platform's commission earning
+	and (if applicable) pay the referrer their cut of that earning."""
 	milestone = frappe.get_doc("Milestone", milestone_name)
 	contract = frappe.get_doc("Contract", milestone.contract)
 	escrow = frappe.get_doc("Escrow Transaction", {"milestone": milestone.name, "status": "Held"})
@@ -61,9 +116,7 @@ def release_milestone(milestone_name):
 	employer_wallet.save(ignore_permissions=True)
 
 	freelancer_rate = get_freelancer_commission_rate(contract.freelancer, contract.employer)
-	employer_rate = get_employer_fee_rate(contract.employer)
 	commission_amount = flt(milestone.amount) * freelancer_rate / 100
-	employer_fee_amount = flt(milestone.amount) * employer_rate / 100
 	net_amount = flt(milestone.amount) - commission_amount
 
 	freelancer_wallet = frappe.get_doc("Wallet", ensure_wallet("Freelancer Profile", contract.freelancer))
@@ -73,6 +126,10 @@ def release_milestone(milestone_name):
 	_wallet_txn(
 		freelancer_wallet.name, "Milestone Release", "Credit", net_amount, freelancer_wallet.balance,
 		"Milestone", milestone.name, remarks=f"Commission {freelancer_rate}% deducted",
+	)
+	earning = _record_earning(
+		"Freelancer Commission", commission_amount, "Freelancer Profile", contract.freelancer,
+		"Milestone", milestone.name, f"{freelancer_rate}% commission on milestone release",
 	)
 
 	escrow.status = "Released"
@@ -92,17 +149,20 @@ def release_milestone(milestone_name):
 		flt(frappe.db.get_value("Employer Profile", contract.employer, "total_spent")) + flt(milestone.amount),
 	)
 
-	return {
-		"freelancer_rate": freelancer_rate,
-		"employer_rate": employer_rate,
-		"commission_amount": commission_amount,
-		"employer_fee_amount": employer_fee_amount,
-		"net_amount": net_amount,
-	}
+	if earning:
+		from worcent.worcent_finance.referral_engine import maybe_pay_referrer_commission
+
+		maybe_pay_referrer_commission("Freelancer Profile", contract.freelancer, earning.amount)
+
+	_recompute_completion(contract.name)
+
+	return {"freelancer_rate": freelancer_rate, "commission_amount": commission_amount, "net_amount": net_amount}
 
 
 def refund_milestone(milestone_name):
-	"""Full refund to employer (e.g. dispute resolved in employer's favour)."""
+	"""Refund the escrowed milestone amount to the employer (e.g. dispute
+	resolved in their favour). The platform fee charged at funding time is
+	NOT refunded — same as a real payment-processing fee."""
 	milestone = frappe.get_doc("Milestone", milestone_name)
 	contract = frappe.get_doc("Contract", milestone.contract)
 	escrow = frappe.get_doc("Escrow Transaction", {"milestone": milestone.name, "status": "Held"})
@@ -114,7 +174,7 @@ def refund_milestone(milestone_name):
 
 	_wallet_txn(
 		employer_wallet.name, "Escrow Refund", "Credit", milestone.amount, employer_wallet.balance,
-		"Milestone", milestone.name, remarks="Dispute resolved in employer's favour",
+		"Milestone", milestone.name, remarks="Dispute resolved in employer's favour (platform fee not refunded)",
 	)
 
 	escrow.status = "Refunded"
@@ -122,11 +182,13 @@ def refund_milestone(milestone_name):
 	escrow.save(ignore_permissions=True)
 	milestone.db_set("status", "Pending")
 
+	_recompute_completion(contract.name)
+
 
 def split_milestone(milestone_name, freelancer_percent, remarks=None):
 	"""Partial release for a split dispute resolution: freelancer_percent% of
-	the milestone (net of commission) to the freelancer, the rest refunded
-	to the employer."""
+	the escrowed milestone amount (net of commission) to the freelancer, the
+	rest refunded to the employer. Platform fee from funding is unaffected."""
 	milestone = frappe.get_doc("Milestone", milestone_name)
 	contract = frappe.get_doc("Contract", milestone.contract)
 	escrow = frappe.get_doc("Escrow Transaction", {"milestone": milestone.name, "status": "Held"})
@@ -146,7 +208,8 @@ def split_milestone(milestone_name, freelancer_percent, remarks=None):
 
 	if freelancer_amount:
 		rate = get_freelancer_commission_rate(contract.freelancer, contract.employer)
-		net = freelancer_amount - (freelancer_amount * rate / 100)
+		commission = freelancer_amount * rate / 100
+		net = freelancer_amount - commission
 		freelancer_wallet = frappe.get_doc("Wallet", ensure_wallet("Freelancer Profile", contract.freelancer))
 		freelancer_wallet.balance = flt(freelancer_wallet.balance) + net
 		freelancer_wallet.save(ignore_permissions=True)
@@ -154,12 +217,18 @@ def split_milestone(milestone_name, freelancer_percent, remarks=None):
 			freelancer_wallet.name, "Milestone Release", "Credit", net, freelancer_wallet.balance,
 			"Milestone", milestone.name, remarks=remarks or "Dispute split resolution",
 		)
+		_record_earning(
+			"Freelancer Commission", commission, "Freelancer Profile", contract.freelancer,
+			"Milestone", milestone.name, f"{rate}% commission on split-resolved milestone",
+		)
 
 	escrow.status = "Released"
 	escrow.released_on = now_datetime()
 	escrow.save(ignore_permissions=True)
 	milestone.db_set("status", "Released")
 	milestone.db_set("released_on", now_datetime())
+
+	_recompute_completion(contract.name)
 
 
 def auto_release_overdue_milestones():

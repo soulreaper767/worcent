@@ -6,6 +6,9 @@
 <div class="wc-home">
 
 	<section class="wc-hero">
+		<div class="wc-hero-shape wc-hero-shape-1"></div>
+		<div class="wc-hero-shape wc-hero-shape-2"></div>
+		<div class="wc-hero-shape wc-hero-shape-3"></div>
 		<div class="wc-hero-inner">
 			<h1>{{ _("Find the right freelancer. Get paid for great work.") }}</h1>
 			<p>{{ _("Jobs, gigs, secure escrow payments and verified profiles — all in one freelance marketplace.") }}</p>
@@ -16,8 +19,38 @@
 		</div>
 	</section>
 
+	<section class="wc-stats-strip">
+		<div class="wc-stats-grid">
+			<div class="wc-reveal"><div class="wc-stat-num">{{ stats.freelancers }}+</div><div class="wc-stat-label">{{ _("Freelancers") }}</div></div>
+			<div class="wc-reveal"><div class="wc-stat-num">{{ stats.employers }}+</div><div class="wc-stat-label">{{ _("Employers") }}</div></div>
+			<div class="wc-reveal"><div class="wc-stat-num">{{ stats.jobs_posted }}+</div><div class="wc-stat-label">{{ _("Jobs Posted") }}</div></div>
+			<div class="wc-reveal"><div class="wc-stat-num">{{ stats.countries }}+</div><div class="wc-stat-label">{{ _("Countries") }}</div></div>
+		</div>
+	</section>
+
+	<section class="wc-section wc-reveal">
+		<h2 class="wc-section-title">{{ _("How Worcent Works") }}</h2>
+		<div class="wc-steps-grid">
+			<div class="wc-step-card">
+				<div class="wc-step-num">1</div>
+				<h3>{{ _("Post or Browse") }}</h3>
+				<p>{{ _("Employers post a job or gig. Freelancers browse and send proposals.") }}</p>
+			</div>
+			<div class="wc-step-card">
+				<div class="wc-step-num">2</div>
+				<h3>{{ _("Work with Escrow") }}</h3>
+				<p>{{ _("Milestones are funded up front and held securely until work is approved.") }}</p>
+			</div>
+			<div class="wc-step-card">
+				<div class="wc-step-num">3</div>
+				<h3>{{ _("Get Paid") }}</h3>
+				<p>{{ _("Approved milestones release straight to the freelancer's wallet for withdrawal.") }}</p>
+			</div>
+		</div>
+	</section>
+
 	{% if categories %}
-	<section class="wc-section">
+	<section class="wc-section wc-section-muted wc-reveal">
 		<h2 class="wc-section-title">{{ _("Popular Categories") }}</h2>
 		<div class="wc-category-grid">
 			{% for cat in categories %}
@@ -31,7 +64,7 @@
 	{% endif %}
 
 	{% if featured_freelancers %}
-	<section class="wc-section wc-section-muted">
+	<section class="wc-section wc-reveal">
 		<h2 class="wc-section-title">{{ _("Top Freelancers") }}</h2>
 		<div class="wc-grid">
 			{% for f in featured_freelancers %}
@@ -61,7 +94,7 @@
 	{% endif %}
 
 	{% if gurus %}
-	<section class="wc-section">
+	<section class="wc-section wc-reveal">
 		<h2 class="wc-section-title">{{ _("Industry Gurus") }}</h2>
 		<div class="wc-grid">
 			{% for g in gurus %}
@@ -82,7 +115,7 @@
 	{% endif %}
 
 	{% if open_jobs %}
-	<section class="wc-section wc-section-muted">
+	<section class="wc-section wc-section-muted wc-reveal">
 		<div class="wc-section-header">
 			<h2 class="wc-section-title">{{ _("Latest Jobs") }}</h2>
 			<a class="wc-see-all" href="/jobs">{{ _("See all") }} &rarr;</a>
@@ -104,14 +137,35 @@
 	</section>
 	{% endif %}
 
+	<section class="wc-section wc-reveal">
+		<h2 class="wc-section-title">{{ _("Why Worcent") }}</h2>
+		<div class="wc-why-grid">
+			<div class="wc-why-card">
+				<div class="wc-why-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+				<h3>{{ _("Secure Escrow") }}</h3>
+				<p>{{ _("Funds are held safely and only released when work is approved.") }}</p>
+			</div>
+			<div class="wc-why-card">
+				<div class="wc-why-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+				<h3>{{ _("Verified Profiles") }}</h3>
+				<p>{{ _("ID and business verification with a visible green tick you can trust.") }}</p>
+			</div>
+			<div class="wc-why-card">
+				<div class="wc-why-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+				<h3>{{ _("Fair Commissions") }}</h3>
+				<p>{{ _("Transparent, tiered fees that reward long-term working relationships.") }}</p>
+			</div>
+		</div>
+	</section>
+
 	<section class="wc-section wc-cta-banner">
 		<div>
 			<h2>{{ _("Ready to get started?") }}</h2>
 			<p>{{ _("Join as a freelancer or post your first job in minutes.") }}</p>
 		</div>
 		<div style="display:flex; gap: 12px;">
-			<a class="wc-btn wc-btn-primary" href="/freelancer-register">{{ _("Become a Freelancer") }}</a>
-			<a class="wc-btn wc-btn-outline" style="background:#fff;" href="/employer-register">{{ _("Post a Job") }}</a>
+			<a class="wc-btn wc-btn-primary" href="/join?type=freelancer">{{ _("Become a Freelancer") }}</a>
+			<a class="wc-btn wc-btn-outline" style="background:#fff;" href="/join?type=employer">{{ _("Post a Job") }}</a>
 		</div>
 	</section>
 

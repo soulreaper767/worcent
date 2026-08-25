@@ -6,6 +6,7 @@ DEMO_PASSWORD = "Test@12345"
 ALL_WORCENT_ROLES = [
 	"Worcent Admin", "Freelancer", "Employer", "Office Manager", "Franchise Owner",
 	"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager", "Agency Manager",
+	"Accounts Manager", "Office Managing Partner",
 ]
 
 # Standard ERPNext/HRMS module workspaces that have nothing to do with a
@@ -21,7 +22,9 @@ _FINANCE_TIER = _ADMIN_TIER + ["Finance Manager"]
 # Office Manager / Field Rep / Franchise Owner are the roles backed by a real
 # HRMS Employee record, so HR self-service workspaces are actually relevant
 # to them (everyone else has no Employee record at all).
-_HR_SELF_SERVICE_TIER = _ADMIN_TIER + ["Office Manager", "Field Rep", "Franchise Owner"]
+_HR_SELF_SERVICE_TIER = _ADMIN_TIER + [
+	"Office Manager", "Field Rep", "Franchise Owner", "Accounts Manager", "Office Managing Partner",
+]
 
 # Remaining (non-hidden) workspaces, scoped to the roles that actually need
 # them via the Workspace's own "roles" table. Worcent's own workspaces are
@@ -30,11 +33,11 @@ WORKSPACE_ROLE_RESTRICTIONS = {
 	"Worcent Admin": _ADMIN_TIER,
 	"My Freelance": ["Freelancer"],
 	"My Business": ["Employer"],
-	"Office Ops": ["Field Rep", "Office Manager", "Franchise Owner", "Worcent Admin"],
+	"Office Ops": ["Field Rep", "Office Manager", "Franchise Owner", "Office Managing Partner", "Worcent Admin"],
 	"My Agency": ["Agency Manager"],
 	"Support Desk": ["Support Agent", "Worcent Admin"],
 	"Dispute Resolution": ["Dispute Arbitrator", "Worcent Admin"],
-	"Finance Ops": ["Finance Manager", "Worcent Admin"],
+	"Finance Ops": ["Finance Manager", "Accounts Manager", "Worcent Admin"],
 	"Leaves": _HR_SELF_SERVICE_TIER,
 	"Expenses": _HR_SELF_SERVICE_TIER,
 	"Shift & Attendance": _HR_SELF_SERVICE_TIER,
@@ -64,17 +67,24 @@ ROLE_HOME_PAGE = {
 	"Support Agent": "desk/support-desk",
 	"Dispute Arbitrator": "desk/dispute-resolution",
 	"Finance Manager": "desk/finance-ops",
+	"Accounts Manager": "desk/finance-ops",
+	"Office Managing Partner": "desk/office-ops",
 }
 
 
 def after_install():
 	configure_worcent_settings()
+	seed_letterhead()
 	seed_masters()
 	seed_company_and_users()
 	seed_agency_ecosystem()
 	seed_demo_marketplace_data()
 	seed_extra_marketplace_data()
 	seed_agency_separation_demo()
+	seed_finance_and_office_roles_demo()
+	seed_referral_demo()
+	seed_paid_mentorship_demo()
+	seed_currency_diverse_users()
 	configure_desk_experience()
 	frappe.db.set_value("Website Settings", "Website Settings", "home_page", "index")
 	frappe.db.commit()
@@ -84,20 +94,56 @@ def reseed_demo_data():
 	"""Callable directly (bench execute worcent.install.reseed_demo_data) to
 	top up demo data on an already-installed site without re-running the
 	whole after_install flow. Every step below is idempotent."""
+	seed_letterhead()
 	seed_masters()
 	seed_company_and_users()
 	seed_agency_ecosystem()
 	seed_demo_marketplace_data()
 	seed_extra_marketplace_data()
 	seed_agency_separation_demo()
+	seed_finance_and_office_roles_demo()
+	seed_referral_demo()
+	seed_paid_mentorship_demo()
+	seed_currency_diverse_users()
 	configure_desk_experience()
 	frappe.db.commit()
 
 
 def after_migrate():
 	configure_worcent_settings()
+	seed_letterhead()
+	seed_currencies()
 	configure_desk_experience()
 	frappe.db.commit()
+
+
+def seed_letterhead():
+	"""A4-sized placeholder letterhead — swap `content` for a real logo/address
+	once one is provided; everything referencing it (Print Settings default,
+	print formats) keeps working unchanged since only the content changes."""
+	if frappe.db.exists("Letter Head", "Worcent"):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Letter Head",
+			"letter_head_name": "Worcent",
+			"source": "HTML",
+			"is_default": 1,
+			"disabled": 0,
+			"content": (
+				'<div style="display:flex; align-items:center; justify-content:space-between; '
+				'border-bottom:2px solid #14805e; padding-bottom:10px;">'
+				'<div style="font-size:22px; font-weight:800; color:#14805e;">Worcent</div>'
+				'<div style="text-align:right; font-size:11px; color:#555;">'
+				"Worcent Technologies<br>support@worcent.test | worcent.local</div></div>"
+			),
+			"footer": (
+				'<div style="text-align:center; font-size:10px; color:#888; border-top:1px solid #ddd; '
+				'padding-top:6px;">Worcent — the freelance marketplace built on trust</div>'
+			),
+		}
+	).insert(ignore_permissions=True)
+	frappe.db.set_value("Print Settings", "Print Settings", "pdf_page_size", "A4")
 
 
 # ---------------------------------------------------------------------------
@@ -165,9 +211,19 @@ def configure_worcent_settings():
 	if not settings.dispute_response_days:
 		settings.dispute_response_days = 14
 	if not settings.min_withdrawal_amount:
-		settings.min_withdrawal_amount = 20
+		settings.min_withdrawal_amount = 100
 	if not settings.platform_currency:
 		settings.platform_currency = "USD"
+	if not settings.signup_bonus_amount:
+		settings.signup_bonus_amount = 5
+	if not settings.verification_bonus_amount:
+		settings.verification_bonus_amount = 5
+	if not settings.default_platform_fee_percent:
+		settings.default_platform_fee_percent = 5
+	if not settings.whatsapp_support_number:
+		settings.whatsapp_support_number = "15550100"
+	if not settings.support_email:
+		settings.support_email = "support@worcent.test"
 	settings.kyc_required_for_payout = 1
 	settings.enable_public_profiles = 1
 	settings.save(ignore_permissions=True)
@@ -187,6 +243,40 @@ def seed_masters():
 	seed_premium_plans()
 	seed_ticket_categories()
 	seed_badges()
+	seed_currencies()
+
+
+def seed_currencies():
+	from worcent.worcent_finance.currency_utils import BASE_CURRENCY
+
+	for code in ["USD", "PKR", "EUR", "GBP", "AED", "SAR"]:
+		if frappe.db.exists("Currency", code):
+			frappe.db.set_value("Currency", code, "enabled", 1)
+
+	# Approximate reference rates so wallet display-currency conversion has
+	# something sane to work with; a real integration can overwrite these.
+	rates = {"PKR": 278, "EUR": 0.92, "GBP": 0.79, "AED": 3.67, "SAR": 3.75}
+	for code, rate in rates.items():
+		if not frappe.db.exists("Currency Exchange", {"from_currency": BASE_CURRENCY, "to_currency": code}):
+			frappe.get_doc(
+				{
+					"doctype": "Currency Exchange",
+					"date": today(),
+					"from_currency": BASE_CURRENCY,
+					"to_currency": code,
+					"exchange_rate": rate,
+				}
+			).insert(ignore_permissions=True)
+		if not frappe.db.exists("Currency Exchange", {"from_currency": code, "to_currency": BASE_CURRENCY}):
+			frappe.get_doc(
+				{
+					"doctype": "Currency Exchange",
+					"date": today(),
+					"from_currency": code,
+					"to_currency": BASE_CURRENCY,
+					"exchange_rate": round(1 / rate, 6),
+				}
+			).insert(ignore_permissions=True)
 
 	settings = frappe.get_single("Worcent Settings")
 	if not settings.default_employer_plan:
@@ -395,6 +485,109 @@ def seed_company_and_users():
 	frappe.db.commit()
 
 
+def seed_finance_and_office_roles_demo():
+	accounts_manager_user = create_user("accountsmanager1.demo@worcent.test", "Amina Accounts", ["Accounts Manager"])
+	ensure_employee(accounts_manager_user, "Amina", "Finance")
+
+	managing_partner_user = create_user("managingpartner1.demo@worcent.test", "Majid Partner", ["Office Managing Partner"])
+	ensure_employee(managing_partner_user, "Majid", "Field Operations")
+	frappe.db.commit()
+
+
+def seed_referral_demo():
+	"""One referral code owned by an existing demo freelancer, and one new
+	freelancer who signs up using it — demonstrates the referral capture
+	flow end to end (signup bonus + Referral row). Commission payout itself
+	only fires once the referred user generates a real Platform Earning via
+	a released milestone, which is exercised separately in the escrow tests."""
+	referrer = frappe.db.get_value("Freelancer Profile", {"user": "freelancer2.demo@worcent.test"}, "name")
+	if not referrer:
+		return
+
+	code_name = "WELCOME-BILAL"
+	if not frappe.db.exists("Referral Code", code_name):
+		frappe.get_doc(
+			{
+				"doctype": "Referral Code",
+				"code": code_name,
+				"owner_user": "freelancer2.demo@worcent.test",
+				"status": "Active",
+				"signup_bonus_referred": 5,
+				"commission_percent_referrer": 1,
+			}
+		).insert(ignore_permissions=True)
+
+	referred_user = create_user("freelancer5.demo@worcent.test", "Hina Referred")
+	if not frappe.db.exists("Freelancer Profile", {"user": referred_user}):
+		ensure_freelancer_profile(
+			referred_user, "Junior WordPress developer", 12, ["JavaScript"],
+			extra_fields={"country": "Pakistan", "referred_by_code": code_name},
+		)
+	frappe.db.commit()
+
+
+def seed_paid_mentorship_demo():
+	"""Drives one Mentorship Request all the way through payment so the
+	Mentor Fee Platform Earning ledger and the mentor's net payout are both
+	populated with a real example, not just zero-fee mentoring."""
+	mentor = frappe.db.get_value("Freelancer Profile", {"user": "freelancer1.demo@worcent.test"}, "name")
+	if not mentor or not frappe.db.exists("Mentor Program", mentor):
+		return
+	frappe.db.set_value("Mentor Program", mentor, "session_fee", 15)
+
+	mentee = frappe.db.get_value("Freelancer Profile", {"user": "freelancer2.demo@worcent.test"}, "name")
+	if not mentee:
+		return
+
+	from worcent.worcent_core.wallet_utils import ensure_wallet
+
+	mentee_wallet = ensure_wallet("Freelancer Profile", mentee)
+	frappe.db.set_value("Wallet", mentee_wallet, "balance", 100)
+
+	existing = frappe.db.exists("Mentorship Request", {"mentor_program": mentor, "mentee": mentee})
+	if existing:
+		req = frappe.get_doc("Mentorship Request", existing)
+		if not req.fee_charged and req.payment_status != "Paid":
+			# Predates the session_fee being set above (e.g. seeded before this
+			# demo existed) — bring it in line so the payment flow below fires.
+			req.db_set("fee_charged", 15)
+			req.db_set("payment_status", "Pending")
+			req.reload()
+	else:
+		req = frappe.get_doc(
+			{
+				"doctype": "Mentorship Request",
+				"mentor_program": mentor,
+				"mentee": mentee,
+				"status": "Requested",
+				"session_notes": "First 1:1 session — getting started with Frappe custom apps.",
+			}
+		)
+		req.insert(ignore_permissions=True)
+
+	if req.status != "Accepted":
+		req.status = "Accepted"
+		req.save(ignore_permissions=True)
+	frappe.db.commit()
+
+
+def seed_currency_diverse_users():
+	"""A couple of demo profiles outside Pakistan so preferred_currency isn't
+	uniformly PKR across every seeded account."""
+	uk_employer_user = create_user("employer3.demo@worcent.test", "Oliver UK")
+	ensure_employer_profile(
+		uk_employer_user, "Oliver UK", "Thames Digital Agency", "Media & Publishing",
+		extra_fields={"country": "United Kingdom"},
+	)
+
+	uae_freelancer_user = create_user("freelancer6.demo@worcent.test", "Yousef Dubai")
+	ensure_freelancer_profile(
+		uae_freelancer_user, "Mobile app developer", 45, ["Python", "React"],
+		extra_fields={"country": "United Arab Emirates"},
+	)
+	frappe.db.commit()
+
+
 def ensure_company():
 	if frappe.db.exists("Company", "Worcent Platform"):
 		return "Worcent Platform"
@@ -518,7 +711,7 @@ def ensure_rep(user_email, office, territory):
 	return rep.name
 
 
-def ensure_freelancer_profile(user_email, headline, hourly_rate, skill_names):
+def ensure_freelancer_profile(user_email, headline, hourly_rate, skill_names, extra_fields=None):
 	existing = frappe.db.get_value("Freelancer Profile", {"user": user_email}, "name")
 	if existing:
 		return existing
@@ -532,13 +725,14 @@ def ensure_freelancer_profile(user_email, headline, hourly_rate, skill_names):
 			"status": "Pending Verification",
 			"bio": headline,
 			"skills": [{"skill": s, "proficiency": "Expert", "years_experience": 5} for s in skill_names],
+			**(extra_fields or {}),
 		}
 	)
 	profile.insert(ignore_permissions=True)
 	return profile.name
 
 
-def ensure_employer_profile(user_email, contact_name, company_name, industry):
+def ensure_employer_profile(user_email, contact_name, company_name, industry, extra_fields=None):
 	existing = frappe.db.get_value("Employer Profile", {"user": user_email}, "name")
 	if existing:
 		return existing
@@ -550,6 +744,7 @@ def ensure_employer_profile(user_email, contact_name, company_name, industry):
 			"industry": industry,
 			"status": "Pending Verification",
 			"bio": f"{company_name} is hiring on Worcent.",
+			**(extra_fields or {}),
 		}
 	)
 	profile.insert(ignore_permissions=True)

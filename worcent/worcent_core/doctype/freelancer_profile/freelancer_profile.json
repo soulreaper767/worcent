@@ -15,12 +15,16 @@
   "column_break_head",
   "employer_profile",
   "current_agency",
+  "erp_supplier",
+  "referred_by_code",
   "section_break_profile",
   "headline",
   "profile_photo",
   "column_break_profile",
   "hourly_rate",
   "availability",
+  "country",
+  "preferred_currency",
   "bio",
   "section_break_skills",
   "skills",
@@ -109,6 +113,19 @@
    "read_only": 1
   },
   {
+   "fieldname": "erp_supplier",
+   "fieldtype": "Link",
+   "label": "Accounting Supplier Record",
+   "options": "Supplier",
+   "read_only": 1
+  },
+  {
+   "fieldname": "referred_by_code",
+   "fieldtype": "Link",
+   "label": "Referred By",
+   "options": "Referral Code"
+  },
+  {
    "fieldname": "section_break_profile",
    "fieldtype": "Section Break",
    "label": "Profile"
@@ -137,6 +154,19 @@
    "fieldtype": "Select",
    "label": "Availability",
    "options": "Full Time\nPart Time\nNot Available"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
+  },
+  {
+   "description": "Wallet balance is always tracked internally in the platform currency (USD); this only controls what currency amounts are *displayed* in.",
+   "fieldname": "preferred_currency",
+   "fieldtype": "Link",
+   "label": "Preferred Display Currency",
+   "options": "Currency"
   },
   {
    "fieldname": "bio",

@@ -24,6 +24,21 @@ class FreelancerProfile(WebsiteGenerator):
 		self.set_route()
 		self.enforce_single_profile_per_user()
 		self.sync_employer_link()
+		self.apply_default_currency()
+		self.lock_referral_code()
+
+	def lock_referral_code(self):
+		if self.is_new():
+			return
+		previous = frappe.db.get_value("Freelancer Profile", self.name, "referred_by_code")
+		if previous and self.referred_by_code != previous:
+			self.referred_by_code = previous
+
+	def apply_default_currency(self):
+		if self.country and not self.preferred_currency:
+			from worcent.worcent_finance.currency_utils import get_currency_for_country
+
+			self.preferred_currency = get_currency_for_country(self.country)
 
 	def set_route(self):
 		if not self.route:
@@ -42,8 +57,12 @@ class FreelancerProfile(WebsiteGenerator):
 	def on_update(self):
 		self.sync_freelancer_role()
 		from worcent.worcent_core.wallet_utils import ensure_wallet
+		from worcent.worcent_finance.referral_engine import apply_referral_signup, apply_signup_bonus
 
 		ensure_wallet("Freelancer Profile", self.name)
+		apply_signup_bonus("Freelancer Profile", self.name)
+		if self.referred_by_code:
+			apply_referral_signup("Freelancer Profile", self.name, self.referred_by_code)
 
 	def sync_freelancer_role(self):
 		if not self.user or self.user == "Administrator":

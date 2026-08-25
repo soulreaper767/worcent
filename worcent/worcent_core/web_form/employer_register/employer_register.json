@@ -31,13 +31,15 @@
  "show_attachments": 0,
  "show_list": 0,
  "show_sidebar": 1,
- "success_message": "Thanks! Your company profile is under review — we'll notify you once it's approved.",
- "success_url": "/employer-register",
+ "success_message": "Thanks! Your company profile is live. Welcome to Worcent.",
+ "success_url": "/desk/my-business",
  "title": "Post a Job",
  "web_form_fields": [
   {"fieldname": "company_name", "fieldtype": "Data", "label": "Company Name", "reqd": 1},
   {"fieldname": "industry", "fieldtype": "Data", "label": "Industry"},
+  {"fieldname": "country", "fieldtype": "Link", "label": "Country", "options": "Country"},
   {"fieldname": "bio", "fieldtype": "Text Editor", "label": "About the Company"},
-  {"fieldname": "logo", "fieldtype": "Attach Image", "label": "Logo"}
+  {"fieldname": "logo", "fieldtype": "Attach Image", "label": "Logo"},
+  {"fieldname": "referred_by_code", "fieldtype": "Link", "label": "Referral Code", "options": "Referral Code", "reqd": 0}
  ]
 }

@@ -8,11 +8,16 @@
   "naming_series",
   "wallet",
   "amount",
+  "payout_account",
   "method",
   "column_break_1",
   "status",
   "requested_on",
-  "paid_on"
+  "approved_by",
+  "paid_on",
+  "section_break_dest",
+  "payout_destination_snapshot",
+  "rejection_reason"
  ],
  "fields": [
   {
@@ -42,11 +47,21 @@
    "reqd": 1
   },
   {
+   "fieldname": "payout_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payout Account",
+   "options": "Payout Account",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "payout_account.account_type",
    "fieldname": "method",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Method",
-   "options": "Bank Transfer\nPayPal\nOther"
+   "options": "Bank Transfer\nPayPal\nOther",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_1",
@@ -69,10 +84,35 @@
    "read_only": 1
   },
   {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Processed By (Accounts Manager)",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
    "fieldname": "paid_on",
    "fieldtype": "Datetime",
    "label": "Paid On",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_dest",
+   "fieldtype": "Section Break",
+   "label": "Payout Destination (snapshot at request time)"
+  },
+  {
+   "fieldname": "payout_destination_snapshot",
+   "fieldtype": "Small Text",
+   "label": "Destination Details",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status=='Rejected'",
+   "fieldname": "rejection_reason",
+   "fieldtype": "Small Text",
+   "label": "Rejection Reason"
   }
  ],
  "links": [],
@@ -106,6 +146,13 @@
    "delete": 1,
    "read": 1,
    "role": "Finance Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Accounts Manager",
    "write": 1
   },
   {

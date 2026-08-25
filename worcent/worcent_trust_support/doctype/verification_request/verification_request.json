@@ -12,6 +12,7 @@
   "column_break_1",
   "status",
   "reviewed_by",
+  "review_notes",
   "section_break_1",
   "documents"
  ],
@@ -68,6 +69,12 @@
    "label": "Reviewed By",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status=='Rejected'",
+   "fieldname": "review_notes",
+   "fieldtype": "Small Text",
+   "label": "Review Notes"
   },
   {
    "collapsible": 1,

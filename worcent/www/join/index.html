@@ -1,0 +1,109 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Join Worcent") }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-join">
+	<div class="wc-join-card">
+		<h1>{{ _("Create your account") }}</h1>
+		<p class="wc-join-sub">{{ _("Takes less than a minute. You'll land straight in your own dashboard.") }}</p>
+
+		<div class="wc-join-toggle" role="tablist">
+			<button type="button" class="wc-join-toggle-btn {% if account_type == 'Freelancer' %}active{% endif %}" data-type="Freelancer">{{ _("I want to find work") }}</button>
+			<button type="button" class="wc-join-toggle-btn {% if account_type == 'Employer' %}active{% endif %}" data-type="Employer">{{ _("I want to hire") }}</button>
+		</div>
+
+		<form id="wc-join-form">
+			<input type="hidden" id="account_type" value="{{ account_type }}">
+
+			<label>{{ _("Full Name") }}</label>
+			<input type="text" id="full_name" required autocomplete="name">
+
+			<label>{{ _("Email") }}</label>
+			<input type="email" id="email" required autocomplete="email">
+
+			<label>{{ _("Password") }}</label>
+			<input type="password" id="password" required minlength="8" autocomplete="new-password">
+
+			<label>{{ _("Country") }}</label>
+			<select id="country">
+				<option value="">{{ _("Select country") }}</option>
+				{% for c in countries %}
+				<option value="{{ c }}">{{ c }}</option>
+				{% endfor %}
+			</select>
+
+			<label>{{ _("Referral Code") }} <span class="wc-join-optional">{{ _("(optional)") }}</span></label>
+			<input type="text" id="referral_code" value="{{ referral_code }}">
+
+			<div id="wc-join-error" class="wc-join-error" style="display:none;"></div>
+
+			<button type="submit" class="wc-btn wc-btn-primary wc-join-submit">{{ _("Create Account") }}</button>
+		</form>
+
+		<p class="wc-join-login">{{ _("Already have an account?") }} <a href="/login">{{ _("Log in") }}</a></p>
+	</div>
+</div>
+
+<style>
+.wc-join { max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
+.wc-join-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 2rem; }
+.wc-join-sub { color: #6b7280; margin-top: -0.5rem; margin-bottom: 1.5rem; }
+.wc-join-toggle { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.wc-join-toggle-btn { flex: 1; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; cursor: pointer; }
+.wc-join-toggle-btn.active { background: #111827; color: #fff; border-color: #111827; }
+.wc-join form label { display: block; margin-top: 1rem; margin-bottom: 0.3rem; font-weight: 600; font-size: 0.9rem; }
+.wc-join form input, .wc-join form select { width: 100%; padding: 0.55rem 0.7rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
+.wc-join-optional { font-weight: 400; color: #9ca3af; }
+.wc-join-submit { width: 100%; margin-top: 1.5rem; }
+.wc-join-error { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; padding: 0.6rem 0.8rem; border-radius: 6px; margin-top: 1rem; font-size: 0.9rem; }
+.wc-join-login { text-align: center; margin-top: 1.5rem; color: #6b7280; }
+</style>
+
+<script>
+(function () {
+	var accountTypeInput = document.getElementById("account_type");
+	document.querySelectorAll(".wc-join-toggle-btn").forEach(function (btn) {
+		btn.addEventListener("click", function () {
+			document.querySelectorAll(".wc-join-toggle-btn").forEach(function (b) { b.classList.remove("active"); });
+			btn.classList.add("active");
+			accountTypeInput.value = btn.dataset.type;
+		});
+	});
+
+	document.getElementById("wc-join-form").addEventListener("submit", function (e) {
+		e.preventDefault();
+		var errorBox = document.getElementById("wc-join-error");
+		errorBox.style.display = "none";
+
+		var submitBtn = document.querySelector(".wc-join-submit");
+		submitBtn.disabled = true;
+		submitBtn.textContent = "{{ _('Creating account...') }}";
+
+		frappe.call({
+			method: "worcent.worcent_core.signup.register",
+			args: {
+				email: document.getElementById("email").value,
+				password: document.getElementById("password").value,
+				full_name: document.getElementById("full_name").value,
+				account_type: accountTypeInput.value,
+				country: document.getElementById("country").value,
+				referral_code: document.getElementById("referral_code").value,
+			},
+			callback: function (r) {
+				if (r.message && r.message.redirect_to) {
+					window.location.href = r.message.redirect_to;
+				}
+			},
+			error: function (r) {
+				submitBtn.disabled = false;
+				submitBtn.textContent = "{{ _('Create Account') }}";
+				var msg = (r && r._server_messages) ? JSON.parse(r._server_messages).map(JSON.parse).map(function(m){return m.message;}).join(" ") : "{{ _('Something went wrong. Please try again.') }}";
+				errorBox.textContent = msg;
+				errorBox.style.display = "block";
+			}
+		});
+	});
+})();
+</script>
+{% endblock %}

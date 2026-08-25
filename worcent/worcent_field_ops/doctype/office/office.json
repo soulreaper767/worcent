@@ -144,6 +144,11 @@
   {
    "read": 1,
    "role": "Field Rep"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Office Managing Partner"
   }
  ],
  "sort_field": "creation",

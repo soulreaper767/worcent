@@ -130,6 +130,18 @@
   {
    "read": 1,
    "role": "Office Manager"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Office Managing Partner",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager"
   }
  ],
  "sort_field": "creation",

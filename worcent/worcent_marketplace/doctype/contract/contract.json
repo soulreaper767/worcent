@@ -21,7 +21,8 @@
   "status",
   "start_date",
   "end_date",
-  "total_billed"
+  "total_billed",
+  "completion_percent"
  ],
  "fields": [
   {
@@ -129,6 +130,14 @@
    "fieldname": "total_billed",
    "fieldtype": "Currency",
    "label": "Total Billed (released)",
+   "read_only": 1
+  },
+  {
+   "description": "Share of milestone value released so far (auto-computed as milestones are released/refunded).",
+   "fieldname": "completion_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Completion %",
    "read_only": 1
   }
  ],

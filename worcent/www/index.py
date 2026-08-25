@@ -40,3 +40,12 @@ def get_context(context):
 	)
 	for job in context.open_jobs:
 		job["employer_name"] = frappe.db.get_value("Employer Profile", job.employer, "company_name")
+
+	context.stats = {
+		"freelancers": frappe.db.count("Freelancer Profile", {"status": "Active"}),
+		"employers": frappe.db.count("Employer Profile", {"status": "Active"}),
+		"jobs_posted": frappe.db.count("Job Posting"),
+		"countries": len(frappe.db.sql(
+			"select distinct country from `tabFreelancer Profile` where country is not null and country != ''"
+		)),
+	}

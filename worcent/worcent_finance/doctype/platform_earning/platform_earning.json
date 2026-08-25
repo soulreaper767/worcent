@@ -5,12 +5,11 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "wallet",
-  "transaction_type",
-  "direction",
-  "column_break_1",
+  "earning_type",
   "amount",
-  "balance_after",
+  "column_break_1",
+  "party_type",
+  "party",
   "section_break_1",
   "reference_doctype",
   "reference_name",
@@ -18,29 +17,19 @@
  ],
  "fields": [
   {
-   "fieldname": "wallet",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Wallet",
-   "options": "Wallet",
-   "reqd": 1
-  },
-  {
-   "fieldname": "transaction_type",
+   "fieldname": "earning_type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Type",
-   "options": "Top Up\nEscrow Fund\nEscrow Refund\nMilestone Release\nCommission\nPlatform Fee\nMentorship Fee\nWithdrawal\nAdvance\nAdvance Repayment\nRefund\nAdjustment\nSignup Bonus\nVerification Bonus\nReferral Commission",
+   "label": "Earning Type",
+   "options": "Freelancer Commission\nEmployer Fee\nMentor Fee\nPremium Subscription\nAgency Fee\nOther",
    "reqd": 1
   },
   {
-   "fieldname": "direction",
-   "fieldtype": "Select",
+   "fieldname": "amount",
+   "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Direction",
-   "options": "Credit\nDebit",
+   "label": "Amount (USD)",
    "reqd": 1
   },
   {
@@ -48,17 +37,17 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Amount",
-   "reqd": 1
+   "fieldname": "party_type",
+   "fieldtype": "Select",
+   "label": "Charged To",
+   "options": "Freelancer Profile\nEmployer Profile"
   },
   {
-   "fieldname": "balance_after",
-   "fieldtype": "Currency",
-   "label": "Balance After",
-   "read_only": 1
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Party",
+   "options": "party_type"
   },
   {
    "fieldname": "section_break_1",
@@ -87,7 +76,7 @@
  "modified": "2026-08-25 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Worcent Finance",
- "name": "Wallet Transaction",
+ "name": "Platform Earning",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
@@ -112,20 +101,12 @@
   {
    "create": 1,
    "read": 1,
-   "role": "Finance Manager",
-   "write": 1
+   "role": "Finance Manager"
   },
   {
    "read": 1,
+   "report": 1,
    "role": "Accounts Manager"
-  },
-  {
-   "read": 1,
-   "role": "Freelancer"
-  },
-  {
-   "read": 1,
-   "role": "Employer"
   }
  ],
  "sort_field": "creation",
