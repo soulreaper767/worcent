@@ -87,6 +87,7 @@ permission_query_conditions = {
 	"Withdrawal Request": "worcent.worcent_core.permissions.withdrawal_request_query_conditions",
 	"Referral Code": "worcent.worcent_core.permissions.referral_code_query_conditions",
 	"Referral": "worcent.worcent_core.permissions.referral_query_conditions",
+	"Growth Tool Result": "worcent.worcent_core.permissions.growth_tool_result_query_conditions",
 }
 
 has_permission = {
@@ -101,4 +102,5 @@ has_permission = {
 	"Withdrawal Request": "worcent.worcent_core.permissions.withdrawal_request_has_permission",
 	"Referral Code": "worcent.worcent_core.permissions.referral_code_has_permission",
 	"Referral": "worcent.worcent_core.permissions.referral_has_permission",
+	"Growth Tool Result": "worcent.worcent_core.permissions.growth_tool_result_has_permission",
 }

@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-08-26 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tool_name",
+  "user",
+  "column_break_head",
+  "headline",
+  "metric",
+  "section_break_data",
+  "input_data",
+  "output_data",
+  "section_break_compare",
+  "previous_result",
+  "comparison"
+ ],
+ "fields": [
+  {
+   "fieldname": "tool_name",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Tool",
+   "options": "Worcent Score\nAm I Underpaid\nI Need Work",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "headline",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Result",
+   "read_only": 1
+  },
+  {
+   "fieldname": "metric",
+   "fieldtype": "Float",
+   "label": "Metric",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_data",
+   "fieldtype": "Section Break",
+   "label": "Raw Data"
+  },
+  {
+   "fieldname": "input_data",
+   "fieldtype": "Code",
+   "label": "Inputs (JSON)",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "output_data",
+   "fieldtype": "Code",
+   "label": "Outputs (JSON)",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_compare",
+   "fieldtype": "Section Break",
+   "label": "Compared to your last run"
+  },
+  {
+   "fieldname": "previous_result",
+   "fieldtype": "Link",
+   "label": "Previous Result",
+   "options": "Growth Tool Result",
+   "read_only": 1
+  },
+  {
+   "fieldname": "comparison",
+   "fieldtype": "Data",
+   "label": "Comparison",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-26 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Growth",
+ "name": "Growth Tool Result",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Freelancer"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Employer"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

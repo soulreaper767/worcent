@@ -1,0 +1,61 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Am I Underpaid?") }} — Worcent{% endblock %}
+
+{% block page_content %}
+<div class="wc-tool-page">
+	<h1>{{ _("Am I Underpaid?") }}</h1>
+	<p class="wc-muted">{{ _("A quick estimate of your market range based on role, experience and location.") }}</p>
+
+	<form class="wc-tool-form" id="wc-pay-form">
+		<div>
+			<label>{{ _("Job Title") }}</label>
+			<input type="text" id="job_title" placeholder="e.g. Frontend Developer" required>
+		</div>
+		<div class="wc-tool-row">
+			<div>
+				<label>{{ _("Years of Experience") }}</label>
+				<input type="number" id="experience_years" min="0" step="0.5" value="1">
+			</div>
+			<div>
+				<label>{{ _("Country") }}</label>
+				<select id="country">
+					<option value="">{{ _("Select country") }}</option>
+					{% for c in countries %}
+					<option value="{{ c }}">{{ c }}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>
+		<div>
+			<label>{{ _("Current Monthly Salary (USD)") }}</label>
+			<input type="number" id="current_salary" min="0" placeholder="e.g. 1200">
+		</div>
+		<button type="submit" class="wc-btn wc-btn-primary">{{ _("Check My Pay") }}</button>
+	</form>
+
+	<div class="wc-tool-result" id="wc-tool-result">
+		<h3 id="wc-pay-headline"></h3>
+		<p id="wc-pay-disclaimer" class="wc-muted" style="font-size:12.5px;"></p>
+	</div>
+
+	<div id="wc-tool-footer"></div>
+</div>
+
+<script>
+document.getElementById("wc-pay-form").addEventListener("submit", function (e) {
+	e.preventDefault();
+	var inputs = {
+		job_title: document.getElementById("job_title").value,
+		experience_years: parseFloat(document.getElementById("experience_years").value) || 0,
+		country: document.getElementById("country").value,
+		current_salary: parseFloat(document.getElementById("current_salary").value) || 0,
+	};
+	wcRunTool("Am I Underpaid", inputs, function (output) {
+		document.getElementById("wc-tool-result").classList.add("wc-visible");
+		document.getElementById("wc-pay-headline").textContent = output.headline;
+		document.getElementById("wc-pay-disclaimer").textContent = output.disclaimer;
+	});
+});
+</script>
+{% endblock %}

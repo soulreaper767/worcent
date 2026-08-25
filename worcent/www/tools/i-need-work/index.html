@@ -1,0 +1,61 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("I Need Work") }} — Worcent{% endblock %}
+
+{% block page_content %}
+<div class="wc-tool-page">
+	<h1>{{ _("I Need Work") }}</h1>
+	<p class="wc-muted">{{ _("Tell us what you can do. We'll show real open jobs/gigs on Worcent right now, plus things you can start today.") }}</p>
+
+	<form class="wc-tool-form" id="wc-work-form">
+		<div>
+			<label>{{ _("What can you do?") }}</label>
+			<input type="text" id="skill_area" placeholder="e.g. Accounting, Graphic Design, Python" required>
+		</div>
+		<div>
+			<label>{{ _("Where can you work? (optional)") }}</label>
+			<input type="text" id="location_preference" placeholder="Remote / your city">
+		</div>
+		<button type="submit" class="wc-btn wc-btn-primary">{{ _("Find Work Now") }}</button>
+	</form>
+
+	<div class="wc-tool-result" id="wc-tool-result">
+		<h3 id="wc-work-headline"></h3>
+		<div id="wc-work-jobs"></div>
+		<div id="wc-work-gigs"></div>
+		<div id="wc-work-ideas"></div>
+	</div>
+
+	<div id="wc-tool-footer"></div>
+</div>
+
+<script>
+function wcRenderList(title, items, linkFn) {
+	if (!items.length) return "";
+	var rows = items.map(linkFn).join("");
+	return "<h4 style='margin-top:16px;'>" + title + "</h4><div class='wc-grid'>" + rows + "</div>";
+}
+
+document.getElementById("wc-work-form").addEventListener("submit", function (e) {
+	e.preventDefault();
+	var inputs = {
+		skill_area: document.getElementById("skill_area").value,
+		location_preference: document.getElementById("location_preference").value,
+	};
+	wcRunTool("I Need Work", inputs, function (output) {
+		document.getElementById("wc-tool-result").classList.add("wc-visible");
+		document.getElementById("wc-work-headline").textContent = output.headline;
+
+		document.getElementById("wc-work-jobs").innerHTML = wcRenderList("{{ _('Open Jobs') }}", output.matched_jobs, function (j) {
+			return '<a class="wc-card" href="/' + j.route + '"><div class="wc-job-card-title">' + j.title + '</div></a>';
+		});
+		document.getElementById("wc-work-gigs").innerHTML = wcRenderList("{{ _('Gigs') }}", output.matched_gigs, function (g) {
+			return '<a class="wc-card" href="/' + g.route + '"><div class="wc-job-card-title">' + g.title + '</div></a>';
+		});
+
+		var ideas = output.quick_task_ideas.map(function (idea) { return "<li>" + idea + "</li>"; }).join("");
+		document.getElementById("wc-work-ideas").innerHTML = "<h4 style='margin-top:16px;'>{{ _('Things you can start today') }}</h4><ul>" + ideas + "</ul>";
+	});
+});
+</script>
+{% endblock %}

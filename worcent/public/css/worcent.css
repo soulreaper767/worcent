@@ -286,6 +286,29 @@ body.web-page, .wc-home, .wc-section, .navbar, .web-footer {
 	.wc-footer-powered { margin-left: 0; }
 }
 
+/* ==========================================================================
+   Growth tools (/tools/*)
+   ========================================================================== */
+.wc-tool-card { text-align: center; }
+.wc-tool-card .wc-why-icon { margin: 0 auto var(--wc-space-2); font-size: 22px; background: var(--wc-primary-tint); border-radius: 12px; }
+
+.wc-tool-page { max-width: 720px; margin: 0 auto; padding: var(--wc-space-5) var(--wc-space-4); }
+.wc-tool-form { background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: var(--wc-radius); padding: var(--wc-space-4); display: flex; flex-direction: column; gap: var(--wc-space-3); }
+.wc-tool-form label { font-weight: 600; font-size: 14px; margin-bottom: 4px; display: block; }
+.wc-tool-form input, .wc-tool-form select, .wc-tool-form textarea {
+	width: 100%; padding: 10px 12px; border: 1px solid var(--wc-border); border-radius: var(--wc-radius-sm); font-size: 15px; box-sizing: border-box;
+}
+.wc-tool-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--wc-space-3); }
+.wc-tool-result { margin-top: var(--wc-space-4); padding: var(--wc-space-4); border-radius: var(--wc-radius); background: var(--wc-primary-tint); border: 1px solid var(--wc-primary); display: none; }
+.wc-tool-result.wc-visible { display: block; }
+.wc-tool-result h3 { margin: 0 0 8px; color: var(--wc-primary-dark); }
+.wc-tool-saved { color: var(--wc-primary-dark); font-size: 14px; margin-top: var(--wc-space-3); }
+.wc-tool-register-cta { margin-top: var(--wc-space-3); padding: var(--wc-space-3); background: #fff; border: 1px dashed var(--wc-primary); border-radius: var(--wc-radius-sm); font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.wc-score-bar { height: 10px; border-radius: 999px; background: var(--wc-border); overflow: hidden; margin: 8px 0; }
+.wc-score-bar-fill { height: 100%; background: linear-gradient(90deg, var(--wc-primary), var(--wc-accent)); border-radius: 999px; transition: width 0.4s ease; }
+.wc-tool-history-table { width: 100%; border-collapse: collapse; margin-top: var(--wc-space-3); font-size: 13.5px; }
+.wc-tool-history-table th, .wc-tool-history-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--wc-border); }
+
 /* Floating action buttons */
 .wc-whatsapp-float { position: fixed; right: 24px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%; background: #25d366; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.4); z-index: 998; transition: transform 0.15s ease; }
 .wc-whatsapp-float:hover { transform: scale(1.08); color: #fff; }

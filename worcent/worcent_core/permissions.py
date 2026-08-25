@@ -257,3 +257,17 @@ def referral_has_permission(doc, ptype=None, user=None):
 		return True
 	owner_user = frappe.db.get_value("Referral Code", doc.referral_code, "owner_user")
 	return owner_user == user or doc.referred_profile in _own_party_names(user)
+
+
+def growth_tool_result_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	return f"`tabGrowth Tool Result`.user = {frappe.db.escape(user)}"
+
+
+def growth_tool_result_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	return doc.user == user

@@ -1,0 +1,76 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Worcent Score") }} — {{ _("What's your score?") }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-tool-page">
+	<h1>{{ _("Worcent Score") }}</h1>
+	<p class="wc-muted">{{ _("A single score (out of 1000) built from your skills, experience, certifications, portfolio and track record.") }}</p>
+
+	<form class="wc-tool-form" id="wc-score-form">
+		<div class="wc-tool-row">
+			<div>
+				<label>{{ _("Skills (comma separated)") }}</label>
+				<input type="text" id="skills" placeholder="Python, React, SEO">
+			</div>
+			<div>
+				<label>{{ _("Years of Experience") }}</label>
+				<input type="number" id="years_experience" min="0" step="0.5" value="1">
+			</div>
+		</div>
+		<div class="wc-tool-row">
+			<div>
+				<label>{{ _("Certifications") }}</label>
+				<input type="number" id="certifications" min="0" value="0">
+			</div>
+			<div>
+				<label>{{ _("Portfolio Items") }}</label>
+				<input type="number" id="portfolio_items" min="0" value="0">
+			</div>
+		</div>
+		<div class="wc-tool-row">
+			<div>
+				<label>{{ _("Completed Jobs") }}</label>
+				<input type="number" id="completed_jobs" min="0" value="{{ prefill.completed_jobs or 0 }}">
+			</div>
+			<div>
+				<label>{{ _("Average Rating (0-5)") }}</label>
+				<input type="number" id="rating_avg" min="0" max="5" step="0.1" value="{{ prefill.rating_avg or 0 }}">
+			</div>
+		</div>
+		<button type="submit" class="wc-btn wc-btn-primary">{{ _("Calculate My Score") }}</button>
+	</form>
+
+	<div class="wc-tool-result" id="wc-tool-result">
+		<h3 id="wc-score-headline"></h3>
+		<div class="wc-score-bar"><div class="wc-score-bar-fill" id="wc-score-fill" style="width:0%"></div></div>
+		<div id="wc-score-breakdown" class="wc-muted"></div>
+	</div>
+
+	<div id="wc-tool-footer"></div>
+</div>
+
+<script>
+document.getElementById("wc-score-form").addEventListener("submit", function (e) {
+	e.preventDefault();
+	var skills = document.getElementById("skills").value.split(",").map(s => s.trim()).filter(Boolean);
+	var inputs = {
+		skills: skills,
+		years_experience: parseFloat(document.getElementById("years_experience").value) || 0,
+		certifications: parseInt(document.getElementById("certifications").value) || 0,
+		portfolio_items: parseInt(document.getElementById("portfolio_items").value) || 0,
+		completed_jobs: parseInt(document.getElementById("completed_jobs").value) || 0,
+		rating_avg: parseFloat(document.getElementById("rating_avg").value) || 0,
+	};
+	wcRunTool("Worcent Score", inputs, function (output) {
+		document.getElementById("wc-tool-result").classList.add("wc-visible");
+		document.getElementById("wc-score-headline").textContent = output.headline;
+		document.getElementById("wc-score-fill").style.width = (output.total_score / 10) + "%";
+		var breakdown = Object.entries(output.breakdown).map(function (kv) {
+			return kv[0].replace("_", " ") + ": " + Math.round(kv[1]);
+		}).join(" · ");
+		document.getElementById("wc-score-breakdown").textContent = breakdown;
+	});
+});
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Free Career Tools") }} — Worcent{% endblock %}
+
+{% block page_content %}
+<div class="wc-home">
+	<section class="wc-hero">
+		<div class="wc-hero-shape wc-hero-shape-1"></div>
+		<div class="wc-hero-shape wc-hero-shape-2"></div>
+		<div class="wc-hero-inner">
+			<h1>{{ _("Free tools to know your worth") }}</h1>
+			<p>{{ _("Try any tool free right now — no account needed. Register (free, no verification) to save your results and track your progress over time.") }}</p>
+		</div>
+	</section>
+
+	<section class="wc-section">
+		<div class="wc-grid">
+			<a class="wc-card wc-tool-card" href="/tools/worcent-score">
+				<div class="wc-why-icon">🏆</div>
+				<div class="wc-job-card-title">{{ _("Worcent Score") }}</div>
+				<div class="wc-job-card-desc">{{ _("A single score for your skills, experience and track record — see where you stand and share it.") }}</div>
+			</a>
+			<a class="wc-card wc-tool-card" href="/tools/am-i-underpaid">
+				<div class="wc-why-icon">🚨</div>
+				<div class="wc-job-card-title">{{ _("Am I Underpaid?") }}</div>
+				<div class="wc-job-card-desc">{{ _("Enter your role, experience and current pay to see an estimated market range.") }}</div>
+			</a>
+			<a class="wc-card wc-tool-card" href="/tools/i-need-work">
+				<div class="wc-why-icon">🧠</div>
+				<div class="wc-job-card-title">{{ _("I Need Work") }}</div>
+				<div class="wc-job-card-desc">{{ _("Tell us what you can do — get real open jobs/gigs plus things you can start today.") }}</div>
+			</a>
+		</div>
+	</section>
+</div>
+{% endblock %}

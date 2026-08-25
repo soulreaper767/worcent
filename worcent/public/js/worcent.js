@@ -61,3 +61,35 @@
 		document.addEventListener("DOMContentLoaded", init);
 	}
 })();
+
+// Shared helper for the /tools/* growth-tool pages: calls the tool API and
+// hands the result to a page-supplied render function, then (if the run was
+// saved, i.e. the visitor is logged in) renders the comparison + a "see your
+// history" link; otherwise shows a "register to save this" prompt.
+function wcRunTool(toolName, inputs, renderResult) {
+	return frappe.call({
+		method: "worcent.worcent_growth.api.use_tool",
+		args: { tool_name: toolName, inputs: JSON.stringify(inputs) },
+	}).then((r) => {
+		const data = r.message;
+		renderResult(data.output);
+
+		const footer = document.getElementById("wc-tool-footer");
+		if (!footer) return data;
+
+		if (data.saved) {
+			footer.innerHTML =
+				'<div class="wc-tool-saved">' +
+				'<strong>' + (data.comparison || "") + '</strong>' +
+				'<span> · ' + data.history_count + ' run(s) saved</span>' +
+				"</div>";
+		} else {
+			footer.innerHTML =
+				'<div class="wc-tool-register-cta">' +
+				"Register free (no verification needed) to save this result and track your progress over time. " +
+				'<a class="wc-btn wc-btn-primary wc-btn-sm" href="/join?type=freelancer">Register Free</a>' +
+				"</div>";
+		}
+		return data;
+	});
+}
