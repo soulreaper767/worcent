@@ -3,6 +3,69 @@ from frappe.utils import add_days, flt, today
 
 DEMO_PASSWORD = "Test@12345"
 
+ALL_WORCENT_ROLES = [
+	"Worcent Admin", "Freelancer", "Employer", "Office Manager", "Franchise Owner",
+	"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager", "Agency Manager",
+]
+
+# Standard ERPNext/HRMS module workspaces that have nothing to do with a
+# freelance marketplace — hidden outright so the Desk sidebar only shows
+# Worcent's own workspaces plus genuinely relevant back-office bits.
+IRRELEVANT_WORKSPACES = [
+	"Buying", "CRM", "Manufacturing", "Quality", "Selling", "Stock", "Subcontracting",
+	"Support", "Website", "Assets", "Projects", "Recruitment", "Performance", "Tenure",
+]
+
+_ADMIN_TIER = ["Worcent Admin", "System Manager"]
+_FINANCE_TIER = _ADMIN_TIER + ["Finance Manager"]
+# Office Manager / Field Rep / Franchise Owner are the roles backed by a real
+# HRMS Employee record, so HR self-service workspaces are actually relevant
+# to them (everyone else has no Employee record at all).
+_HR_SELF_SERVICE_TIER = _ADMIN_TIER + ["Office Manager", "Field Rep", "Franchise Owner"]
+
+# Remaining (non-hidden) workspaces, scoped to the roles that actually need
+# them via the Workspace's own "roles" table. Worcent's own workspaces are
+# included here too so a single function call keeps all of them in sync.
+WORKSPACE_ROLE_RESTRICTIONS = {
+	"Worcent Admin": _ADMIN_TIER,
+	"My Freelance": ["Freelancer"],
+	"My Business": ["Employer"],
+	"Office Ops": ["Field Rep", "Office Manager", "Franchise Owner", "Worcent Admin"],
+	"My Agency": ["Agency Manager"],
+	"Support Desk": ["Support Agent", "Worcent Admin"],
+	"Dispute Resolution": ["Dispute Arbitrator", "Worcent Admin"],
+	"Finance Ops": ["Finance Manager", "Worcent Admin"],
+	"Leaves": _HR_SELF_SERVICE_TIER,
+	"Expenses": _HR_SELF_SERVICE_TIER,
+	"Shift & Attendance": _HR_SELF_SERVICE_TIER,
+	"Financial Reports": _FINANCE_TIER,
+	"Invoicing": _FINANCE_TIER,
+	"Payroll": _FINANCE_TIER,
+	"Tax & Benefits": _FINANCE_TIER,
+	"HR Setup": _ADMIN_TIER,
+	"ERPNext Settings": _ADMIN_TIER,
+	"Integrations": _ADMIN_TIER,
+	"Build": _ADMIN_TIER,
+	"Users": _ADMIN_TIER,
+	"Home": _ADMIN_TIER,
+	"Welcome Workspace": _ADMIN_TIER,
+}
+
+# Where each role lands right after login (Role.home_page — the same
+# mechanism/format already proven on the caonline site: "desk/<workspace-route>").
+ROLE_HOME_PAGE = {
+	"Worcent Admin": "desk/worcent-admin",
+	"Freelancer": "desk/my-freelance",
+	"Employer": "desk/my-business",
+	"Office Manager": "desk/office-ops",
+	"Franchise Owner": "desk/office-ops",
+	"Field Rep": "desk/office-ops",
+	"Agency Manager": "desk/my-agency",
+	"Support Agent": "desk/support-desk",
+	"Dispute Arbitrator": "desk/dispute-resolution",
+	"Finance Manager": "desk/finance-ops",
+}
+
 
 def after_install():
 	configure_worcent_settings()
@@ -12,6 +75,7 @@ def after_install():
 	seed_demo_marketplace_data()
 	seed_extra_marketplace_data()
 	seed_agency_separation_demo()
+	configure_desk_experience()
 	frappe.db.set_value("Website Settings", "Website Settings", "home_page", "index")
 	frappe.db.commit()
 
@@ -26,11 +90,66 @@ def reseed_demo_data():
 	seed_demo_marketplace_data()
 	seed_extra_marketplace_data()
 	seed_agency_separation_demo()
+	configure_desk_experience()
 	frappe.db.commit()
 
 
 def after_migrate():
 	configure_worcent_settings()
+	configure_desk_experience()
+	frappe.db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Desk experience: each role lands on its own workspace, and the sidebar only
+# shows workspaces relevant to a freelance marketplace (mirrors the proven
+# pattern already running on the caonline site).
+# ---------------------------------------------------------------------------
+
+
+def configure_desk_experience():
+	seed_role_home_pages()
+	hide_irrelevant_workspaces()
+	restrict_workspace_roles()
+
+
+def seed_role_home_pages():
+	for role, route in ROLE_HOME_PAGE.items():
+		if frappe.db.get_value("Role", role, "home_page") != route:
+			frappe.db.set_value("Role", role, "home_page", route)
+	frappe.db.commit()
+
+
+def hide_irrelevant_workspaces():
+	"""Runs after every other app's own module sync has already completed
+	for this migrate, so setting is_hidden here is the final word."""
+	for name in IRRELEVANT_WORKSPACES:
+		if frappe.db.exists("Workspace", name) and not frappe.db.get_value("Workspace", name, "is_hidden"):
+			frappe.db.set_value("Workspace", name, "is_hidden", 1)
+	frappe.db.commit()
+
+
+def restrict_workspace_roles():
+	"""Scope the remaining visible workspaces to the roles that actually need
+	them, via the Workspace's own 'roles' child table. Manipulates the 'Has
+	Role' rows directly instead of doc.save() on the parent, so a workspace
+	record that fails full re-validation for an unrelated reason can't abort
+	the whole run."""
+	for name, roles in WORKSPACE_ROLE_RESTRICTIONS.items():
+		if not frappe.db.exists("Workspace", name):
+			continue
+		existing = {
+			d.role for d in frappe.get_all("Has Role", filters={"parent": name, "parenttype": "Workspace"}, fields=["role"])
+		}
+		wanted = {r for r in roles if frappe.db.exists("Role", r)}
+		if existing == wanted:
+			continue
+		frappe.db.delete("Has Role", {"parent": name, "parenttype": "Workspace"})
+		for role in wanted:
+			frappe.get_doc(
+				{"doctype": "Has Role", "parent": name, "parenttype": "Workspace", "parentfield": "roles", "role": role}
+			).insert(ignore_permissions=True)
+	frappe.clear_cache(doctype="Workspace")
 	frappe.db.commit()
 
 

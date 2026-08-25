@@ -1,0 +1,38 @@
+{
+ "app": "worcent",
+ "charts": [],
+ "content": "[{\"id\":\"dr-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Dispute Resolution</span>\",\"col\":12}},{\"id\":\"dr-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dispute Cases\",\"col\":4}},{\"id\":\"dr-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Contracts\",\"col\":4}},{\"id\":\"dr-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Escrow Transactions\",\"col\":4}},{\"id\":\"dr-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Disputes\",\"col\":4}}]",
+ "creation": "2026-08-25 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 1,
+ "icon": "shield",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Dispute Resolution",
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Trust Support",
+ "name": "Dispute Resolution",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {"role": "Dispute Arbitrator"},
+  {"role": "Worcent Admin"}
+ ],
+ "sequence_id": 7.0,
+ "shortcuts": [
+  {"color": "Red", "doc_view": "List", "label": "Dispute Cases", "link_to": "Dispute Case", "type": "DocType"},
+  {"color": "Grey", "doc_view": "List", "label": "Contracts", "link_to": "Contract", "type": "DocType"},
+  {"color": "Grey", "doc_view": "List", "label": "Escrow Transactions", "link_to": "Escrow Transaction", "type": "DocType"},
+  {"color": "Yellow", "label": "Open Disputes", "link_to": "Open Disputes", "type": "Report"}
+ ],
+ "title": "Dispute Resolution",
+ "type": "Workspace"
+}

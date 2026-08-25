@@ -1,0 +1,37 @@
+{
+ "app": "worcent",
+ "charts": [],
+ "content": "[{\"id\":\"sd-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Support Desk</span>\",\"col\":12}},{\"id\":\"sd-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Support Tickets\",\"col\":4}},{\"id\":\"sd-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Ticket Categories\",\"col\":4}},{\"id\":\"sd-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Verification Requests\",\"col\":4}}]",
+ "creation": "2026-08-25 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 1,
+ "icon": "help",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Support Desk",
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Trust Support",
+ "name": "Support Desk",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {"role": "Support Agent"},
+  {"role": "Worcent Admin"}
+ ],
+ "sequence_id": 6.0,
+ "shortcuts": [
+  {"color": "Blue", "doc_view": "List", "label": "Support Tickets", "link_to": "Support Ticket", "type": "DocType"},
+  {"color": "Grey", "doc_view": "List", "label": "Ticket Categories", "link_to": "Ticket Category", "type": "DocType"},
+  {"color": "Green", "doc_view": "List", "label": "Verification Requests", "link_to": "Verification Request", "type": "DocType"}
+ ],
+ "title": "Support Desk",
+ "type": "Workspace"
+}
