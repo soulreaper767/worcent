@@ -1,0 +1,36 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Browse Jobs") }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-section">
+	<h1>{{ _("Browse Jobs") }}</h1>
+
+	<div class="wc-filter-bar">
+		<a class="wc-chip {{ 'wc-chip-active' if not selected_category }}" href="/jobs">{{ _("All") }}</a>
+		{% for cat in categories %}
+		<a class="wc-chip {{ 'wc-chip-active' if selected_category == cat.name }}" href="/jobs?category={{ cat.name | urlencode }}">{{ cat.category_name }}</a>
+		{% endfor %}
+	</div>
+
+	{% if jobs %}
+	<div class="wc-grid">
+		{% for j in jobs %}
+		<a class="wc-card" href="/{{ j.route }}">
+			<div class="wc-job-card-title">{{ j.title }}</div>
+			<div class="wc-job-card-meta">{{ j.employer_name }} &middot; {{ j.proposals_count or 0 }} {{ _("proposals") }}</div>
+			<div class="wc-job-card-desc">{{ frappe.utils.strip_html(j.description or "") }}</div>
+			<div class="wc-job-card-budget">
+				{% if j.budget_min or j.budget_max %}
+					{{ frappe.utils.fmt_money(j.budget_min) }} - {{ frappe.utils.fmt_money(j.budget_max) }}
+				{% endif %}
+				<span class="wc-muted">({{ j.budget_type }})</span>
+			</div>
+		</a>
+		{% endfor %}
+	</div>
+	{% else %}
+	<p class="wc-muted">{{ _("No open jobs match this filter right now.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}

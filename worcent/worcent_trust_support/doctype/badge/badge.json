@@ -1,0 +1,80 @@
+{
+ "actions": [],
+ "autoname": "field:badge_name",
+ "creation": "2026-08-25 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "badge_name",
+  "badge_type",
+  "icon",
+  "description",
+  "criteria_description"
+ ],
+ "fields": [
+  {
+   "fieldname": "badge_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Badge Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "badge_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Badge Type",
+   "options": "Top Rated\nRising Talent\nVerified Pro\nMentor\nIndustry Guru\nOther"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Attach Image",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "criteria_description",
+   "fieldtype": "Small Text",
+   "label": "How to Earn This Badge"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Trust Support",
+ "name": "Badge",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Freelancer"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

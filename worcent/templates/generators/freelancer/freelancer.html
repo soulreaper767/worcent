@@ -1,0 +1,92 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ doc.display_name }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-profile-page">
+	<div class="wc-profile-banner"></div>
+	<div class="wc-profile-header">
+		<div class="wc-avatar wc-avatar-lg">
+			{% if doc.profile_photo %}<img src="{{ doc.profile_photo }}" alt="{{ doc.display_name }}">{% else %}{{ doc.display_name[0] if doc.display_name else "?" }}{% endif %}
+		</div>
+		<div class="wc-profile-header-info">
+			<h1>
+				{{ doc.display_name }}
+				{% if doc.verification_level in ("ID Verified", "Business Verified") %}
+				<span class="wc-badge-tick" title="Verified">✓ {{ _("Verified") }}</span>
+				{% endif %}
+			</h1>
+			<p>{{ doc.headline or "" }}</p>
+			{% if doc.rating_avg %}
+			<div class="wc-rating">{{ "★" * (doc.rating_avg | round | int) }}<span class="wc-rating-muted">{{ "★" * (5 - (doc.rating_avg | round | int)) }}</span><span class="wc-rating-count">({{ doc.total_reviews or 0 }} {{ _("reviews") }})</span></div>
+			{% endif %}
+			<div class="wc-badge-row">
+				{% if doc.is_mentor %}<span class="wc-badge-pill">🎓 {{ _("Mentor") }}</span>{% endif %}
+				{% if doc.is_guru %}<span class="wc-badge-pill">🏆 {{ _("Industry Guru") }}</span>{% endif %}
+				{% if doc.premium_tier == "Pro" %}<span class="wc-badge-pill">⭐ {{ _("Pro") }}</span>{% endif %}
+				{% for b in doc.badges %}<span class="wc-badge-pill">{{ b.badge }}</span>{% endfor %}
+			</div>
+		</div>
+	</div>
+
+	<div class="wc-profile-body">
+		<div class="wc-profile-main">
+			{% if doc.bio %}
+			<h3 class="wc-section-title">{{ _("About") }}</h3>
+			<div>{{ doc.bio | safe }}</div>
+			{% endif %}
+
+			{% if doc.skills %}
+			<h3 class="wc-section-title" style="margin-top: 24px;">{{ _("Skills") }}</h3>
+			<div class="wc-skill-tags">
+				{% for s in doc.skills %}<span class="wc-skill-tag">{{ s.skill }} &middot; {{ s.proficiency }}</span>{% endfor %}
+			</div>
+			{% endif %}
+
+			{% if doc.portfolio %}
+			<h3 class="wc-section-title" style="margin-top: 24px;">{{ _("Portfolio") }}</h3>
+			<div class="wc-portfolio-grid">
+				{% for p in doc.portfolio %}
+				<div class="wc-portfolio-item">
+					{% if p.image %}<img src="{{ p.image }}" alt="{{ p.title }}">{% endif %}
+					<div class="cap">{{ p.title }}</div>
+				</div>
+				{% endfor %}
+			</div>
+			{% endif %}
+
+			{% if reviews %}
+			<h3 class="wc-section-title" style="margin-top: 24px;">{{ _("Reviews") }}</h3>
+			{% for r in reviews %}
+			<div class="wc-review">
+				<div class="wc-rating">{{ "★" * ((r.rating * 5) | round | int) }}</div>
+				<div>{{ r.comment or "" }}</div>
+				<div class="wc-review-meta">{{ frappe.utils.pretty_date(r.creation) }}</div>
+			</div>
+			{% endfor %}
+			{% endif %}
+		</div>
+
+		<div class="wc-profile-side">
+			<div class="wc-side-card">
+				<div class="label">{{ _("Hourly Rate") }}</div>
+				<div class="value">{{ frappe.utils.fmt_money(doc.hourly_rate) if doc.hourly_rate else "-" }}</div>
+			</div>
+			<div class="wc-side-card">
+				<div class="label">{{ _("Availability") }}</div>
+				<div class="value" style="font-size:14px;">{{ doc.availability or "-" }}</div>
+			</div>
+			<div class="wc-side-card">
+				<div class="label">{{ _("Jobs Completed") }}</div>
+				<div class="value">{{ doc.jobs_completed or 0 }}</div>
+			</div>
+			{% if doc.languages %}
+			<div class="wc-side-card">
+				<div class="label">{{ _("Languages") }}</div>
+				<div style="font-size:13px;">{{ doc.languages }}</div>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}

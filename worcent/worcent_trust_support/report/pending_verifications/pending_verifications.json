@@ -1,0 +1,24 @@
+{
+ "add_total_row": 0,
+ "creation": "2026-08-25 00:00:00.000000",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Trust Support",
+ "name": "Pending Verifications",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT\n  vr.name as \"Request:Link/Verification Request:160\",\n  vr.party_type as \"Party Type::150\",\n  vr.party as \"Party::180\",\n  vr.verification_type as \"Type::100\",\n  vr.status as \"Status::100\",\n  vr.creation as \"Requested On:Datetime:160\"\nFROM `tabVerification Request` vr\nWHERE vr.status = 'Pending'\nORDER BY vr.creation ASC",
+ "ref_doctype": "Verification Request",
+ "report_name": "Pending Verifications",
+ "report_type": "Query Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "Worcent Admin"}
+ ]
+}

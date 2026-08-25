@@ -1,0 +1,25 @@
+{
+ "add_total_row": 1,
+ "creation": "2026-08-25 00:00:00.000000",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Core",
+ "name": "Freelancer Earnings Summary",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT\n  fp.name as \"Freelancer:Link/Freelancer Profile:200\",\n  fp.display_name as \"Name::180\",\n  fp.total_earned as \"Total Earned:Currency:140\",\n  fp.jobs_completed as \"Jobs Completed:Int:120\",\n  w.balance as \"Wallet Balance:Currency:140\",\n  w.total_withdrawn as \"Total Withdrawn:Currency:140\"\nFROM `tabFreelancer Profile` fp\nLEFT JOIN `tabWallet` w ON w.party_type = 'Freelancer Profile' AND w.party = fp.name\nORDER BY fp.total_earned DESC",
+ "ref_doctype": "Freelancer Profile",
+ "report_name": "Freelancer Earnings Summary",
+ "report_type": "Query Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "Worcent Admin"},
+  {"role": "Finance Manager"}
+ ]
+}

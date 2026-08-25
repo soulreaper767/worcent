@@ -1,1 +1,5 @@
-Worcent
+Worcent Core
+Worcent Marketplace
+Worcent Finance
+Worcent Field Ops
+Worcent Trust Support

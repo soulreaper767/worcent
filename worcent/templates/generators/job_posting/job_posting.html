@@ -1,0 +1,28 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ doc.title }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-section" style="max-width: 900px;">
+	<div class="wc-job-card-meta">{{ employer_doc.company_name }} &middot; {{ proposal_count or 0 }} {{ _("proposals") }}</div>
+	<h1>{{ doc.title }}</h1>
+	<div class="wc-job-card-budget" style="font-size: 20px; margin-bottom: 16px;">
+		{% if doc.budget_min or doc.budget_max %}{{ frappe.utils.fmt_money(doc.budget_min) }} - {{ frappe.utils.fmt_money(doc.budget_max) }}{% endif %}
+		<span class="wc-muted">({{ doc.budget_type }})</span>
+	</div>
+
+	{% if doc.skills_required %}
+	<div class="wc-skill-tags" style="margin-bottom: 20px;">
+		{% for s in doc.skills_required %}<span class="wc-skill-tag">{{ s.skill }}</span>{% endfor %}
+	</div>
+	{% endif %}
+
+	<h3 class="wc-section-title">{{ _("Description") }}</h3>
+	<div>{{ doc.description | safe }}</div>
+
+	<div class="wc-side-card" style="margin-top: 32px; max-width: 320px;">
+		<div class="label">{{ _("Posted by") }}</div>
+		<div class="value" style="font-size: 15px;"><a href="/{{ employer_doc.route }}">{{ employer_doc.company_name }}</a></div>
+	</div>
+</div>
+{% endblock %}

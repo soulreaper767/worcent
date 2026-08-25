@@ -1,0 +1,26 @@
+{
+ "add_total_row": 1,
+ "creation": "2026-08-25 00:00:00.000000",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Field Ops",
+ "name": "Office Franchise Performance",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT\n  o.name as \"Office:Link/Office:180\",\n  o.office_type as \"Type::100\",\n  COUNT(DISTINCT r.name) as \"Reps:Int:80\",\n  COUNT(DISTINCT ar.name) as \"Assisted Requests:Int:140\",\n  COUNT(DISTINCT pva.name) as \"Verifications Done:Int:150\",\n  COALESCE(SUM(fs.gross_commission_collected), 0) as \"Gross Commission:Currency:150\",\n  COALESCE(SUM(fs.franchise_share), 0) as \"Franchise Share:Currency:140\"\nFROM `tabOffice` o\nLEFT JOIN `tabRep` r ON r.office = o.name\nLEFT JOIN `tabAssisted Request` ar ON ar.rep = r.name\nLEFT JOIN `tabPhysical Verification Appointment` pva ON pva.office = o.name AND pva.status = 'Completed'\nLEFT JOIN `tabFranchise Settlement` fs ON fs.office = o.name AND fs.status = 'Settled'\nGROUP BY o.name\nORDER BY o.name ASC",
+ "ref_doctype": "Office",
+ "report_name": "Office Franchise Performance",
+ "report_type": "Query Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "Worcent Admin"},
+  {"role": "Franchise Owner"},
+  {"role": "Office Manager"}
+ ]
+}

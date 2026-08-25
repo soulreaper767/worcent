@@ -1,0 +1,25 @@
+{
+ "add_total_row": 0,
+ "creation": "2026-08-25 00:00:00.000000",
+ "disable_prepared_report": 0,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Trust Support",
+ "name": "Open Disputes",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "query": "SELECT\n  dc.name as \"Dispute:Link/Dispute Case:150\",\n  dc.contract as \"Contract:Link/Contract:150\",\n  dc.milestone as \"Milestone:Link/Milestone:150\",\n  dc.raised_by as \"Raised By::180\",\n  dc.against as \"Against::100\",\n  dc.status as \"Status::140\",\n  dc.arbitration_deadline as \"Arbitration Deadline:Date:150\",\n  DATEDIFF(dc.arbitration_deadline, CURDATE()) as \"Days Left:Int:100\"\nFROM `tabDispute Case` dc\nWHERE dc.status IN ('Open', 'Under Review')\nORDER BY dc.arbitration_deadline ASC",
+ "ref_doctype": "Dispute Case",
+ "report_name": "Open Disputes",
+ "report_type": "Query Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "Worcent Admin"},
+  {"role": "Dispute Arbitrator"}
+ ]
+}

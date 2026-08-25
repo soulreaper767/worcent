@@ -1,0 +1,13 @@
+{% extends 'frappe/templates/includes/navbar/navbar_items.html' %}
+
+{% block navbar_right_extension %}
+	<li class="wc-nav-cta">
+		<a class="nav-link" href="/jobs">{{ _("Find Work") }}</a>
+	</li>
+	<li class="wc-nav-cta">
+		<a class="nav-link" href="/freelancers">{{ _("Hire Talent") }}</a>
+	</li>
+	<li class="wc-nav-cta">
+		<a class="nav-link" href="/employer-register">{{ _("Post a Job") }}</a>
+	</li>
+{% endblock %}

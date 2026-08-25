@@ -1,0 +1,148 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-08-25 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "rep",
+  "request_type",
+  "status",
+  "column_break_head",
+  "requester_name",
+  "requester_phone",
+  "section_break_1",
+  "details",
+  "section_break_conversion",
+  "converted_to_doctype",
+  "converted_to_name"
+ ],
+ "fields": [
+  {
+   "default": "AREQ-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "no_copy": 1,
+   "options": "AREQ-.#####",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "rep",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Rep",
+   "options": "Rep",
+   "reqd": 1
+  },
+  {
+   "fieldname": "request_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Request Type",
+   "options": "Post Job\nRegister as Freelancer\nApply to Job",
+   "reqd": 1
+  },
+  {
+   "default": "New",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "New\nIn Progress\nConverted\nClosed"
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "requester_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Requester Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "requester_phone",
+   "fieldtype": "Data",
+   "label": "Requester Phone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "details",
+   "fieldtype": "Text Editor",
+   "label": "Details"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_conversion",
+   "fieldtype": "Section Break",
+   "label": "Conversion"
+  },
+  {
+   "fieldname": "converted_to_doctype",
+   "fieldtype": "Link",
+   "label": "Converted To Doctype",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "converted_to_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Converted To",
+   "options": "converted_to_doctype",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Field Ops",
+ "name": "Assisted Request",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Field Rep",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Office Manager"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

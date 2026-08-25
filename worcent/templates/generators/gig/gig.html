@@ -1,0 +1,28 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ doc.title }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-section" style="max-width: 900px;">
+	<div class="wc-job-card-meta">
+		<a href="/{{ freelancer_doc.route }}">{{ freelancer_doc.display_name }}</a>
+		{% if freelancer_doc.verification_level in ("ID Verified", "Business Verified") %}<span class="wc-badge-tick">✓</span>{% endif %}
+	</div>
+	<h1>{{ doc.title }}</h1>
+
+	<h3 class="wc-section-title">{{ _("Description") }}</h3>
+	<div style="margin-bottom: 24px;">{{ doc.description | safe }}</div>
+
+	<h3 class="wc-section-title">{{ _("Packages") }}</h3>
+	<div class="wc-grid">
+		{% for p in doc.packages %}
+		<div class="wc-card">
+			<div class="wc-job-card-title">{{ p.package_type }}</div>
+			<div class="wc-freelancer-rate" style="font-size: 20px;">{{ frappe.utils.fmt_money(p.price) }}</div>
+			<div class="wc-muted" style="margin: 8px 0;">{{ p.delivery_days }} {{ _("day delivery") }} &middot; {{ p.revisions }} {{ _("revisions") }}</div>
+			<div class="wc-job-card-desc">{{ p.description or "" }}</div>
+		</div>
+		{% endfor %}
+	</div>
+</div>
+{% endblock %}

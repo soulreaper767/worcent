@@ -1,0 +1,49 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Browse Freelancers") }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-section">
+	<h1>{{ _("Browse Freelancers") }}</h1>
+
+	<div class="wc-filter-bar">
+		<a class="wc-chip {{ 'wc-chip-active' if not selected_category }}" href="/freelancers">{{ _("All") }}</a>
+		{% for cat in categories %}
+		<a class="wc-chip {{ 'wc-chip-active' if selected_category == cat.name }}" href="/freelancers?category={{ cat.name | urlencode }}">{{ cat.category_name }}</a>
+		{% endfor %}
+		<a class="wc-chip {{ 'wc-chip-active' if verified_only }}" href="/freelancers?verified=1{{ '&category='+selected_category|urlencode if selected_category }}">{{ _("Verified Only") }} ✓</a>
+	</div>
+
+	{% if freelancers %}
+	<div class="wc-grid">
+		{% for f in freelancers %}
+		<a class="wc-card" href="/{{ f.route }}">
+			<div class="wc-freelancer-card-head">
+				<div class="wc-avatar">
+					{% if f.profile_photo %}<img src="{{ f.profile_photo }}" alt="{{ f.display_name }}">{% else %}{{ f.display_name[0] if f.display_name else "?" }}{% endif %}
+				</div>
+				<div>
+					<div class="wc-freelancer-name">
+						{{ f.display_name }}
+						{% if f.verification_level in ("ID Verified", "Business Verified") %}<span class="wc-badge-tick" title="Verified">✓</span>{% endif %}
+					</div>
+					<div class="wc-freelancer-headline">{{ f.headline or "" }}</div>
+				</div>
+			</div>
+			{% if f.rating_avg %}
+			<div class="wc-rating">{{ "★" * (f.rating_avg | round | int) }}<span class="wc-rating-muted">{{ "★" * (5 - (f.rating_avg | round | int)) }}</span><span class="wc-rating-count">({{ f.total_reviews or 0 }})</span></div>
+			{% endif %}
+			{% if f.skills %}
+			<div class="wc-skill-tags">
+				{% for s in f.skills %}<span class="wc-skill-tag">{{ s.skill }}</span>{% endfor %}
+			</div>
+			{% endif %}
+			{% if f.hourly_rate %}<div class="wc-freelancer-rate">{{ frappe.utils.fmt_money(f.hourly_rate) }}/hr</div>{% endif %}
+		</a>
+		{% endfor %}
+	</div>
+	{% else %}
+	<p class="wc-muted">{{ _("No freelancers found for this filter yet.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}

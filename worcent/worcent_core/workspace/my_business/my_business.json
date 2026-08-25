@@ -1,0 +1,41 @@
+{
+ "app": "worcent",
+ "charts": [],
+ "content": "[{\"id\":\"mb-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">My Business</span>\",\"col\":12}},{\"id\":\"mb-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Company Profile\",\"col\":3}},{\"id\":\"mb-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Job Postings\",\"col\":3}},{\"id\":\"mb-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Proposals Received\",\"col\":3}},{\"id\":\"mb-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Contracts\",\"col\":3}},{\"id\":\"mb-sc-5\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Wallet\",\"col\":3}},{\"id\":\"mb-sc-6\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Top Up Wallet\",\"col\":3}},{\"id\":\"mb-sc-7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Get Verified\",\"col\":3}},{\"id\":\"mb-sc-8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Support Tickets\",\"col\":3}}]",
+ "creation": "2026-08-25 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 1,
+ "icon": "building",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "My Business",
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Core",
+ "name": "My Business",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {"role": "Employer"}
+ ],
+ "sequence_id": 3.0,
+ "shortcuts": [
+  {"color": "Blue", "doc_view": "List", "label": "My Company Profile", "link_to": "Employer Profile", "type": "DocType"},
+  {"color": "Green", "doc_view": "List", "label": "My Job Postings", "link_to": "Job Posting", "type": "DocType"},
+  {"color": "Orange", "doc_view": "List", "label": "Proposals Received", "link_to": "Proposal", "type": "DocType"},
+  {"color": "Orange", "doc_view": "List", "label": "My Contracts", "link_to": "Contract", "type": "DocType"},
+  {"color": "Green", "doc_view": "List", "label": "My Wallet", "link_to": "Wallet", "type": "DocType"},
+  {"color": "Grey", "doc_view": "List", "label": "Top Up Wallet", "link_to": "Wallet Top Up", "type": "DocType"},
+  {"color": "Green", "doc_view": "List", "label": "Get Verified", "link_to": "Verification Request", "type": "DocType"},
+  {"color": "Grey", "doc_view": "List", "label": "Support Tickets", "link_to": "Support Ticket", "type": "DocType"}
+ ],
+ "title": "My Business",
+ "type": "Workspace"
+}

@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "creation": "2026-08-25 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "escrow_auto_release_days",
+  "dispute_response_days",
+  "min_withdrawal_amount",
+  "column_break_1",
+  "platform_currency",
+  "default_employer_plan",
+  "kyc_required_for_payout",
+  "enable_public_profiles"
+ ],
+ "fields": [
+  {
+   "default": "14",
+   "fieldname": "escrow_auto_release_days",
+   "fieldtype": "Int",
+   "label": "Escrow Auto-release After (days)"
+  },
+  {
+   "default": "14",
+   "fieldname": "dispute_response_days",
+   "fieldtype": "Int",
+   "label": "Dispute Response Window (days)"
+  },
+  {
+   "default": "20",
+   "fieldname": "min_withdrawal_amount",
+   "fieldtype": "Currency",
+   "label": "Minimum Withdrawal Amount"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "USD",
+   "fieldname": "platform_currency",
+   "fieldtype": "Link",
+   "label": "Platform Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "default_employer_plan",
+   "fieldtype": "Link",
+   "label": "Default Employer Plan",
+   "options": "Employer Plan"
+  },
+  {
+   "default": "1",
+   "fieldname": "kyc_required_for_payout",
+   "fieldtype": "Check",
+   "label": "KYC Required for Payout"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_public_profiles",
+   "fieldtype": "Check",
+   "label": "Enable Public Profiles"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Core",
+ "name": "Worcent Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

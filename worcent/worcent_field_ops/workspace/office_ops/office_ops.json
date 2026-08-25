@@ -1,0 +1,40 @@
+{
+ "app": "worcent",
+ "charts": [],
+ "content": "[{\"id\":\"oo-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Office Ops</span>\",\"col\":12}},{\"id\":\"oo-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Assisted Requests\",\"col\":3}},{\"id\":\"oo-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Verification Appointments\",\"col\":3}},{\"id\":\"oo-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offices\",\"col\":3}},{\"id\":\"oo-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Reps\",\"col\":3}},{\"id\":\"oo-sc-5\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Franchise Settlements\",\"col\":3}}]",
+ "creation": "2026-08-25 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 1,
+ "icon": "geo-location",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Office Ops",
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Field Ops",
+ "name": "Office Ops",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {"role": "Field Rep"},
+  {"role": "Office Manager"},
+  {"role": "Franchise Owner"}
+ ],
+ "sequence_id": 4.0,
+ "shortcuts": [
+  {"color": "Blue", "doc_view": "List", "label": "Assisted Requests", "link_to": "Assisted Request", "type": "DocType"},
+  {"color": "Green", "doc_view": "List", "label": "Verification Appointments", "link_to": "Physical Verification Appointment", "type": "DocType"},
+  {"color": "Orange", "doc_view": "List", "label": "Offices", "link_to": "Office", "type": "DocType"},
+  {"color": "Orange", "doc_view": "List", "label": "Reps", "link_to": "Rep", "type": "DocType"},
+  {"color": "Grey", "doc_view": "List", "label": "Franchise Settlements", "link_to": "Franchise Settlement", "type": "DocType"}
+ ],
+ "title": "Office Ops",
+ "type": "Workspace"
+}

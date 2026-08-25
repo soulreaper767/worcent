@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "creation": "2026-08-25 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "package_type",
+  "price",
+  "delivery_days",
+  "revisions",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "package_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Package",
+   "options": "Basic\nStandard\nPremium",
+   "reqd": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Price",
+   "reqd": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "delivery_days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Delivery (days)",
+   "columns": 2
+  },
+  {
+   "fieldname": "revisions",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Revisions",
+   "columns": 2
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "What's Included"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Marketplace",
+ "name": "Gig Package",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,119 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Worcent — Hire freelancers, find freelance work{% endblock %}
+
+{% block page_content %}
+<div class="wc-home">
+
+	<section class="wc-hero">
+		<div class="wc-hero-inner">
+			<h1>{{ _("Find the right freelancer. Get paid for great work.") }}</h1>
+			<p>{{ _("Jobs, gigs, secure escrow payments and verified profiles — all in one freelance marketplace.") }}</p>
+			<div class="wc-hero-actions">
+				<a class="wc-btn wc-btn-primary" href="/jobs">{{ _("Find Work") }}</a>
+				<a class="wc-btn wc-btn-ghost" href="/freelancers">{{ _("Hire Talent") }}</a>
+			</div>
+		</div>
+	</section>
+
+	{% if categories %}
+	<section class="wc-section">
+		<h2 class="wc-section-title">{{ _("Popular Categories") }}</h2>
+		<div class="wc-category-grid">
+			{% for cat in categories %}
+			<a class="wc-category-card" href="/freelancers?category={{ cat.name | urlencode }}">
+				<div class="wc-category-icon">{{ cat.category_name[0] }}</div>
+				<span>{{ cat.category_name }}</span>
+			</a>
+			{% endfor %}
+		</div>
+	</section>
+	{% endif %}
+
+	{% if featured_freelancers %}
+	<section class="wc-section wc-section-muted">
+		<h2 class="wc-section-title">{{ _("Top Freelancers") }}</h2>
+		<div class="wc-grid">
+			{% for f in featured_freelancers %}
+			<a class="wc-card" href="/{{ f.route }}">
+				<div class="wc-freelancer-card-head">
+					<div class="wc-avatar">
+						{% if f.profile_photo %}<img src="{{ f.profile_photo }}" alt="{{ f.display_name }}">{% else %}{{ f.display_name[0] if f.display_name else "?" }}{% endif %}
+					</div>
+					<div>
+						<div class="wc-freelancer-name">
+							{{ f.display_name }}
+							{% if f.verification_level in ("ID Verified", "Business Verified") %}
+							<span class="wc-badge-tick" title="Verified">✓</span>
+							{% endif %}
+						</div>
+						<div class="wc-freelancer-headline">{{ f.headline or "" }}</div>
+					</div>
+				</div>
+				{% if f.rating_avg %}
+				<div class="wc-rating">{{ "★" * (f.rating_avg | round | int) }}<span class="wc-rating-muted">{{ "★" * (5 - (f.rating_avg | round | int)) }}</span></div>
+				{% endif %}
+				{% if f.hourly_rate %}<div class="wc-freelancer-rate">{{ frappe.utils.fmt_money(f.hourly_rate) }}/hr</div>{% endif %}
+			</a>
+			{% endfor %}
+		</div>
+	</section>
+	{% endif %}
+
+	{% if gurus %}
+	<section class="wc-section">
+		<h2 class="wc-section-title">{{ _("Industry Gurus") }}</h2>
+		<div class="wc-grid">
+			{% for g in gurus %}
+			<a class="wc-card" href="/{{ g.route }}">
+				<div class="wc-freelancer-card-head">
+					<div class="wc-avatar">
+						{% if g.profile_photo %}<img src="{{ g.profile_photo }}" alt="{{ g.display_name }}">{% else %}{{ g.display_name[0] if g.display_name else "?" }}{% endif %}
+					</div>
+					<div>
+						<div class="wc-freelancer-name">{{ g.display_name }} <span class="wc-badge-pill">🏆 Guru</span></div>
+						<div class="wc-freelancer-headline">{{ g.industry }}</div>
+					</div>
+				</div>
+			</a>
+			{% endfor %}
+		</div>
+	</section>
+	{% endif %}
+
+	{% if open_jobs %}
+	<section class="wc-section wc-section-muted">
+		<div class="wc-section-header">
+			<h2 class="wc-section-title">{{ _("Latest Jobs") }}</h2>
+			<a class="wc-see-all" href="/jobs">{{ _("See all") }} &rarr;</a>
+		</div>
+		<div class="wc-grid">
+			{% for j in open_jobs %}
+			<a class="wc-card" href="/{{ j.route }}">
+				<div class="wc-job-card-title">{{ j.title }}</div>
+				<div class="wc-job-card-meta">{{ j.employer_name }}</div>
+				<div class="wc-job-card-budget">
+					{% if j.budget_min or j.budget_max %}
+						{{ frappe.utils.fmt_money(j.budget_min) }} - {{ frappe.utils.fmt_money(j.budget_max) }}
+					{% endif %}
+					<span class="wc-muted">({{ j.budget_type }})</span>
+				</div>
+			</a>
+			{% endfor %}
+		</div>
+	</section>
+	{% endif %}
+
+	<section class="wc-section wc-cta-banner">
+		<div>
+			<h2>{{ _("Ready to get started?") }}</h2>
+			<p>{{ _("Join as a freelancer or post your first job in minutes.") }}</p>
+		</div>
+		<div style="display:flex; gap: 12px;">
+			<a class="wc-btn wc-btn-primary" href="/freelancer-register">{{ _("Become a Freelancer") }}</a>
+			<a class="wc-btn wc-btn-outline" style="background:#fff;" href="/employer-register">{{ _("Post a Job") }}</a>
+		</div>
+	</section>
+
+</div>
+{% endblock %}
