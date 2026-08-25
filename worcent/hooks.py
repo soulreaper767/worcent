@@ -15,7 +15,7 @@ fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"Worcent Admin", "Freelancer", "Employer", "Office Manager", "Franchise Owner",
 		"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager", "Agency Manager",
-		"Accounts Manager", "Office Managing Partner",
+		"Accounts Manager", "Office Managing Partner", "Rank Reviewer",
 	]]]},
 ]
 
@@ -95,6 +95,7 @@ permission_query_conditions = {
 	"Referral": "worcent.worcent_core.permissions.referral_query_conditions",
 	"Growth Tool Result": "worcent.worcent_core.permissions.growth_tool_result_query_conditions",
 	"Skill Challenge Enrollment": "worcent.worcent_core.permissions.skill_challenge_enrollment_query_conditions",
+	"Rank Application": "worcent.worcent_core.permissions.rank_application_query_conditions",
 }
 
 has_permission = {
@@ -111,4 +112,5 @@ has_permission = {
 	"Referral": "worcent.worcent_core.permissions.referral_has_permission",
 	"Growth Tool Result": "worcent.worcent_core.permissions.growth_tool_result_has_permission",
 	"Skill Challenge Enrollment": "worcent.worcent_core.permissions.skill_challenge_enrollment_has_permission",
+	"Rank Application": "worcent.worcent_core.permissions.rank_application_has_permission",
 }

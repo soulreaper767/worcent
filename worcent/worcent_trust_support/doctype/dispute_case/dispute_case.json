@@ -18,7 +18,12 @@
   "evidence",
   "section_break_resolution",
   "resolution_notes",
-  "split_freelancer_percent"
+  "split_freelancer_percent",
+  "resolved_by",
+  "section_break_appeal",
+  "appeal_status",
+  "appeal_notes",
+  "appeal_resolved_by"
  ],
  "fields": [
   {
@@ -112,6 +117,39 @@
    "fieldname": "split_freelancer_percent",
    "fieldtype": "Percent",
    "label": "Freelancer Share % (of milestone)"
+  },
+  {
+   "fieldname": "resolved_by",
+   "fieldtype": "Link",
+   "label": "Resolved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_appeal",
+   "fieldtype": "Section Break",
+   "label": "Appeal"
+  },
+  {
+   "default": "Not Appealed",
+   "fieldname": "appeal_status",
+   "fieldtype": "Select",
+   "label": "Appeal Status",
+   "options": "Not Appealed\nAppeal Pending\nAppeal Upheld\nAppeal Rejected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "appeal_notes",
+   "fieldtype": "Small Text",
+   "label": "Appeal Notes"
+  },
+  {
+   "fieldname": "appeal_resolved_by",
+   "fieldtype": "Link",
+   "label": "Appeal Resolved By",
+   "options": "User",
+   "read_only": 1
   }
  ],
  "links": [],

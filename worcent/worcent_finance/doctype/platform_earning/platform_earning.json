@@ -22,7 +22,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Earning Type",
-   "options": "Freelancer Commission\nEmployer Fee\nMentor Fee\nPremium Subscription\nAgency Fee\nOther",
+   "options": "Freelancer Commission\nEmployer Fee\nMentor Fee\nPremium Subscription\nAgency Fee\nRank Appeal Fee\nOther",
    "reqd": 1
   },
   {

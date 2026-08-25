@@ -1,0 +1,179 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-08-26 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "freelancer",
+  "current_rank",
+  "requested_rank",
+  "column_break_head",
+  "status",
+  "reviewed_by",
+  "readiness_test_result",
+  "section_break_case",
+  "justification",
+  "section_break_review",
+  "review_notes",
+  "section_break_appeal",
+  "appeal_used",
+  "appeal_fee_paid",
+  "appeal_notes"
+ ],
+ "fields": [
+  {
+   "default": "RNK-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "no_copy": 1,
+   "options": "RNK-.#####",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "freelancer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Freelancer",
+   "options": "Freelancer Profile",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "freelancer.rank",
+   "fieldname": "current_rank",
+   "fieldtype": "Select",
+   "label": "Current Rank",
+   "options": "Bronze\nSilver\nGold\nPlatinum",
+   "read_only": 1
+  },
+  {
+   "fieldname": "requested_rank",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Requested Rank",
+   "options": "Silver\nGold\nPlatinum",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nApproved\nRejected\nAppeal Pending\nAppeal Approved\nAppeal Rejected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reviewed_by",
+   "fieldtype": "Link",
+   "label": "Reviewed By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "description": "Optional: link your most recent Job Readiness Test result as supporting evidence.",
+   "fieldname": "readiness_test_result",
+   "fieldtype": "Link",
+   "label": "Readiness Test Result",
+   "options": "Growth Tool Result"
+  },
+  {
+   "fieldname": "section_break_case",
+   "fieldtype": "Section Break",
+   "label": "Why should this be raised?"
+  },
+  {
+   "description": "Exposure, affiliations, new certifications, recent work — whatever supports raising your rank.",
+   "fieldname": "justification",
+   "fieldtype": "Text Editor",
+   "label": "Justification"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_review",
+   "fieldtype": "Section Break",
+   "label": "Review"
+  },
+  {
+   "fieldname": "review_notes",
+   "fieldtype": "Small Text",
+   "label": "Review Notes"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_appeal",
+   "fieldtype": "Section Break",
+   "label": "Appeal"
+  },
+  {
+   "default": "0",
+   "fieldname": "appeal_used",
+   "fieldtype": "Check",
+   "label": "Appeal Used",
+   "read_only": 1
+  },
+  {
+   "fieldname": "appeal_fee_paid",
+   "fieldtype": "Currency",
+   "label": "Appeal Fee Paid (USD)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "appeal_notes",
+   "fieldtype": "Small Text",
+   "label": "Appeal Notes"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-26 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Trust Support",
+ "name": "Rank Application",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Rank Reviewer",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Freelancer"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

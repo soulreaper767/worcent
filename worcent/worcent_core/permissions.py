@@ -285,3 +285,24 @@ def skill_challenge_enrollment_has_permission(doc, ptype=None, user=None):
 	if _is_admin(user):
 		return True
 	return doc.user == user
+
+
+def _is_rank_reviewer(user):
+	return "Rank Reviewer" in frappe.get_roles(user)
+
+
+def rank_application_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user) or _is_rank_reviewer(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	if not freelancer:
+		return "1=0"
+	return f"`tabRank Application`.freelancer = {frappe.db.escape(freelancer)}"
+
+
+def rank_application_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user) or _is_rank_reviewer(user):
+		return True
+	return doc.freelancer == get_freelancer_profile(user)

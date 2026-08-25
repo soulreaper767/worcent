@@ -21,6 +21,7 @@
 			<div class="wc-rating">{{ "★" * (doc.rating_avg | round | int) }}<span class="wc-rating-muted">{{ "★" * (5 - (doc.rating_avg | round | int)) }}</span><span class="wc-rating-count">({{ doc.total_reviews or 0 }} {{ _("reviews") }})</span></div>
 			{% endif %}
 			<div class="wc-badge-row">
+				{% if doc.rank %}<span class="wc-badge-pill wc-rank-{{ doc.rank | lower }}">{{ doc.rank }} {{ _("Rank") }}</span>{% endif %}
 				{% if doc.is_mentor %}<span class="wc-badge-pill">🎓 {{ _("Mentor") }}</span>{% endif %}
 				{% if doc.is_guru %}<span class="wc-badge-pill">🏆 {{ _("Industry Guru") }}</span>{% endif %}
 				{% if doc.premium_tier == "Pro" %}<span class="wc-badge-pill">⭐ {{ _("Pro") }}</span>{% endif %}

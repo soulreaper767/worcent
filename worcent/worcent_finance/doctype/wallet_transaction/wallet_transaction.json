@@ -32,7 +32,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Top Up\nEscrow Fund\nEscrow Refund\nMilestone Release\nCommission\nPlatform Fee\nMentorship Fee\nWithdrawal\nAdvance\nAdvance Repayment\nRefund\nAdjustment\nSignup Bonus\nVerification Bonus\nReferral Commission",
+   "options": "Top Up\nEscrow Fund\nEscrow Refund\nMilestone Release\nCommission\nPlatform Fee\nMentorship Fee\nWithdrawal\nAdvance\nAdvance Repayment\nRefund\nAdjustment\nSignup Bonus\nVerification Bonus\nReferral Commission\nRank Appeal Fee",
    "reqd": 1
   },
   {

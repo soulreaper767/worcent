@@ -6,7 +6,7 @@ DEMO_PASSWORD = "Test@12345"
 ALL_WORCENT_ROLES = [
 	"Worcent Admin", "Freelancer", "Employer", "Office Manager", "Franchise Owner",
 	"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager", "Agency Manager",
-	"Accounts Manager", "Office Managing Partner",
+	"Accounts Manager", "Office Managing Partner", "Rank Reviewer",
 ]
 
 # Standard ERPNext/HRMS module workspaces that have nothing to do with a
@@ -36,7 +36,7 @@ WORKSPACE_ROLE_RESTRICTIONS = {
 	"Office Ops": ["Field Rep", "Office Manager", "Franchise Owner", "Office Managing Partner", "Worcent Admin"],
 	"My Agency": ["Agency Manager"],
 	"Support Desk": ["Support Agent", "Worcent Admin"],
-	"Dispute Resolution": ["Dispute Arbitrator", "Worcent Admin"],
+	"Dispute Resolution": ["Dispute Arbitrator", "Rank Reviewer", "Worcent Admin"],
 	"Finance Ops": ["Finance Manager", "Accounts Manager", "Worcent Admin"],
 	"Leaves": _HR_SELF_SERVICE_TIER,
 	"Expenses": _HR_SELF_SERVICE_TIER,
@@ -69,6 +69,7 @@ ROLE_HOME_PAGE = {
 	"Finance Manager": "desk/finance-ops",
 	"Accounts Manager": "desk/finance-ops",
 	"Office Managing Partner": "desk/office-ops",
+	"Rank Reviewer": "desk/dispute-resolution",
 }
 
 
@@ -85,6 +86,7 @@ def after_install():
 	seed_referral_demo()
 	seed_paid_mentorship_demo()
 	seed_currency_diverse_users()
+	seed_rank_demo()
 	grant_cross_app_permissions()
 	configure_desk_experience()
 	frappe.db.set_value("Website Settings", "Website Settings", "home_page", "index")
@@ -106,6 +108,7 @@ def reseed_demo_data():
 	seed_referral_demo()
 	seed_paid_mentorship_demo()
 	seed_currency_diverse_users()
+	seed_rank_demo()
 	configure_desk_experience()
 	frappe.db.commit()
 
@@ -516,6 +519,9 @@ def seed_company_and_users():
 	create_user("support1.demo@worcent.test", "Sara Support", ["Support Agent"])
 	create_user("support2.demo@worcent.test", "Sana Support", ["Support Agent"])
 	create_user("arbitrator1.demo@worcent.test", "Ahmed Arbitrator", ["Dispute Arbitrator"])
+	create_user("arbitrator2.demo@worcent.test", "Bushra Arbitrator", ["Dispute Arbitrator"])
+	create_user("rankreviewer1.demo@worcent.test", "Rafay Reviewer", ["Rank Reviewer"])
+	create_user("rankreviewer2.demo@worcent.test", "Rida Reviewer", ["Rank Reviewer"])
 	create_user("franchiseowner1.demo@worcent.test", "Farhan Franchise", ["Franchise Owner"])
 
 	freelancer1_user = create_user("freelancer1.demo@worcent.test", "Zara Freelancer")
@@ -695,6 +701,51 @@ def seed_currency_diverse_users():
 		uae_freelancer_user, "Mobile app developer", 45, ["Python", "React"],
 		extra_fields={"country": "United Arab Emirates"},
 	)
+	frappe.db.commit()
+
+
+def seed_rank_demo():
+	"""Exercises both Rank Application paths so the demo data shows a clean
+	approval and a rejected-then-appealed-and-upheld example, each reviewed
+	by a different Rank Reviewer (the appeal enforces a second reviewer)."""
+	freelancer1 = frappe.db.get_value("Freelancer Profile", {"user": "freelancer1.demo@worcent.test"}, "name")
+	freelancer2 = frappe.db.get_value("Freelancer Profile", {"user": "freelancer2.demo@worcent.test"}, "name")
+
+	if freelancer1 and not frappe.db.exists("Rank Application", {"freelancer": freelancer1}):
+		app1 = frappe.get_doc(
+			{
+				"doctype": "Rank Application",
+				"freelancer": freelancer1,
+				"requested_rank": "Silver",
+				"justification": "Strong track record on Worcent plus 5+ years of prior agency experience.",
+			}
+		)
+		app1.insert(ignore_permissions=True)
+		frappe.set_user("rankreviewer1.demo@worcent.test")
+		frappe.get_doc("Rank Application", app1.name).approve("Solid history, approved.")
+		frappe.set_user("Administrator")
+
+	if freelancer2 and not frappe.db.exists("Rank Application", {"freelancer": freelancer2}):
+		app2 = frappe.get_doc(
+			{
+				"doctype": "Rank Application",
+				"freelancer": freelancer2,
+				"requested_rank": "Silver",
+				"justification": "Recently featured in an industry newsletter; picking up more marketing clients.",
+			}
+		)
+		app2.insert(ignore_permissions=True)
+		frappe.set_user("rankreviewer1.demo@worcent.test")
+		frappe.get_doc("Rank Application", app2.name).reject("Not enough completed jobs on Worcent yet.")
+		frappe.set_user("freelancer2.demo@worcent.test")
+		from worcent.worcent_core.wallet_utils import ensure_wallet
+
+		frappe.db.set_value("Wallet", ensure_wallet("Freelancer Profile", freelancer2), "balance", 50)
+		frappe.get_doc("Rank Application", app2.name).appeal()
+		frappe.set_user("rankreviewer2.demo@worcent.test")
+		frappe.get_doc("Rank Application", app2.name).approve("On reconsideration, the newsletter feature is a fair basis.")
+		frappe.set_user("Administrator")
+
 	frappe.db.commit()
 
 

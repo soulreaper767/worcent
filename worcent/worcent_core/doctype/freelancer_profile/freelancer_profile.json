@@ -32,6 +32,7 @@
   "languages",
   "section_break_trust",
   "verification_level",
+  "rank",
   "column_break_trust",
   "is_mentor",
   "is_guru",
@@ -210,6 +211,17 @@
    "in_standard_filter": 1,
    "label": "Verification Level",
    "options": "Unverified\nEmail Verified\nPhone Verified\nID Verified\nBusiness Verified",
+   "read_only": 1
+  },
+  {
+   "default": "Bronze",
+   "description": "Formal platform standing, raised only via an approved Rank Application — not the same as Badges.",
+   "fieldname": "rank",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Rank",
+   "options": "Bronze\nSilver\nGold\nPlatinum",
    "read_only": 1
   },
   {

@@ -222,6 +222,10 @@ body.wc-body {
 
 .wc-badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--wc-space-2); }
 .wc-badge-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #fef3c7; color: #92400e; }
+.wc-rank-bronze { background: #fde8d7; color: #9a4a1a; }
+.wc-rank-silver { background: #e5e7eb; color: #374151; }
+.wc-rank-gold { background: #fef3c7; color: #92400e; }
+.wc-rank-platinum { background: #e0e7ff; color: #3730a3; }
 
 .wc-professional-id-banner { max-width: 1100px; margin: 0 auto var(--wc-space-3); padding: var(--wc-space-3); background: var(--wc-primary-tint); border: 1px dashed var(--wc-primary); border-radius: var(--wc-radius); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; }
 .wc-worcent-score-card .value { color: var(--wc-primary); }
