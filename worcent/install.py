@@ -184,6 +184,24 @@ def configure_desk_experience():
 	seed_role_home_pages()
 	hide_irrelevant_workspaces()
 	restrict_workspace_roles()
+	sync_workspace_sidebars()
+
+
+def sync_workspace_sidebars():
+	"""In v16 a Workspace record alone doesn't make it appear in the Desk
+	sidebar — that's driven by a separate Workspace Sidebar/Workspace Sidebar
+	Item pair, normally only auto-created once by Frappe's own
+	after_app_install hook. Since worcent's workspaces get created/updated by
+	this install.py (not by bench install-app timing), that auto-creation
+	can miss them entirely — this keeps the sidebar in sync on every
+	migrate. frappe's own helper is idempotent (skips any workspace that
+	already has a same-named sidebar)."""
+	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
+		create_workspace_sidebar_for_workspaces,
+	)
+
+	create_workspace_sidebar_for_workspaces()
+	frappe.db.commit()
 
 
 def seed_role_home_pages():
