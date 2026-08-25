@@ -7,5 +7,6 @@
  {"doctype": "Role", "name": "Field Rep", "role_name": "Field Rep", "desk_access": 1, "disabled": 0, "is_custom": 1},
  {"doctype": "Role", "name": "Support Agent", "role_name": "Support Agent", "desk_access": 1, "disabled": 0, "is_custom": 1},
  {"doctype": "Role", "name": "Dispute Arbitrator", "role_name": "Dispute Arbitrator", "desk_access": 1, "disabled": 0, "is_custom": 1},
- {"doctype": "Role", "name": "Finance Manager", "role_name": "Finance Manager", "desk_access": 1, "disabled": 0, "is_custom": 1}
+ {"doctype": "Role", "name": "Finance Manager", "role_name": "Finance Manager", "desk_access": 1, "disabled": 0, "is_custom": 1},
+ {"doctype": "Role", "name": "Agency Manager", "role_name": "Agency Manager", "desk_access": 1, "disabled": 0, "is_custom": 1}
 ]

@@ -13,6 +13,7 @@
   "column_break_1",
   "freelancer",
   "employer",
+  "agency",
   "section_break_terms",
   "contract_type",
   "rate",
@@ -72,6 +73,14 @@
    "label": "Employer",
    "options": "Employer Profile",
    "reqd": 1
+  },
+  {
+   "description": "Freelancer's agency at the time this contract was signed, if any (for agency attribution/reporting only — commission still accrues to the individual freelancer).",
+   "fieldname": "agency",
+   "fieldtype": "Link",
+   "label": "Agency (if any)",
+   "options": "Agency",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_terms",

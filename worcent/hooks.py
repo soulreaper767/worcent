@@ -14,7 +14,7 @@ required_apps = ["frappe", "erpnext", "payments", "hrms"]
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"Worcent Admin", "Freelancer", "Employer", "Office Manager", "Franchise Owner",
-		"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager",
+		"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager", "Agency Manager",
 	]]]},
 ]
 
@@ -29,7 +29,7 @@ web_include_js = "/assets/worcent/js/worcent.js"
 
 # Website route rules
 # ------------------
-website_generators = ["Freelancer Profile", "Employer Profile", "Job Posting", "Gig"]
+website_generators = ["Freelancer Profile", "Employer Profile", "Job Posting", "Gig", "Agency"]
 
 update_website_context = [
 	"worcent.worcent_core.website_context.update_context",
@@ -40,6 +40,7 @@ has_website_permission = {
 	"Employer Profile": "worcent.worcent_core.doctype.employer_profile.employer_profile.has_website_permission",
 	"Job Posting": "worcent.worcent_marketplace.doctype.job_posting.job_posting.has_website_permission",
 	"Gig": "worcent.worcent_marketplace.doctype.gig.gig.has_website_permission",
+	"Agency": "worcent.worcent_core.doctype.agency.agency.has_website_permission",
 }
 
 # Installation

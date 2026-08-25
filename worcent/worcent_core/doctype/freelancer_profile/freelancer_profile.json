@@ -14,6 +14,7 @@
   "published",
   "column_break_head",
   "employer_profile",
+  "current_agency",
   "section_break_profile",
   "headline",
   "profile_photo",
@@ -98,6 +99,13 @@
    "fieldtype": "Link",
    "label": "Linked Employer Profile",
    "options": "Employer Profile",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_agency",
+   "fieldtype": "Link",
+   "label": "Current Agency",
+   "options": "Agency",
    "read_only": 1
   },
   {

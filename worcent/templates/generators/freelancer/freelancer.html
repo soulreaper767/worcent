@@ -55,6 +55,28 @@
 			</div>
 			{% endif %}
 
+			{% if career_history %}
+			<h3 class="wc-section-title" style="margin-top: 24px;">{{ _("Career History") }}</h3>
+			{% for m in career_history %}
+			<div class="wc-review">
+				<div style="display:flex; justify-content: space-between; align-items:baseline;">
+					<a href="/{{ m.agency_route }}" style="font-weight:700;">{{ m.agency_name }}</a>
+					<span class="wc-badge-pill">{{ _("Current") if m.status == "Active" else _("Past") }}</span>
+				</div>
+				<div class="wc-review-meta">
+					{{ frappe.utils.format_date(m.joined_on) }} &ndash; {{ frappe.utils.format_date(m.separated_on) if m.separated_on else _("Present") }}
+				</div>
+				{% if m.status == "Separated" %}
+				<div style="margin-top:6px; font-size:13px;">
+					{{ m.jobs_completed_during_membership or 0 }} {{ _("jobs completed") }}
+					&middot; {{ frappe.utils.fmt_money(m.earnings_during_membership) }} {{ _("earned") }}
+					{% if m.rating_at_separation %}&middot; {{ "%.1f"|format(m.rating_at_separation) }}★ {{ _("rating at separation") }}{% endif %}
+				</div>
+				{% endif %}
+			</div>
+			{% endfor %}
+			{% endif %}
+
 			{% if reviews %}
 			<h3 class="wc-section-title" style="margin-top: 24px;">{{ _("Reviews") }}</h3>
 			{% for r in reviews %}
@@ -80,6 +102,12 @@
 				<div class="label">{{ _("Jobs Completed") }}</div>
 				<div class="value">{{ doc.jobs_completed or 0 }}</div>
 			</div>
+			{% if doc.current_agency %}
+			<div class="wc-side-card">
+				<div class="label">{{ _("Agency") }}</div>
+				<div class="value" style="font-size:14px;"><a href="/{{ frappe.db.get_value('Agency', doc.current_agency, 'route') }}">{{ frappe.db.get_value('Agency', doc.current_agency, 'agency_name') }}</a></div>
+			</div>
+			{% endif %}
 			{% if doc.languages %}
 			<div class="wc-side-card">
 				<div class="label">{{ _("Languages") }}</div>

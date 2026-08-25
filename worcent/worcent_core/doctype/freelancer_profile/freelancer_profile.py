@@ -64,6 +64,18 @@ class FreelancerProfile(WebsiteGenerator):
 			order_by="creation desc",
 			limit_page_length=20,
 		)
+		context.career_history = frappe.get_all(
+			"Agency Membership",
+			filters={"freelancer": self.name},
+			fields=[
+				"agency", "status", "joined_on", "separated_on",
+				"jobs_completed_during_membership", "earnings_during_membership", "rating_at_separation",
+			],
+			order_by="joined_on desc",
+		)
+		for row in context.career_history:
+			row["agency_name"] = frappe.db.get_value("Agency", row.agency, "agency_name")
+			row["agency_route"] = frappe.db.get_value("Agency", row.agency, "route")
 
 
 def has_website_permission(doc, ptype, user, verbose=False):

@@ -1,0 +1,178 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-08-25 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "agency",
+  "freelancer",
+  "status",
+  "column_break_head",
+  "joined_on",
+  "separated_on",
+  "section_break_baseline",
+  "jobs_completed_at_join",
+  "earnings_at_join",
+  "column_break_baseline",
+  "section_break_snapshot",
+  "jobs_completed_during_membership",
+  "earnings_during_membership",
+  "column_break_snapshot",
+  "rating_at_separation",
+  "separation_note"
+ ],
+ "fields": [
+  {
+   "default": "AGM-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "no_copy": 1,
+   "options": "AGM-.#####",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "agency",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Agency",
+   "options": "Agency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "freelancer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Freelancer",
+   "options": "Freelancer Profile",
+   "reqd": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Active\nSeparated"
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "joined_on",
+   "fieldtype": "Date",
+   "label": "Joined On"
+  },
+  {
+   "fieldname": "separated_on",
+   "fieldtype": "Date",
+   "label": "Separated On",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_baseline",
+   "fieldtype": "Section Break",
+   "label": "Baseline (captured at join)"
+  },
+  {
+   "fieldname": "jobs_completed_at_join",
+   "fieldtype": "Int",
+   "label": "Jobs Completed Before Joining",
+   "read_only": 1
+  },
+  {
+   "fieldname": "earnings_at_join",
+   "fieldtype": "Currency",
+   "label": "Earnings Before Joining",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_baseline",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_snapshot",
+   "fieldtype": "Section Break",
+   "label": "Career History (captured at separation)"
+  },
+  {
+   "description": "Jobs completed specifically during this agency membership — stays on the freelancer's permanent record after separation.",
+   "fieldname": "jobs_completed_during_membership",
+   "fieldtype": "Int",
+   "label": "Jobs Completed During Membership",
+   "read_only": 1
+  },
+  {
+   "fieldname": "earnings_during_membership",
+   "fieldtype": "Currency",
+   "label": "Earnings During Membership",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_snapshot",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rating_at_separation",
+   "fieldtype": "Float",
+   "label": "Rating at Separation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "separation_note",
+   "fieldtype": "Small Text",
+   "label": "Separation Note"
+  }
+ ],
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Core",
+ "name": "Agency Membership",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Agency Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Freelancer"
+  }
+ ],
+ "sort_field": "joined_on",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

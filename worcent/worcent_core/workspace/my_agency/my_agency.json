@@ -1,0 +1,35 @@
+{
+ "app": "worcent",
+ "charts": [],
+ "content": "[{\"id\":\"ma-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">My Agency</span>\",\"col\":12}},{\"id\":\"ma-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Agency Profile\",\"col\":3}},{\"id\":\"ma-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Agency Memberships\",\"col\":3}}]",
+ "creation": "2026-08-25 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 1,
+ "icon": "users",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "My Agency",
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Core",
+ "name": "My Agency",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {"role": "Agency Manager"}
+ ],
+ "sequence_id": 5.0,
+ "shortcuts": [
+  {"color": "Blue", "doc_view": "List", "label": "My Agency Profile", "link_to": "Agency", "type": "DocType"},
+  {"color": "Green", "doc_view": "List", "label": "Agency Memberships", "link_to": "Agency Membership", "type": "DocType"}
+ ],
+ "title": "My Agency",
+ "type": "Workspace"
+}

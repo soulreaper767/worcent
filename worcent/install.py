@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import add_days, today
+from frappe.utils import add_days, flt, today
 
 DEMO_PASSWORD = "Test@12345"
 
@@ -8,8 +8,24 @@ def after_install():
 	configure_worcent_settings()
 	seed_masters()
 	seed_company_and_users()
+	seed_agency_ecosystem()
 	seed_demo_marketplace_data()
+	seed_extra_marketplace_data()
+	seed_agency_separation_demo()
 	frappe.db.set_value("Website Settings", "Website Settings", "home_page", "index")
+	frappe.db.commit()
+
+
+def reseed_demo_data():
+	"""Callable directly (bench execute worcent.install.reseed_demo_data) to
+	top up demo data on an already-installed site without re-running the
+	whole after_install flow. Every step below is idempotent."""
+	seed_masters()
+	seed_company_and_users()
+	seed_agency_ecosystem()
+	seed_demo_marketplace_data()
+	seed_extra_marketplace_data()
+	seed_agency_separation_demo()
 	frappe.db.commit()
 
 
@@ -186,19 +202,26 @@ def seed_company_and_users():
 	freelancer1_user = create_user("freelancer1.demo@worcent.test", "Zara Freelancer")
 	freelancer2_user = create_user("freelancer2.demo@worcent.test", "Bilal Freelancer")
 	employer1_user = create_user("employer1.demo@worcent.test", "Nadia Employer")
+	employer2_user = create_user("employer2.demo@worcent.test", "Omar Employer")
 	dual_user = create_user("dual1.demo@worcent.test", "Kamran Dual")
 
 	office_manager_user = create_user("officemanager1.demo@worcent.test", "Owais Manager")
 	rep1_user = create_user("rep1.demo@worcent.test", "Rashid Rep")
 	rep2_user = create_user("rep2.demo@worcent.test", "Rida Rep")
 
+	rep3_user = create_user("rep3.demo@worcent.test", "Imran Rep")
+
 	owned_office = ensure_office("Worcent HQ - Karachi", "Owned", manager_user=office_manager_user)
 	franchised_office = ensure_office(
 		"Worcent Partner - Lahore", "Franchised", franchisee_name="Farhan Franchise", franchise_fee_percent=30
 	)
+	franchised_office_2 = ensure_office(
+		"Worcent Partner - Islamabad", "Franchised", franchisee_name="Islamabad Business Services", franchise_fee_percent=25
+	)
 
 	ensure_rep(rep1_user, owned_office, "Karachi Central")
 	ensure_rep(rep2_user, franchised_office, "Lahore")
+	ensure_rep(rep3_user, franchised_office_2, "Islamabad")
 
 	freelancer1 = ensure_freelancer_profile(
 		freelancer1_user, "Full-stack Frappe & React developer", 35, ["Python", "JavaScript", "React", "Frappe Framework"]
@@ -211,7 +234,12 @@ def seed_company_and_users():
 	)
 
 	employer1 = ensure_employer_profile(employer1_user, "Nadia Employer", "Acme Retail Co", "Retail")
+	employer2 = ensure_employer_profile(employer2_user, "Omar Employer", "Bright Path Media", "Media & Publishing")
 	ensure_employer_profile(dual_user, "Kamran Dual", "Kamran's Studio", "Design Services")
+
+	frappe.db.set_value("Employer Profile", employer2, "status", "Active")
+	frappe.db.set_value("Employer Profile", employer2, "published", 1)
+	frappe.db.set_value("Employer Profile", employer2, "verification_level", "Email Verified")
 
 	frappe.db.set_value("Freelancer Profile", freelancer1, "status", "Active")
 	frappe.db.set_value("Freelancer Profile", freelancer1, "published", 1)
@@ -553,14 +581,16 @@ def ensure_job_posting(employer, title, description, category, budget_type, budg
 	return job.name
 
 
-def ensure_proposal(job, freelancer, bid_amount, delivery_days, cover_letter):
-	existing = frappe.db.get_value("Proposal", {"job_posting": job, "freelancer": freelancer}, "name")
+def ensure_proposal(job, freelancer, bid_amount, delivery_days, cover_letter, gig=None):
+	filters = {"job_posting": job, "freelancer": freelancer} if job else {"gig": gig, "freelancer": freelancer}
+	existing = frappe.db.get_value("Proposal", filters, "name")
 	if existing:
 		return existing
 	proposal = frappe.get_doc(
 		{
 			"doctype": "Proposal",
 			"job_posting": job,
+			"gig": gig,
 			"freelancer": freelancer,
 			"bid_amount": bid_amount,
 			"delivery_days": delivery_days,
@@ -590,7 +620,8 @@ def ensure_contract(job, gig, proposal, freelancer, employer, contract_type, rat
 		}
 	)
 	contract.insert(ignore_permissions=True)
-	frappe.db.set_value("Job Posting", job, "status", "In Progress")
+	if job:
+		frappe.db.set_value("Job Posting", job, "status", "In Progress")
 	return contract.name
 
 
@@ -610,3 +641,458 @@ def ensure_milestone(contract, title, amount, status):
 	)
 	milestone.insert(ignore_permissions=True)
 	return milestone.name
+
+
+def fund_submit_and_release(milestone, notes="Work delivered as scoped, ready for review."):
+	"""Drive a Pending/Submitted milestone all the way to Released through
+	the real escrow_engine calls, same as a live employer/freelancer would."""
+	from worcent.worcent_finance.escrow_engine import fund_milestone, release_milestone
+
+	if not frappe.db.exists("Escrow Transaction", {"milestone": milestone}):
+		fund_milestone(milestone)
+	if not frappe.db.exists("Work Submission", {"milestone": milestone}):
+		frappe.get_doc(
+			{"doctype": "Work Submission", "milestone": milestone, "notes": notes, "status": "Submitted"}
+		).insert(ignore_permissions=True)
+	if frappe.db.get_value("Milestone", milestone, "status") != "Released":
+		release_milestone(milestone)
+
+
+def ensure_review(contract, reviewer_type, reviewer_user, reviewee_type, reviewee, rating, comment):
+	if frappe.db.exists("Review", {"contract": contract, "reviewer_type": reviewer_type, "reviewee_profile": reviewee}):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Review",
+			"contract": contract,
+			"reviewer_type": reviewer_type,
+			"reviewer": reviewer_user,
+			"reviewee_type": reviewee_type,
+			"reviewee_profile": reviewee,
+			"rating": rating,
+			"comment": comment,
+		}
+	).insert(ignore_permissions=True)
+
+
+def top_up_wallet(party_type, party, amount):
+	from worcent.worcent_core.wallet_utils import ensure_wallet
+
+	wallet_name = ensure_wallet(party_type, party)
+	wallet = frappe.get_doc("Wallet", wallet_name)
+	wallet.balance = flt(wallet.balance) + flt(amount)
+	wallet.save(ignore_permissions=True)
+	return wallet_name
+
+
+# ---------------------------------------------------------------------------
+# Agencies: agency-affiliated freelancers, and career history on separation
+# ---------------------------------------------------------------------------
+
+
+def seed_agency_ecosystem():
+	agency_owner_1 = create_user("agencyowner1.demo@worcent.test", "Adeel Agency", ["Agency Manager"])
+	create_user("agencyowner2.demo@worcent.test", "Beenish Agency", ["Agency Manager"])
+
+	agency1 = ensure_agency(agency_owner_1, "Pixel Perfect Studio", "Design & Creative", "A boutique creative studio pairing vetted designers and writers with growing brands.")
+	ensure_agency("agencyowner2.demo@worcent.test", "WordSmith Collective", "Writing & Translation", "A collective of professional writers and translators for content-heavy businesses.")
+
+	freelancer3_user = create_user("freelancer3.demo@worcent.test", "Hina Freelancer")
+	freelancer4_user = create_user("freelancer4.demo@worcent.test", "Junaid Freelancer")
+
+	freelancer3 = ensure_freelancer_profile(
+		freelancer3_user, "Brand identity and illustration designer", 28, ["Illustration", "Logo Design", "UI/UX Design"]
+	)
+	freelancer4 = ensure_freelancer_profile(
+		freelancer4_user, "Long-form content writer for SaaS and fintech", 22, ["Content Writing", "Copywriting"]
+	)
+	frappe.db.set_value("Freelancer Profile", freelancer3, "status", "Active")
+	frappe.db.set_value("Freelancer Profile", freelancer3, "published", 1)
+	frappe.db.set_value("Freelancer Profile", freelancer4, "status", "Active")
+	frappe.db.set_value("Freelancer Profile", freelancer4, "published", 1)
+
+	# freelancer3 stays an active agency member throughout the demo.
+	ensure_agency_membership(agency1, freelancer3)
+
+	frappe.db.commit()
+
+
+def ensure_agency(owner_user, agency_name, industry, bio):
+	existing = frappe.db.get_value("Agency", {"agency_name": agency_name}, "name")
+	if existing:
+		return existing
+	agency = frappe.get_doc(
+		{
+			"doctype": "Agency",
+			"agency_name": agency_name,
+			"owner_user": owner_user,
+			"status": "Active",
+			"published": 1,
+			"verification_level": "Business Verified",
+			"bio": bio,
+		}
+	)
+	agency.insert(ignore_permissions=True)
+	return agency.name
+
+
+def ensure_agency_membership(agency, freelancer, status="Active"):
+	existing = frappe.db.get_value("Agency Membership", {"agency": agency, "freelancer": freelancer}, "name")
+	if existing:
+		return existing
+	membership = frappe.get_doc(
+		{"doctype": "Agency Membership", "agency": agency, "freelancer": freelancer, "status": status}
+	)
+	membership.insert(ignore_permissions=True)
+	return membership.name
+
+
+def seed_agency_separation_demo():
+	"""The headline scenario the platform needs to demonstrate: a freelancer
+	joins an agency, completes real paid work while affiliated, then
+	separates — and their jobs/earnings/rating from that period stay
+	permanently visible on their own public profile as career history."""
+	agency1 = frappe.db.get_value("Agency", {"agency_name": "Pixel Perfect Studio"}, "name")
+	freelancer4 = frappe.db.get_value("Freelancer Profile", {"user": "freelancer4.demo@worcent.test"}, "name")
+	employer2 = frappe.db.get_value("Employer Profile", {"user": "employer2.demo@worcent.test"}, "name")
+	if not (agency1 and freelancer4 and employer2):
+		return
+
+	membership = ensure_agency_membership(agency1, freelancer4, status="Active")
+
+	# Do a full paid contract *while* freelancer4 is an active agency member,
+	# so the contract records the agency and the payout counts toward their
+	# jobs_completed / total_earned before we separate them.
+	job = ensure_job_posting(
+		employer2,
+		"Write 10 blog posts for our fintech launch",
+		"Need a strong technical writer to produce 10 SEO-friendly blog posts (1200-1500 words each) for our product launch.",
+		"Writing & Translation",
+		"Fixed",
+		1000,
+		1500,
+		["Content Writing", "Copywriting"],
+	)
+	proposal = ensure_proposal(job, freelancer4, 1300, 20, "I've written extensively for fintech clients — portfolio attached.")
+	contract = ensure_contract(job, None, proposal, freelancer4, employer2, "Fixed", 1300)
+	milestone = ensure_milestone(contract, "Deliver 10 blog posts", 1300, "Pending")
+
+	top_up_wallet("Employer Profile", employer2, 5000)
+	fund_submit_and_release(milestone, notes="All 10 posts delivered, SEO-optimized, with meta descriptions.")
+
+	ensure_review(
+		contract, "Employer", "employer2.demo@worcent.test", "Freelancer Profile", freelancer4,
+		1, "Fantastic writer, hit every deadline. Would happily work with them again directly.",
+	)
+	contract_doc = frappe.get_doc("Contract", contract)
+	if contract_doc.status != "Completed":
+		contract_doc.status = "Completed"
+		contract_doc.save(ignore_permissions=True)
+	frappe.db.set_value("Job Posting", job, "status", "Completed")
+
+	# Now separate them from the agency — this is what snapshots the
+	# jobs/earnings/rating achieved above onto their permanent career history.
+	membership_doc = frappe.get_doc("Agency Membership", membership)
+	if membership_doc.status != "Separated":
+		membership_doc.status = "Separated"
+		membership_doc.separation_note = "Went independent to work directly with clients."
+		membership_doc.save(ignore_permissions=True)
+
+	frappe.db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Everything else: more jobs/gigs/contracts at varied stages, dispute
+# resolution, withdrawals, advances, insurance, subscriptions, verification,
+# physical verification, assisted requests, mentorship, franchise settlement.
+# ---------------------------------------------------------------------------
+
+
+def seed_extra_marketplace_data():
+	freelancer1 = frappe.db.get_value("Freelancer Profile", {"user": "freelancer1.demo@worcent.test"}, "name")
+	freelancer2 = frappe.db.get_value("Freelancer Profile", {"user": "freelancer2.demo@worcent.test"}, "name")
+	freelancer3 = frappe.db.get_value("Freelancer Profile", {"user": "freelancer3.demo@worcent.test"}, "name")
+	dual_freelancer = frappe.db.get_value("Freelancer Profile", {"user": "dual1.demo@worcent.test"}, "name")
+	employer1 = frappe.db.get_value("Employer Profile", {"user": "employer1.demo@worcent.test"}, "name")
+	employer2 = frappe.db.get_value("Employer Profile", {"user": "employer2.demo@worcent.test"}, "name")
+	dual_employer = frappe.db.get_value("Employer Profile", {"user": "dual1.demo@worcent.test"}, "name")
+	if not (freelancer1 and freelancer2 and freelancer3 and employer1 and employer2):
+		return
+
+	top_up_wallet("Employer Profile", employer1, 10000)
+	top_up_wallet("Employer Profile", employer2, 5000)
+	top_up_wallet("Employer Profile", dual_employer, 3000)
+
+	# --- more open jobs across categories, some posted via a field rep for
+	# users who called it in rather than using the site (the assisted flow) ---
+	ensure_job_posting(
+		employer1, "Redesign our product landing page", "Looking for a UI/UX designer to modernize our SaaS landing page and improve conversion.",
+		"Design & Creative", "Fixed", 600, 1500, ["UI/UX Design", "Logo Design"],
+	)
+	ensure_job_posting(
+		employer2, "Weekly newsletter ghostwriting (ongoing)", "Need a writer to ghostwrite our weekly newsletter, hourly, ongoing engagement.",
+		"Writing & Translation", "Hourly", 15, 30, ["Copywriting", "Content Writing"],
+	)
+	rep_posted_job = ensure_job_posting(
+		dual_employer, "Data entry for 2,000 product listings", "Bulk data entry job, no smartphone needed to apply — call our local office.",
+		"Admin Support", "Fixed", 150, 300, ["Data Entry"],
+	)
+
+	# --- more gigs ---
+	if not frappe.db.exists("Gig", {"freelancer": freelancer1, "title": "I will build your Frappe/ERPNext custom app"}):
+		frappe.get_doc(
+			{
+				"doctype": "Gig", "freelancer": freelancer1, "title": "I will build your Frappe/ERPNext custom app",
+				"category": "Web Development", "status": "Active", "published": 1,
+				"description": "End-to-end custom Frappe app: doctypes, workflows, website, deployed and documented.",
+				"packages": [
+					{"package_type": "Basic", "price": 300, "delivery_days": 5, "revisions": 1, "description": "Single doctype + list/report"},
+					{"package_type": "Standard", "price": 800, "delivery_days": 10, "revisions": 2, "description": "Small app, 3-5 doctypes"},
+					{"package_type": "Premium", "price": 2000, "delivery_days": 21, "revisions": 3, "description": "Full module with website + roles"},
+				],
+			}
+		).insert(ignore_permissions=True)
+
+	if not frappe.db.exists("Gig", {"freelancer": freelancer3, "title": "I will design a complete brand identity kit"}):
+		frappe.get_doc(
+			{
+				"doctype": "Gig", "freelancer": freelancer3, "title": "I will design a complete brand identity kit",
+				"category": "Design & Creative", "status": "Active", "published": 1,
+				"description": "Logo, color palette, typography and a mini brand guideline PDF.",
+				"packages": [
+					{"package_type": "Basic", "price": 120, "delivery_days": 4, "revisions": 2, "description": "Logo only"},
+					{"package_type": "Standard", "price": 250, "delivery_days": 7, "revisions": 3, "description": "Logo + palette + type"},
+					{"package_type": "Premium", "price": 450, "delivery_days": 10, "revisions": 4, "description": "Full brand kit + guideline PDF"},
+				],
+			}
+		).insert(ignore_permissions=True)
+
+	# --- Contract 2: Pending, no funding yet (proposal just accepted) ---
+	job2 = ensure_job_posting(
+		employer1, "Build an internal reporting dashboard", "Need custom reports and dashboards built on our existing Frappe site.",
+		"Web Development", "Fixed", 800, 1600, ["Python", "Frappe Framework"],
+	)
+	proposal2 = ensure_proposal(job2, freelancer2, 1400, 15, "I can start immediately, similar dashboards built before.")
+	contract2 = ensure_contract(job2, None, proposal2, freelancer2, employer1, "Fixed", 1400)
+	ensure_milestone(contract2, "Requirements & wireframes", 400, "Pending")
+	ensure_milestone(contract2, "Build dashboards", 1000, "Pending")
+
+	# --- Contract 3: one milestone Funded, awaiting submission ---
+	job3 = ensure_job_posting(
+		employer2, "Illustrate 5 blog header images", "Custom illustrated header images matching our brand style.",
+		"Design & Creative", "Fixed", 300, 600, ["Illustration"],
+	)
+	proposal3 = ensure_proposal(job3, freelancer3, 500, 10, "Love this kind of editorial illustration work — samples attached.")
+	contract3 = ensure_contract(job3, None, proposal3, freelancer3, employer2, "Fixed", 500)
+	milestone3 = ensure_milestone(contract3, "5 illustrated headers", 500, "Pending")
+	if not frappe.db.exists("Escrow Transaction", {"milestone": milestone3}):
+		from worcent.worcent_finance.escrow_engine import fund_milestone
+
+		fund_milestone(milestone3)
+
+	# --- Contract 4: Gig-based, fully released ---
+	seo_gig = frappe.db.get_value("Gig", {"freelancer": freelancer2}, "name")
+	if seo_gig:
+		proposal4 = ensure_proposal(None, freelancer2, 150, 5, "Ordering the Standard SEO audit package.", gig=seo_gig)
+		contract4 = ensure_contract(None, seo_gig, proposal4, freelancer2, dual_employer, "Gig", 150)
+		milestone4 = ensure_milestone(contract4, "SEO audit delivery", 150, "Pending")
+		fund_submit_and_release(milestone4, notes="Full audit report + prioritized action plan delivered.")
+		contract4_doc = frappe.get_doc("Contract", contract4)
+		if contract4_doc.status != "Completed":
+			contract4_doc.status = "Completed"
+			contract4_doc.save(ignore_permissions=True)
+		ensure_review(contract4, "Employer", "dual1.demo@worcent.test", "Freelancer Profile", freelancer2, 0.9, "Thorough audit, actionable recommendations.")
+		ensure_review(contract4, "Freelancer", "freelancer2.demo@worcent.test", "Employer Profile", dual_employer, 1, "Clear scope, paid promptly.")
+
+	# --- rep-assisted job posting conversion (non-smartphone flow) ---
+	rep1 = frappe.db.get_value("Rep", {"territory": "Karachi Central"}, "name")
+	if rep1 and not frappe.db.exists("Assisted Request", {"requester_phone": "+92-300-1112222"}):
+		frappe.get_doc(
+			{
+				"doctype": "Assisted Request", "rep": rep1, "requester_name": "Kamran Dual (via phone)",
+				"requester_phone": "+92-300-1112222", "request_type": "Post Job", "status": "Converted",
+				"details": "Client called in wanting bulk data entry work posted — no smartphone, walked through the office.",
+				"converted_to_doctype": "Job Posting", "converted_to_name": rep_posted_job,
+			}
+		).insert(ignore_permissions=True)
+	rep2 = frappe.db.get_value("Rep", {"territory": "Lahore"}, "name")
+	if rep2 and not frappe.db.exists("Assisted Request", {"requester_phone": "+92-321-4445555"}):
+		frappe.get_doc(
+			{
+				"doctype": "Assisted Request", "rep": rep2, "requester_name": "Saima Bibi",
+				"requester_phone": "+92-321-4445555", "request_type": "Register as Freelancer", "status": "New",
+				"details": "Walked into the Lahore office wanting to register as a stitching/tailoring freelancer.",
+			}
+		).insert(ignore_permissions=True)
+
+	# --- physical verification appointments ---
+	office1 = frappe.db.get_value("Office", {"office_type": "Owned"}, "name")
+	if office1 and rep1 and not frappe.db.exists("Physical Verification Appointment", {"party": freelancer1}):
+		frappe.get_doc(
+			{
+				"doctype": "Physical Verification Appointment", "office": office1, "rep": rep1,
+				"party_type": "Freelancer Profile", "party": freelancer1, "verification_type": "ID",
+				"scheduled_date": add_days(today(), -10), "status": "Completed",
+				"result_notes": "CNIC verified in person, matches profile details.",
+			}
+		).insert(ignore_permissions=True)
+	if office1 and rep1 and employer1 and not frappe.db.exists("Physical Verification Appointment", {"party": employer1}):
+		frappe.get_doc(
+			{
+				"doctype": "Physical Verification Appointment", "office": office1, "rep": rep1,
+				"party_type": "Employer Profile", "party": employer1, "verification_type": "Business",
+				"scheduled_date": add_days(today(), -6), "status": "Completed",
+				"result_notes": "Business registration certificate verified.",
+			}
+		).insert(ignore_permissions=True)
+	if office1 and rep1 and freelancer2 and not frappe.db.exists("Physical Verification Appointment", {"party": freelancer2}):
+		frappe.get_doc(
+			{
+				"doctype": "Physical Verification Appointment", "office": office1, "rep": rep1,
+				"party_type": "Freelancer Profile", "party": freelancer2, "verification_type": "Address",
+				"scheduled_date": add_days(today(), 3), "status": "Scheduled",
+			}
+		).insert(ignore_permissions=True)
+
+	# --- verification requests (the online/self-serve counterpart) ---
+	if not frappe.db.exists("Verification Request", {"party": freelancer1, "verification_type": "ID"}):
+		frappe.get_doc(
+			{
+				"doctype": "Verification Request", "party_type": "Freelancer Profile", "party": freelancer1,
+				"verification_type": "ID", "status": "Approved", "reviewed_by": "admin1.demo@worcent.test",
+			}
+		).insert(ignore_permissions=True)
+	if not frappe.db.exists("Verification Request", {"party": freelancer3, "verification_type": "ID"}):
+		frappe.get_doc(
+			{
+				"doctype": "Verification Request", "party_type": "Freelancer Profile", "party": freelancer3,
+				"verification_type": "ID", "status": "Pending",
+			}
+		).insert(ignore_permissions=True)
+
+	# --- withdrawal requests ---
+	freelancer1_wallet = frappe.db.get_value("Wallet", {"party": freelancer1}, "name")
+	if freelancer1_wallet and not frappe.db.exists("Withdrawal Request", {"wallet": freelancer1_wallet}):
+		wr = frappe.get_doc(
+			{
+				"doctype": "Withdrawal Request", "wallet": freelancer1_wallet, "amount": 400,
+				"method": "Bank Transfer", "status": "Paid", "paid_on": frappe.utils.now_datetime(),
+			}
+		)
+		wr.insert(ignore_permissions=True)
+		wallet = frappe.get_doc("Wallet", freelancer1_wallet)
+		wallet.balance = flt(wallet.balance) - 400
+		wallet.total_withdrawn = flt(wallet.total_withdrawn) + 400
+		wallet.save(ignore_permissions=True)
+		frappe.get_doc(
+			{
+				"doctype": "Wallet Transaction", "wallet": freelancer1_wallet, "transaction_type": "Withdrawal",
+				"direction": "Debit", "amount": 400, "balance_after": wallet.balance,
+				"reference_doctype": "Withdrawal Request", "reference_name": wr.name,
+			}
+		).insert(ignore_permissions=True)
+
+	freelancer2_wallet = frappe.db.get_value("Wallet", {"party": freelancer2}, "name")
+	if freelancer2_wallet and not frappe.db.exists(
+		"Withdrawal Request", {"wallet": freelancer2_wallet, "status": "Pending"}
+	):
+		frappe.get_doc(
+			{"doctype": "Withdrawal Request", "wallet": freelancer2_wallet, "amount": 100, "method": "PayPal", "status": "Pending"}
+		).insert(ignore_permissions=True)
+
+	# --- advance request, disbursed ---
+	if not frappe.db.exists("Advance Request", {"freelancer": freelancer2}):
+		adv = frappe.get_doc(
+			{
+				"doctype": "Advance Request", "freelancer": freelancer2, "amount_requested": 200,
+				"against_contract": contract2, "interest_rate": 3, "status": "Approved",
+				"repayment_schedule": [
+					{"due_date": add_days(today(), 30), "amount": 100, "status": "Pending"},
+					{"due_date": add_days(today(), 60), "amount": 100, "status": "Pending"},
+				],
+			}
+		)
+		adv.insert(ignore_permissions=True)
+		adv.status = "Disbursed"
+		adv.save(ignore_permissions=True)
+
+	# --- insurance policy + claim ---
+	health_plan = frappe.db.get_value("Insurance Plan", {"coverage_type": "Health"}, "name")
+	if health_plan and not frappe.db.exists("Insurance Policy", {"freelancer": freelancer1}):
+		policy = frappe.get_doc(
+			{
+				"doctype": "Insurance Policy", "freelancer": freelancer1, "insurance_plan": health_plan,
+				"status": "Active", "start_date": add_days(today(), -60), "end_date": add_days(today(), 305),
+			}
+		)
+		policy.insert(ignore_permissions=True)
+		if not frappe.db.exists("Insurance Claim", {"policy": policy.name}):
+			frappe.get_doc(
+				{
+					"doctype": "Insurance Claim", "policy": policy.name, "reason": "Minor medical expense reimbursement",
+					"amount_claimed": 120, "status": "Approved",
+				}
+			).insert(ignore_permissions=True)
+
+	# --- premium subscriptions ---
+	pro_plan = frappe.db.get_value("Premium Subscription Plan", {"tier_for": "Freelancer"}, "name")
+	if pro_plan and not frappe.db.exists("Premium Subscription", {"user": "freelancer1.demo@worcent.test"}):
+		frappe.get_doc(
+			{
+				"doctype": "Premium Subscription", "user": "freelancer1.demo@worcent.test", "plan": pro_plan,
+				"status": "Active", "start_date": add_days(today(), -20), "renews_on": add_days(today(), 10),
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Freelancer Profile", freelancer1, "premium_tier", "Pro")
+
+	business_plan = frappe.db.get_value("Premium Subscription Plan", {"tier_for": "Employer"}, "name")
+	if business_plan and not frappe.db.exists("Premium Subscription", {"user": "employer1.demo@worcent.test"}):
+		frappe.get_doc(
+			{
+				"doctype": "Premium Subscription", "user": "employer1.demo@worcent.test", "plan": business_plan,
+				"status": "Active", "start_date": add_days(today(), -15), "renews_on": add_days(today(), 15),
+			}
+		).insert(ignore_permissions=True)
+
+	# --- mentorship request ---
+	mentor_program = frappe.db.get_value("Mentor Program", {"mentor": freelancer1}, "name")
+	if mentor_program and not frappe.db.exists("Mentorship Request", {"mentee": freelancer2}):
+		frappe.get_doc(
+			{
+				"doctype": "Mentorship Request", "mentor_program": mentor_program, "mentee": freelancer2,
+				"status": "Accepted", "session_notes": "First session covered pricing strategy for SEO gigs.",
+			}
+		).insert(ignore_permissions=True)
+
+	# --- franchise settlement for the Lahore office ---
+	lahore_office = frappe.db.get_value("Office", {"office_name": "Worcent Partner - Lahore"}, "name")
+	if lahore_office and not frappe.db.exists("Franchise Settlement", {"office": lahore_office}):
+		frappe.get_doc(
+			{
+				"doctype": "Franchise Settlement", "office": lahore_office,
+				"period_start": add_days(today(), -30), "period_end": today(),
+				"gross_commission_collected": 640, "status": "Settled",
+			}
+		).insert(ignore_permissions=True)
+
+	# --- resolve the open dispute from the first demo contract as a split ---
+	dispute = frappe.get_all("Dispute Case", filters={"status": "Open"}, fields=["name"], limit_page_length=1)
+	if dispute:
+		dispute_doc = frappe.get_doc("Dispute Case", dispute[0].name)
+		dispute_doc.status = "Resolved-Split"
+		dispute_doc.split_freelancer_percent = 60
+		dispute_doc.resolution_notes = "Freelancer delivered partial work before the missed deadline; split 60/40 in their favour."
+		dispute_doc.save(ignore_permissions=True)
+
+	# --- one more support ticket, resolved this time ---
+	if not frappe.db.exists("Support Ticket", {"subject": "How do I switch between freelancer and employer view?"}):
+		frappe.get_doc(
+			{
+				"doctype": "Support Ticket", "subject": "How do I switch between freelancer and employer view?",
+				"raised_by": "dual1.demo@worcent.test", "category": "Account Issue", "priority": "Low",
+				"status": "Resolved", "assigned_to": "support1.demo@worcent.test",
+				"description": "I have both a freelancer and employer profile, how do I switch between them?",
+			}
+		).insert(ignore_permissions=True)
+
+	frappe.db.commit()

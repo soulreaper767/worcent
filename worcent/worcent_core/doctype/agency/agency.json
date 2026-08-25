@@ -1,0 +1,176 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-08-25 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "agency_name",
+  "owner_user",
+  "route",
+  "status",
+  "published",
+  "column_break_head",
+  "verification_level",
+  "rating_avg",
+  "total_reviews",
+  "total_freelancers",
+  "total_jobs_completed",
+  "section_break_1",
+  "logo",
+  "bio"
+ ],
+ "fields": [
+  {
+   "default": "AGY-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "no_copy": 1,
+   "options": "AGY-.#####",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "agency_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Agency Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "owner_user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Owner",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Small Text",
+   "label": "Route",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nActive\nSuspended"
+  },
+  {
+   "default": "1",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published"
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Unverified",
+   "fieldname": "verification_level",
+   "fieldtype": "Select",
+   "label": "Verification Level",
+   "options": "Unverified\nEmail Verified\nPhone Verified\nID Verified\nBusiness Verified",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rating_avg",
+   "fieldtype": "Float",
+   "label": "Average Rating",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_reviews",
+   "fieldtype": "Int",
+   "label": "Total Reviews",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_freelancers",
+   "fieldtype": "Int",
+   "label": "Active Freelancers",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_jobs_completed",
+   "fieldtype": "Int",
+   "label": "Jobs Completed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Profile"
+  },
+  {
+   "fieldname": "logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo"
+  },
+  {
+   "fieldname": "bio",
+   "fieldtype": "Text Editor",
+   "label": "About the Agency"
+  }
+ ],
+ "has_web_view": 1,
+ "image_field": "logo",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-08-25 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Core",
+ "name": "Agency",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Agency Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Freelancer"
+  },
+  {
+   "read": 1,
+   "role": "Employer"
+  }
+ ],
+ "search_fields": "agency_name",
+ "show_name_in_global_search": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "agency_name",
+ "track_changes": 1
+}
