@@ -21,14 +21,13 @@ fixtures = [
 
 # Includes in <head>
 # ------------------
-
-app_include_css = "/assets/worcent/css/worcent.css"
-app_include_js = "/assets/worcent/js/worcent.js"
+# Only the public website gets Worcent's marketing CSS/JS — Desk must stay on
+# Frappe's own styling untouched, so app_include_* is intentionally unset.
 
 web_include_css = "/assets/worcent/css/worcent.css"
 web_include_js = "/assets/worcent/js/worcent.js"
 
-brand_html = '<span class="wc-brand-mark"><svg viewBox="0 0 32 32" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="9" fill="#14805e"/><path d="M8 11L13 21L16 14L19 21L24 11" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="wc-brand-word">Worcent</span></span>'
+brand_html = '<span class="wc-brand-mark"><svg viewBox="0 0 32 32" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="9" fill="#2563eb"/><path d="M8 11L13 21L16 14L19 21L24 11" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="wc-brand-word">Worcent</span></span>'
 
 # Website route rules
 # ------------------
@@ -54,12 +53,23 @@ after_install = "worcent.install.after_install"
 # ------------------
 after_migrate = "worcent.install.after_migrate"
 
+# Document Events
+# ----------------
+doc_events = {
+	"Comment": {
+		"after_insert": "worcent.worcent_trust_support.doctype.support_ticket.support_ticket.on_comment_after_insert",
+	},
+}
+
 # Scheduled Tasks
 # ---------------
 
 scheduler_events = {
 	"daily": [
 		"worcent.worcent_finance.escrow_engine.auto_release_overdue_milestones",
+	],
+	"hourly": [
+		"worcent.worcent_trust_support.doctype.support_ticket.support_ticket_engine.escalate_unanswered_tickets",
 	],
 }
 

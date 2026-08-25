@@ -44,7 +44,7 @@ def contract_has_permission(doc, ptype=None, user=None):
 
 def milestone_query_conditions(user):
 	user = user or frappe.session.user
-	if _is_admin(user) or "Finance Manager" in frappe.get_roles(user):
+	if _is_admin(user) or {"Finance Manager", "Dispute Arbitrator"}.intersection(frappe.get_roles(user)):
 		return ""
 	freelancer = get_freelancer_profile(user)
 	employer = get_employer_profile(user)
@@ -64,7 +64,7 @@ def milestone_query_conditions(user):
 
 def milestone_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
-	if _is_admin(user) or "Finance Manager" in frappe.get_roles(user):
+	if _is_admin(user) or {"Finance Manager", "Dispute Arbitrator"}.intersection(frappe.get_roles(user)):
 		return True
 	contract = frappe.db.get_value("Contract", doc.contract, ["freelancer", "employer"], as_dict=True)
 	if not contract:

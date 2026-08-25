@@ -115,6 +115,14 @@
    "read": 1,
    "role": "Employer",
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Dispute Arbitrator"
+  },
+  {
+   "read": 1,
+   "role": "Finance Manager"
   }
  ],
  "sort_field": "creation",

@@ -2,7 +2,7 @@
 	<div class="wc-footer-main">
 		<div class="wc-footer-col wc-footer-brand-col">
 			<div class="wc-brand-mark">
-				<svg viewBox="0 0 32 32" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="9" fill="#14805e"/><path d="M8 11L13 21L16 14L19 21L24 11" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				<svg viewBox="0 0 32 32" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="9" fill="#2563eb"/><path d="M8 11L13 21L16 14L19 21L24 11" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
 				<span class="wc-brand-word">Worcent</span>
 			</div>
 			<p class="wc-footer-tagline">{{ _("The freelance marketplace built on trust — verified profiles, secure escrow, and fair commissions for everyone.") }}</p>
@@ -35,8 +35,16 @@
 		</div>
 	</div>
 
-	<div class="container">
-		{% include "templates/includes/footer/footer_info.html" %}
+	<div class="wc-footer-bottom">
+		{% if copyright %}<span>&copy; {{ copyright }}</span>{% endif %}
+		{% if footer_address %}<span>{{ footer_address }}</span>{% endif %}
+		<span class="wc-footer-powered">
+			{%- if footer_powered -%}
+				{{ footer_powered }}
+			{%- else -%}
+				{% include "templates/includes/footer/footer_powered.html" %}
+			{%- endif -%}
+		</span>
 	</div>
 </footer>
 

@@ -13,6 +13,13 @@
   "priority",
   "status",
   "assigned_to",
+  "section_break_related",
+  "related_doctype",
+  "related_record",
+  "column_break_related",
+  "assigned_on",
+  "first_response_on",
+  "escalation_count",
   "section_break_1",
   "description"
  ],
@@ -75,7 +82,51 @@
    "fieldname": "assigned_to",
    "fieldtype": "Link",
    "label": "Assigned To",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_related",
+   "fieldtype": "Section Break",
+   "label": "What is this about?"
+  },
+  {
+   "default": "General Query",
+   "fieldname": "related_doctype",
+   "fieldtype": "Select",
+   "label": "Related To",
+   "options": "General Query\nJob Posting\nGig\nProposal\nContract\nMilestone\nWithdrawal Request\nWallet Transaction\nDispute Case\nOther"
+  },
+  {
+   "depends_on": "eval:!['General Query','Other'].includes(doc.related_doctype)",
+   "fieldname": "related_record",
+   "fieldtype": "Dynamic Link",
+   "label": "Select Record",
+   "options": "related_doctype"
+  },
+  {
+   "fieldname": "column_break_related",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_on",
+   "fieldtype": "Datetime",
+   "label": "Assigned On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "first_response_on",
+   "fieldtype": "Datetime",
+   "label": "First Response On",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "escalation_count",
+   "fieldtype": "Int",
+   "label": "Escalation Count",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_1",

@@ -46,6 +46,14 @@
   {
    "read": 1,
    "role": "Support Agent"
+  },
+  {
+   "read": 1,
+   "role": "Freelancer"
+  },
+  {
+   "read": 1,
+   "role": "Employer"
   }
  ],
  "sort_field": "creation",

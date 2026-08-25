@@ -85,6 +85,7 @@ def after_install():
 	seed_referral_demo()
 	seed_paid_mentorship_demo()
 	seed_currency_diverse_users()
+	grant_cross_app_permissions()
 	configure_desk_experience()
 	frappe.db.set_value("Website Settings", "Website Settings", "home_page", "index")
 	frappe.db.commit()
@@ -113,8 +114,31 @@ def after_migrate():
 	configure_worcent_settings()
 	seed_letterhead()
 	seed_currencies()
+	grant_cross_app_permissions()
 	configure_desk_experience()
 	frappe.db.commit()
+
+
+def grant_cross_app_permissions():
+	"""Worcent roles need read access to a handful of standard Frappe/ERPNext
+	doctypes that ship locked down to HR/Accounts roles by default (Employee,
+	Branch) or to System Manager only (Currency's specific role list doesn't
+	include our roles). Extending core doctype permissions must go through
+	Custom DocPerm (frappe.permissions.add_permission), never by editing the
+	vendor app's own DocType JSON directly."""
+	from frappe.permissions import add_permission
+
+	grants = {
+		"Currency": ["Freelancer", "Employer", "Worcent Admin", "Accounts Manager", "Finance Manager"],
+		"Employee": [
+			"Worcent Admin", "Finance Manager", "Accounts Manager",
+			"Office Manager", "Franchise Owner", "Field Rep", "Office Managing Partner",
+		],
+		"Branch": ["Office Manager", "Franchise Owner", "Field Rep", "Office Managing Partner", "Worcent Admin"],
+	}
+	for doctype, roles in grants.items():
+		for role in roles:
+			add_permission(doctype, role, 0)
 
 
 def seed_letterhead():
@@ -377,7 +401,7 @@ def seed_premium_plans():
 
 
 def seed_ticket_categories():
-	for name in ["Payment Issue", "Account Issue", "Job/Contract Issue", "Technical Issue", "Other"]:
+	for name in ["General Query", "Payment Issue", "Account Issue", "Job/Contract Issue", "Verification Issue", "Technical Issue", "Other"]:
 		if not frappe.db.exists("Ticket Category", name):
 			frappe.get_doc({"doctype": "Ticket Category", "category_name": name}).insert(ignore_permissions=True)
 
@@ -405,6 +429,7 @@ def seed_company_and_users():
 	create_user("admin1.demo@worcent.test", "Ayesha Admin", ["Worcent Admin"])
 	create_user("finance1.demo@worcent.test", "Faisal Finance", ["Finance Manager"])
 	create_user("support1.demo@worcent.test", "Sara Support", ["Support Agent"])
+	create_user("support2.demo@worcent.test", "Sana Support", ["Support Agent"])
 	create_user("arbitrator1.demo@worcent.test", "Ahmed Arbitrator", ["Dispute Arbitrator"])
 	create_user("franchiseowner1.demo@worcent.test", "Farhan Franchise", ["Franchise Owner"])
 
