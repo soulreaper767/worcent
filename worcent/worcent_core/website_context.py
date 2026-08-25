@@ -13,12 +13,3 @@ def update_context(context):
 		context["worcent_employer_profile"] = frappe.db.get_value(
 			"Employer Profile", {"user": frappe.session.user}, "name"
 		)
-		if context["worcent_freelancer_profile"]:
-			workspace_url = "/desk/my-freelance"
-		elif context["worcent_employer_profile"]:
-			workspace_url = "/desk/my-business"
-		else:
-			workspace_url = "/app"
-		context.post_login = [{"label": frappe._("My Workspace"), "url": workspace_url}] + (
-			context.get("post_login") or []
-		)

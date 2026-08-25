@@ -1,0 +1,78 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ challenge.title }} — Worcent{% endblock %}
+
+{% block page_content %}
+<div class="wc-tool-page" style="max-width:820px;">
+	<h1>{{ challenge.title }}</h1>
+	<p class="wc-muted">{{ challenge.description }}</p>
+
+	{% if not enrollment %}
+		{% if frappe.session.user == "Guest" %}
+		<div class="wc-tool-register-cta" style="margin-bottom:20px;">
+			{{ _("Browse the full plan below for free. Register free (no verification needed) to enroll and track your daily progress.") }}
+			<a class="wc-btn wc-btn-primary wc-btn-sm" href="/join?type=freelancer">{{ _("Register Free") }}</a>
+		</div>
+		{% else %}
+		<button class="wc-btn wc-btn-primary" id="wc-enroll-btn" style="margin-bottom:20px;">{{ _("Start This Challenge") }}</button>
+		{% endif %}
+	{% else %}
+		<div class="wc-tool-result wc-visible" style="margin-bottom:20px;">
+			<div class="wc-score-bar"><div class="wc-score-bar-fill" id="wc-challenge-progress-fill" style="width:{{ ((completed_days|length) / challenge.total_days * 100) | round | int }}%"></div></div>
+			<div id="wc-challenge-progress-label">{{ completed_days|length }}/{{ challenge.total_days }} {{ _("days complete") }} &middot; {{ enrollment.status }}</div>
+		</div>
+	{% endif %}
+
+	<div class="wc-challenge-days">
+		{% for t in tasks %}
+		<div class="wc-challenge-day {% if t.day_number in completed_days %}wc-day-complete{% endif %}" data-day="{{ t.day_number }}">
+			<div class="wc-challenge-day-num">{{ t.day_number }}</div>
+			<div class="wc-challenge-day-body">
+				<div class="wc-challenge-day-title">{{ t.task_title }}</div>
+				{% if t.task_description %}<div class="wc-challenge-day-desc">{{ t.task_description }}</div>{% endif %}
+			</div>
+			{% if enrollment %}
+			<button class="wc-challenge-day-check" type="button" data-day="{{ t.day_number }}" {% if t.day_number in completed_days %}disabled{% endif %}>
+				{% if t.day_number in completed_days %}✓{% else %}○{% endif %}
+			</button>
+			{% endif %}
+		</div>
+		{% endfor %}
+	</div>
+</div>
+
+<script>
+var enrollmentName = {% if enrollment %}"{{ enrollment.name }}"{% else %}null{% endif %};
+
+var enrollBtn = document.getElementById("wc-enroll-btn");
+if (enrollBtn) {
+	enrollBtn.addEventListener("click", function () {
+		frappe.call({
+			method: "worcent.worcent_growth.api.enroll_in_challenge",
+			args: { challenge: "{{ challenge.name }}" },
+		}).then(function () {
+			window.location.reload();
+		});
+	});
+}
+
+document.querySelectorAll(".wc-challenge-day-check").forEach(function (btn) {
+	btn.addEventListener("click", function () {
+		if (btn.disabled) return;
+		var day = btn.dataset.day;
+		frappe.call({
+			method: "worcent.worcent_growth.api.mark_challenge_day_complete",
+			args: { enrollment: enrollmentName, day_number: day },
+		}).then(function (r) {
+			btn.textContent = "✓";
+			btn.disabled = true;
+			btn.closest(".wc-challenge-day").classList.add("wc-day-complete");
+			var completed = r.message.completed_count;
+			var total = {{ challenge.total_days }};
+			document.getElementById("wc-challenge-progress-fill").style.width = Math.round((completed / total) * 100) + "%";
+			document.getElementById("wc-challenge-progress-label").textContent = completed + "/" + total + " {{ _('days complete') }} · " + r.message.status;
+		});
+	});
+});
+</script>
+{% endblock %}

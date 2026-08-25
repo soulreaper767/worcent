@@ -5,28 +5,16 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "tool_name",
   "user",
+  "challenge",
   "column_break_head",
-  "headline",
-  "metric",
-  "section_break_data",
-  "input_data",
-  "output_data",
-  "section_break_compare",
-  "previous_result",
-  "comparison"
+  "status",
+  "started_on",
+  "section_break_progress",
+  "completed_days_json",
+  "completed_count"
  ],
  "fields": [
-  {
-   "fieldname": "tool_name",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Tool",
-   "options": "Worcent Score\nAm I Underpaid\nI Need Work\nCV Score\nCareer Match\nJob Readiness",
-   "reqd": 1
-  },
   {
    "fieldname": "user",
    "fieldtype": "Link",
@@ -37,58 +25,51 @@
    "read_only": 1
   },
   {
+   "fieldname": "challenge",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Challenge",
+   "options": "Skill Challenge",
+   "reqd": 1
+  },
+  {
    "fieldname": "column_break_head",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "headline",
-   "fieldtype": "Data",
+   "default": "In Progress",
+   "fieldname": "status",
+   "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Result",
+   "label": "Status",
+   "options": "In Progress\nCompleted\nAbandoned",
    "read_only": 1
   },
   {
-   "fieldname": "metric",
-   "fieldtype": "Float",
-   "label": "Metric",
+   "fieldname": "started_on",
+   "fieldtype": "Date",
+   "label": "Started On",
    "read_only": 1
   },
   {
-   "collapsible": 1,
-   "fieldname": "section_break_data",
+   "fieldname": "section_break_progress",
    "fieldtype": "Section Break",
-   "label": "Raw Data"
+   "label": "Progress"
   },
   {
-   "fieldname": "input_data",
+   "default": "[]",
+   "fieldname": "completed_days_json",
    "fieldtype": "Code",
-   "label": "Inputs (JSON)",
+   "label": "Completed Days (JSON)",
    "options": "JSON",
    "read_only": 1
   },
   {
-   "fieldname": "output_data",
-   "fieldtype": "Code",
-   "label": "Outputs (JSON)",
-   "options": "JSON",
-   "read_only": 1
-  },
-  {
-   "fieldname": "section_break_compare",
-   "fieldtype": "Section Break",
-   "label": "Compared to your last run"
-  },
-  {
-   "fieldname": "previous_result",
-   "fieldtype": "Link",
-   "label": "Previous Result",
-   "options": "Growth Tool Result",
-   "read_only": 1
-  },
-  {
-   "fieldname": "comparison",
-   "fieldtype": "Data",
-   "label": "Comparison",
+   "default": "0",
+   "fieldname": "completed_count",
+   "fieldtype": "Int",
+   "label": "Days Completed",
    "read_only": 1
   }
  ],
@@ -96,7 +77,7 @@
  "modified": "2026-08-26 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Worcent Growth",
- "name": "Growth Tool Result",
+ "name": "Skill Challenge Enrollment",
  "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [

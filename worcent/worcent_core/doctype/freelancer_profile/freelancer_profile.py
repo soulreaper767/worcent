@@ -72,9 +72,25 @@ class FreelancerProfile(WebsiteGenerator):
 			user.append("roles", {"role": "Freelancer"})
 			user.save(ignore_permissions=True)
 
+	def compute_worcent_score(self):
+		from worcent.worcent_growth.tools_engine import calculate_worcent_score
+
+		years_experience = max([s.years_experience or 0 for s in self.skills], default=0)
+		return calculate_worcent_score(
+			{
+				"skills": [s.skill for s in self.skills],
+				"years_experience": years_experience,
+				"certifications": 0,
+				"portfolio_items": len(self.portfolio or []),
+				"completed_jobs": self.jobs_completed or 0,
+				"rating_avg": self.rating_avg or 0,
+			}
+		)
+
 	def get_context(self, context):
 		context.no_cache = 1
 		context.title = self.display_name
+		context.worcent_score = self.compute_worcent_score()
 		context.parents = [{"name": _("Freelancers"), "route": "freelancers"}]
 		context.reviews = frappe.get_all(
 			"Review",

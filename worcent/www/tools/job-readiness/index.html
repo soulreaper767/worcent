@@ -1,0 +1,66 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Job Readiness Test") }} — Worcent{% endblock %}
+
+{% block page_content %}
+<div class="wc-tool-page">
+	<h1>{{ _("1-Minute Job Readiness Test") }}</h1>
+	<p class="wc-muted">{{ _("Pick a career track and check off what you're already comfortable with.") }}</p>
+
+	<form class="wc-tool-form" id="wc-ready-form">
+		<div>
+			<label>{{ _("Career Track") }}</label>
+			<select id="career_select">
+				{% for c in careers %}
+				<option value="{{ c }}">{{ c }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div id="wc-ready-questions"></div>
+		<button type="submit" class="wc-btn wc-btn-primary">{{ _("Check My Readiness") }}</button>
+	</form>
+
+	<div class="wc-tool-result" id="wc-tool-result">
+		<h3 id="wc-ready-headline"></h3>
+		<div class="wc-score-bar"><div class="wc-score-bar-fill" id="wc-ready-fill" style="width:0%"></div></div>
+		<div id="wc-ready-gaps"></div>
+	</div>
+
+	<div id="wc-tool-footer"></div>
+</div>
+
+<script>
+var wcReadinessBanks = {{ banks_json | safe }};
+
+function wcRenderQuestions() {
+	var career = document.getElementById("career_select").value;
+	var questions = wcReadinessBanks[career] || [];
+	document.getElementById("wc-ready-questions").innerHTML = questions.map(function (q, i) {
+		return '<label style="display:flex; align-items:center; gap:8px; font-weight:400; margin-bottom:6px;">' +
+			'<input type="checkbox" class="wc-ready-answer" data-idx="' + i + '"> ' + q + '</label>';
+	}).join("");
+}
+
+document.getElementById("career_select").addEventListener("change", wcRenderQuestions);
+wcRenderQuestions();
+
+document.getElementById("wc-ready-form").addEventListener("submit", function (e) {
+	e.preventDefault();
+	var answers = {};
+	document.querySelectorAll(".wc-ready-answer").forEach(function (el) {
+		answers[el.dataset.idx] = el.checked;
+	});
+	wcRunTool("Job Readiness", { career: document.getElementById("career_select").value, answers: answers }, function (output) {
+		document.getElementById("wc-tool-result").classList.add("wc-visible");
+		document.getElementById("wc-ready-headline").textContent = output.headline;
+		document.getElementById("wc-ready-fill").style.width = output.score + "%";
+		if (output.gaps.length) {
+			document.getElementById("wc-ready-gaps").innerHTML = "<strong>{{ _('Learn these next') }}:</strong><ul>" +
+				output.gaps.map(function (g) { return "<li>" + g + "</li>"; }).join("") + "</ul>";
+		} else {
+			document.getElementById("wc-ready-gaps").innerHTML = "<p>{{ _('You checked everything — you look ready!') }}</p>";
+		}
+	});
+});
+</script>
+{% endblock %}

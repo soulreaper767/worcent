@@ -1,0 +1,45 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("What Job Should I Do?") }} — Worcent{% endblock %}
+
+{% block page_content %}
+<div class="wc-tool-page">
+	<h1>{{ _("What Job Should I Do?") }}</h1>
+	<p class="wc-muted">{{ _("Rate how much each statement sounds like you (1 = not at all, 5 = very much).") }}</p>
+
+	<form class="wc-tool-form" id="wc-quiz-form">
+		{% for q in questions %}
+		<div>
+			<label>{{ q.text }}</label>
+			<input type="range" min="1" max="5" value="3" step="1" class="wc-quiz-answer" data-qid="{{ q.id }}">
+		</div>
+		{% endfor %}
+		<button type="submit" class="wc-btn wc-btn-primary">{{ _("Show My Matches") }}</button>
+	</form>
+
+	<div class="wc-tool-result" id="wc-tool-result">
+		<h3 id="wc-quiz-headline"></h3>
+		<div id="wc-quiz-matches"></div>
+	</div>
+
+	<div id="wc-tool-footer"></div>
+</div>
+
+<script>
+document.getElementById("wc-quiz-form").addEventListener("submit", function (e) {
+	e.preventDefault();
+	var answers = {};
+	document.querySelectorAll(".wc-quiz-answer").forEach(function (el) {
+		answers[el.dataset.qid] = parseInt(el.value);
+	});
+	wcRunTool("Career Match", { answers: answers }, function (output) {
+		document.getElementById("wc-tool-result").classList.add("wc-visible");
+		document.getElementById("wc-quiz-headline").textContent = output.headline;
+		document.getElementById("wc-quiz-matches").innerHTML = output.top_matches.map(function (m, i) {
+			return "<div style='margin-bottom:10px;'><strong>" + (i + 1) + ". " + m.career + " — " + m.match_percent + "%</strong>" +
+				"<div class='wc-score-bar'><div class='wc-score-bar-fill' style='width:" + m.match_percent + "%'></div></div></div>";
+		}).join("");
+	});
+});
+</script>
+{% endblock %}

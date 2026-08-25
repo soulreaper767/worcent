@@ -39,6 +39,59 @@ def use_tool(tool_name, inputs):
 	return result
 
 
+@frappe.whitelist(allow_guest=True)
+def list_challenges():
+	return frappe.get_all(
+		"Skill Challenge",
+		fields=["name", "title", "slug", "description", "total_days", "enrolled_count"],
+		order_by="title asc",
+	)
+
+
+@frappe.whitelist(allow_guest=True)
+def get_challenge(slug):
+	challenge = frappe.get_doc("Skill Challenge", {"slug": slug})
+	tasks = [
+		{"day_number": d.day_number, "task_title": d.task_title, "task_description": d.task_description}
+		for d in sorted(challenge.daily_tasks, key=lambda d: d.day_number)
+	]
+
+	enrollment = None
+	if frappe.session.user != "Guest":
+		existing = frappe.db.get_value(
+			"Skill Challenge Enrollment", {"user": frappe.session.user, "challenge": challenge.name}, "name"
+		)
+		if existing:
+			enrollment = frappe.get_doc("Skill Challenge Enrollment", existing).as_dict()
+
+	return {
+		"title": challenge.title,
+		"description": challenge.description,
+		"total_days": challenge.total_days,
+		"tasks": tasks,
+		"enrollment": enrollment,
+	}
+
+
+@frappe.whitelist()
+def enroll_in_challenge(challenge):
+	existing = frappe.db.get_value(
+		"Skill Challenge Enrollment", {"user": frappe.session.user, "challenge": challenge}, "name"
+	)
+	if existing:
+		return existing
+	doc = frappe.get_doc({"doctype": "Skill Challenge Enrollment", "challenge": challenge})
+	doc.insert(ignore_permissions=True)
+	frappe.db.commit()
+	return doc.name
+
+
+@frappe.whitelist()
+def mark_challenge_day_complete(enrollment, day_number):
+	doc = frappe.get_doc("Skill Challenge Enrollment", enrollment)
+	return doc.mark_day_complete(day_number)
+
+
 @frappe.whitelist()
 def get_history(tool_name):
 	if tool_name not in TOOL_REGISTRY:

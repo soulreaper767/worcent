@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="{{ boot.lang if boot else 'en' }}" dir="{{ 'rtl' if is_rtl() else 'ltr' }}">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="generator" content="worcent">
+
+	{% block meta_block %}
+		{% include "templates/includes/meta_block.html" %}
+	{% endblock %}
+
+	<title>{% block title %}{{ title | striptags }}{% endblock %}</title>
+
+	{% block favicon %}
+	<link rel="shortcut icon" href="{{ (favicon or '/assets/worcent/images/favicon.svg') | abs_url }}" type="image/x-icon">
+	{% endblock %}
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link type="text/css" rel="stylesheet" href="/assets/worcent/css/worcent.css">
+
+	{%- block head_include %}{{ head_include or "" }}{% endblock -%}
+	{%- block style %}{% if colocated_css -%}<style>{{ colocated_css }}</style>{%- endif %}{%- endblock -%}
+
+	<script>
+		window.frappe = {};
+		window._version_number = "{{ build_version }}";
+		frappe.ready_events = [];
+		frappe.ready = function(fn) { frappe.ready_events.push(fn); }
+		window.dev_server = {{ dev_server }};
+		window.socketio_port = {{ (frappe.socketio_port or 9000) }};
+		window.show_language_picker = {{ show_language_picker or 'false' }};
+	</script>
+</head>
+<body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out' }}" data-path="{{ path | e }}" class="wc-body {{ body_class or '' }}">
+
+	<nav class="wc-navbar" id="wc-navbar">
+		<div class="wc-navbar-inner">
+			<a class="wc-navbar-brand" href="{{ url_prefix }}{{ home_page or '/' }}">
+				{%- if brand_html -%}{{ brand_html }}{%- else -%}<span class="wc-brand-mark"><span class="wc-brand-word">Worcent</span></span>{%- endif -%}
+			</a>
+
+			<button class="wc-navbar-toggle" id="wc-navbar-toggle" type="button" aria-label="{{ _('Toggle navigation') }}">
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+			</button>
+
+			<div class="wc-navbar-links" id="wc-navbar-links">
+				<a class="wc-navbar-link" href="/jobs">{{ _("Find Work") }}</a>
+				<a class="wc-navbar-link" href="/freelancers">{{ _("Hire Talent") }}</a>
+				<a class="wc-navbar-link" href="/tools">{{ _("Free Tools") }}</a>
+
+				{% if frappe.session.user == "Guest" %}
+					<div class="wc-nav-dropdown">
+						<a class="wc-navbar-link wc-nav-dropdown-toggle" href="#">{{ _("Join") }}
+							<svg class="wc-caret" viewBox="0 0 12 8" width="10" height="7"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+						</a>
+						<div class="wc-nav-dropdown-menu">
+							<a href="/join?type=freelancer"><strong>{{ _("Find Work") }}</strong><span>{{ _("Sign up as a Freelancer") }}</span></a>
+							<a href="/join?type=employer"><strong>{{ _("Hire Talent") }}</strong><span>{{ _("Sign up as an Employer") }}</span></a>
+						</div>
+					</div>
+					<a class="wc-btn wc-btn-primary wc-btn-sm wc-navbar-cta" href="/join?type=employer">{{ _("Post a Job") }}</a>
+					<a class="wc-navbar-link" href="/login">{{ _("Login") }}</a>
+				{% else %}
+					<a class="wc-navbar-link" href="{% if worcent_freelancer_profile %}/desk/my-freelance{% elif worcent_employer_profile %}/desk/my-business{% else %}/app{% endif %}">{{ _("My Workspace") }}</a>
+					<div class="wc-nav-dropdown">
+						<a class="wc-navbar-link wc-nav-dropdown-toggle" href="#">
+							<span class="wc-nav-avatar">{{ frappe.session.user[0]|upper }}</span>
+							<svg class="wc-caret" viewBox="0 0 12 8" width="10" height="7"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+						</a>
+						<div class="wc-nav-dropdown-menu wc-nav-dropdown-menu-right">
+							<a href="/app/user-profile"><strong>{{ _("Account Settings") }}</strong></a>
+							<a href="/api/method/logout"><strong>{{ _("Log Out") }}</strong></a>
+						</div>
+					</div>
+				{% endif %}
+			</div>
+		</div>
+	</nav>
+
+	{% block content %}{{ content }}{% endblock %}
+
+	{% include "templates/includes/footer/footer.html" %}
+
+	<div id="all-symbols" style="display:none"></div>
+	{%- for path in web_include_icons -%}{{ include_icons(path) }}{%- endfor -%}
+
+	{% block base_scripts %}
+	<script>
+		frappe.boot = {{ frappe.utils.orjson_dumps(boot, default=frappe.json_handler) }}
+		frappe.sys_defaults = frappe.boot.sysdefaults;
+	</script>
+	{{ include_script('frappe-web.bundle.js') }}
+	{% endblock %}
+
+	<script src="/assets/worcent/js/worcent.js"></script>
+
+	{%- block script %}{% if colocated_js -%}<script>{{ colocated_js }}</script>{%- endif %}{%- endblock %}
+	<!-- csrf_token -->
+	{%- block body_include %}{{ body_include or "" }}{% endblock -%}
+</body>
+</html>

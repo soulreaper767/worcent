@@ -9,7 +9,7 @@
 			});
 		});
 
-		var navbar = document.querySelector(".navbar");
+		var navbar = document.getElementById("wc-navbar");
 		var backToTop = document.getElementById("wc-back-to-top");
 		function onScroll() {
 			var scrolled = window.scrollY > 12;
@@ -22,6 +22,14 @@
 		if (backToTop) {
 			backToTop.addEventListener("click", function () {
 				window.scrollTo({ top: 0, behavior: "smooth" });
+			});
+		}
+
+		var navToggle = document.getElementById("wc-navbar-toggle");
+		var navLinks = document.getElementById("wc-navbar-links");
+		if (navToggle && navLinks) {
+			navToggle.addEventListener("click", function () {
+				navLinks.classList.toggle("wc-open");
 			});
 		}
 

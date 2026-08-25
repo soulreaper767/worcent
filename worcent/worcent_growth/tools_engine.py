@@ -183,6 +183,243 @@ def find_work_now(inputs):
 	}
 
 
+# ---------------------------------------------------------------------------
+# 4. CV Score (Job Description -> CV Match %)
+# ---------------------------------------------------------------------------
+
+STOPWORDS = set(
+	"the a an and or for with to of in on at by is are be was were will would should "
+	"could can may might must this that these those you your we our i it its as from "
+	"into about over under between within without more most other than then also into "
+	"if not no yes has have had do does did but so such per via etc using use used "
+	"job role position looking seeking candidate ideal responsibilities requirements "
+	"required years experience skills ability strong good excellent working work team".split()
+)
+
+# A curated list of common professional skill/tool phrases — matched as whole
+# phrases first (so "project management" counts as one skill, not two noise
+# words), then remaining single significant words are matched individually.
+KNOWN_SKILL_PHRASES = [
+	"project management", "data analysis", "content writing", "social media", "customer service",
+	"machine learning", "graphic design", "search engine optimization", "email marketing",
+	"business development", "financial modeling", "public speaking", "team leadership",
+	"time management", "problem solving", "attention to detail",
+]
+
+
+def _tokenize(text):
+	text = (text or "").lower()
+	words = "".join(c if c.isalnum() or c.isspace() else " " for c in text).split()
+	return [w for w in words if len(w) >= 3 and w not in STOPWORDS]
+
+
+def calculate_cv_score(inputs):
+	cv_text = inputs.get("cv_text") or ""
+	jd_text = inputs.get("job_description") or ""
+	cv_lower = cv_text.lower()
+
+	found_phrases = [p for p in KNOWN_SKILL_PHRASES if p in jd_text.lower()]
+	remaining_jd = jd_text.lower()
+	for p in found_phrases:
+		remaining_jd = remaining_jd.replace(p, " ")
+
+	jd_words = sorted(set(_tokenize(remaining_jd)))
+	jd_keywords = found_phrases + jd_words
+
+	if not jd_keywords:
+		return {
+			"match_percent": 0,
+			"matched_keywords": [],
+			"missing_keywords": [],
+			"headline": "Paste a job description to check your CV against it.",
+		}
+
+	matched = [k for k in jd_keywords if k in cv_lower]
+	missing = [k for k in jd_keywords if k not in cv_lower]
+	match_percent = round(len(matched) / len(jd_keywords) * 100)
+
+	return {
+		"match_percent": match_percent,
+		"matched_keywords": matched[:20],
+		"missing_keywords": missing[:15],
+		"headline": f"JOB MATCH: {match_percent}%",
+	}
+
+
+# ---------------------------------------------------------------------------
+# 5. What Job Should I Do? (career quiz)
+# ---------------------------------------------------------------------------
+
+CAREER_QUIZ_QUESTIONS = [
+	{"id": "tech", "text": "I enjoy working with computers, software or technical tools."},
+	{"id": "people", "text": "I'm energized by talking to and persuading people."},
+	{"id": "creative", "text": "I like visual/creative work — design, writing, storytelling."},
+	{"id": "numbers", "text": "I'm comfortable with numbers, spreadsheets and analysis."},
+	{"id": "structure", "text": "I prefer clear processes and detail-oriented work over ambiguity."},
+	{"id": "helping", "text": "I get satisfaction from directly helping/supporting other people."},
+	{"id": "leading", "text": "I like taking ownership and directing a project or team."},
+	{"id": "remote", "text": "I want work I can do fully remote, on my own schedule."},
+]
+
+# question_id -> {career: weight (-2..+2)}
+CAREER_WEIGHTS = {
+	"tech": {"Software Developer": 2, "Data Analyst": 2, "Product Manager": 1, "UI/UX Designer": 1, "IT Support Specialist": 2},
+	"people": {"Sales Executive": 2, "Product Manager": 1, "HR Coordinator": 2, "Customer Support Specialist": 1, "Digital Marketer": 1},
+	"creative": {"UI/UX Designer": 2, "Content Writer": 2, "Digital Marketer": 1},
+	"numbers": {"Data Analyst": 2, "Accountant": 2, "Financial Analyst": 2, "Software Developer": 1},
+	"structure": {"Accountant": 2, "Financial Analyst": 1, "IT Support Specialist": 1, "Data Analyst": 1},
+	"helping": {"Customer Support Specialist": 2, "HR Coordinator": 2, "Virtual Assistant": 1},
+	"leading": {"Product Manager": 2, "Sales Executive": 1, "HR Coordinator": 1},
+	"remote": {"Content Writer": 1, "Virtual Assistant": 1, "Software Developer": 1, "Data Analyst": 1, "Digital Marketer": 1},
+}
+
+ALL_CAREERS = sorted({c for weights in CAREER_WEIGHTS.values() for c in weights})
+
+
+def calculate_career_match(inputs):
+	answers = inputs.get("answers") or {}
+	scores = {c: 0 for c in ALL_CAREERS}
+	max_possible = {c: 0 for c in ALL_CAREERS}
+
+	for q in CAREER_QUIZ_QUESTIONS:
+		raw = flt(answers.get(q["id"], 3))
+		delta = raw - 3
+		for career, weight in CAREER_WEIGHTS.get(q["id"], {}).items():
+			scores[career] += delta * weight
+			max_possible[career] += 2 * abs(weight)
+
+	results = []
+	for career in ALL_CAREERS:
+		mx = max_possible[career] or 1
+		pct = round(((scores[career] + mx) / (2 * mx)) * 100)
+		results.append({"career": career, "match_percent": max(0, min(100, pct))})
+
+	results.sort(key=lambda r: r["match_percent"], reverse=True)
+	top3 = results[:3]
+
+	return {
+		"top_matches": top3,
+		"all_matches": results,
+		"headline": f"Top match: {top3[0]['career']} ({top3[0]['match_percent']}%)" if top3 else "Answer the questions to see your matches.",
+	}
+
+
+# ---------------------------------------------------------------------------
+# 6. 1-Minute Job Readiness Test
+# ---------------------------------------------------------------------------
+
+JOB_READINESS_BANKS = {
+	"Data Analyst": [
+		("Excel/Google Sheets (formulas, pivot tables)", "Excel pivot tables & formulas"),
+		("SQL basics (SELECT, JOIN, GROUP BY)", "SQL fundamentals"),
+		("Data visualization (charts/dashboards)", "Data visualization (e.g. Power BI/Tableau)"),
+		("Basic statistics (mean, median, correlation)", "Basic statistics"),
+		("Cleaning messy/real-world data", "Data cleaning techniques"),
+		("Python or R for data (pandas etc.)", "Python for data analysis"),
+		("Presenting findings to non-technical people", "Data storytelling / presentation"),
+		("Working with large datasets", "Working with large datasets"),
+		("Understanding business KPIs", "Business KPI fundamentals"),
+		("A portfolio project you can show", "Building a portfolio project"),
+	],
+	"Software Developer": [
+		("Comfortable with at least one programming language", "Pick and commit to one language"),
+		("Version control (Git)", "Git fundamentals"),
+		("Building and debugging small projects end-to-end", "Build a complete small project"),
+		("Understanding of APIs / how frontend-backend talk", "API fundamentals"),
+		("Basic database knowledge (SQL/NoSQL)", "Database basics"),
+		("Writing readable, maintainable code", "Clean code practices"),
+		("Testing your own code", "Basic testing practices"),
+		("Deploying a project so others can use it", "Deployment basics"),
+		("Reading other people's code/docs", "Reading documentation/codebases"),
+		("A portfolio/GitHub you can show", "Building a public portfolio"),
+	],
+	"Accountant": [
+		("Understanding debits/credits and the accounting equation", "Accounting fundamentals"),
+		("Comfortable with Excel/Sheets for finance", "Excel for finance"),
+		("Basic knowledge of financial statements", "Reading financial statements"),
+		("Familiar with at least one accounting software", "Accounting software (QuickBooks/Xero/ERPNext)"),
+		("Understanding of tax basics in your market", "Tax fundamentals"),
+		("Bank reconciliation experience", "Bank reconciliation practice"),
+		("Invoicing/accounts receivable & payable basics", "AR/AP fundamentals"),
+		("Attention to detail with numbers", "Detail-checking discipline"),
+		("Basic budgeting/forecasting", "Budgeting & forecasting basics"),
+		("A sample of bookkeeping work you can show", "Building a sample bookkeeping case"),
+	],
+	"Graphic Designer": [
+		("Comfortable with a design tool (Figma/Canva/Adobe)", "Pick one design tool and go deep"),
+		("Understanding of typography basics", "Typography fundamentals"),
+		("Understanding of color theory", "Color theory basics"),
+		("Can design a simple logo", "Logo design practice"),
+		("Can design social media graphics", "Social media graphics practice"),
+		("Understanding of layout/composition", "Layout & composition basics"),
+		("Comfortable taking client feedback/revisions", "Handling client revisions"),
+		("Basic branding concepts", "Branding fundamentals"),
+		("Exporting files correctly for different uses", "File formats/export basics"),
+		("A portfolio you can show", "Building a design portfolio"),
+	],
+	"Digital Marketer": [
+		("Understanding of SEO basics", "SEO fundamentals"),
+		("Running/understanding paid ads (Meta/Google)", "Paid ads fundamentals"),
+		("Content calendar planning", "Content planning"),
+		("Basic analytics reading (traffic, conversions)", "Analytics fundamentals"),
+		("Email marketing basics", "Email marketing fundamentals"),
+		("Social media platform know-how", "Social media strategy"),
+		("Copywriting for ads/posts", "Copywriting practice"),
+		("Understanding target audience/personas", "Audience research"),
+		("Basic design skills for marketing assets", "Basic design for marketing"),
+		("A campaign example you can show", "Building a sample campaign"),
+	],
+	"Virtual Assistant / Admin Support": [
+		("Comfortable with email/calendar management", "Inbox & calendar management"),
+		("Comfortable with spreadsheets", "Spreadsheet basics"),
+		("Good written communication", "Written communication practice"),
+		("Familiar with common tools (Slack, Notion, Zoom)", "Common productivity tools"),
+		("Data entry accuracy", "Data entry practice"),
+		("Basic scheduling/coordination", "Scheduling & coordination"),
+		("Confidentiality/discretion with sensitive info", "Confidentiality practices"),
+		("Comfortable multitasking across small tasks", "Multitasking practice"),
+		("Basic research skills", "Research skills"),
+		("A sample task log/portfolio you can show", "Building a sample work log"),
+	],
+	"Customer Support Specialist": [
+		("Clear written communication", "Written communication practice"),
+		("Staying calm/patient with frustrated customers", "De-escalation practice"),
+		("Familiar with helpdesk tools (Zendesk/Freshdesk etc.)", "Helpdesk tool familiarity"),
+		("Understanding of SLAs/response times", "SLA fundamentals"),
+		("Basic troubleshooting mindset", "Troubleshooting practice"),
+		("Comfortable following scripts/knowledge bases", "Knowledge base usage"),
+		("Empathy and active listening", "Active listening practice"),
+		("Multitasking across tickets/chats", "Multitasking practice"),
+		("Basic reporting on ticket trends", "Basic reporting"),
+		("A sample of your writing tone you can show", "Building sample response templates"),
+	],
+}
+
+
+def calculate_job_readiness(inputs):
+	career = inputs.get("career")
+	answers = inputs.get("answers") or {}
+	bank = JOB_READINESS_BANKS.get(career)
+	if not bank:
+		frappe.throw(f"Unknown career track: {career}")
+
+	yes_count = 0
+	gaps = []
+	for idx, (question, learn) in enumerate(bank):
+		if answers.get(str(idx)) or answers.get(idx):
+			yes_count += 1
+		else:
+			gaps.append(learn)
+
+	score = round((yes_count / len(bank)) * 100)
+	return {
+		"career": career,
+		"score": score,
+		"gaps": gaps[:3],
+		"headline": f"{score}/100 ready for {career}." + (" You're close." if score >= 70 else " Keep building."),
+	}
+
+
 TOOL_REGISTRY = {
 	"Worcent Score": {
 		"fn": calculate_worcent_score,
@@ -198,6 +435,21 @@ TOOL_REGISTRY = {
 		"fn": find_work_now,
 		"metric_key": None,
 		"direction": "neutral",
+	},
+	"CV Score": {
+		"fn": calculate_cv_score,
+		"metric_key": "match_percent",
+		"direction": "higher_better",
+	},
+	"Career Match": {
+		"fn": calculate_career_match,
+		"metric_key": None,
+		"direction": "neutral",
+	},
+	"Job Readiness": {
+		"fn": calculate_job_readiness,
+		"metric_key": "score",
+		"direction": "higher_better",
 	},
 }
 

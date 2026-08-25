@@ -5,9 +5,41 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-body.web-page, .wc-home, .wc-section, .navbar, .web-footer {
+/* ---- Reset — worcent's website pages no longer load Frappe's Bootstrap
+   bundle at all, so this replaces just the baseline normalize it used to
+   provide. Desk is untouched (this file is web-only, see hooks.py). ---- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body.wc-body {
+	margin: 0;
 	font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	color: var(--gray-900, #111827);
+	background: #fff;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
 }
+.wc-body h1, .wc-body h2, .wc-body h3, .wc-body h4, .wc-body h5, .wc-body h6 { margin: 0 0 0.5em; font-weight: 700; line-height: 1.25; }
+.wc-body p { margin: 0 0 1em; }
+.wc-body a { color: var(--wc-primary, #2563eb); text-decoration: none; }
+.wc-body a:hover { text-decoration: underline; }
+.wc-body ul, .wc-body ol { margin: 0 0 1em; padding-left: 1.4em; }
+.wc-body img { max-width: 100%; display: block; }
+.wc-body button { font-family: inherit; }
+
+/* Baseline for pages this redesign hasn't reached yet (native /login,
+   Web Form pages) so they stay usable/legible without Bootstrap. */
+.wc-body input, .wc-body select, .wc-body textarea {
+	font-family: inherit; font-size: 15px; padding: 9px 12px;
+	border: 1px solid var(--wc-border, #e5e7eb); border-radius: 8px; background: #fff; color: inherit;
+}
+.wc-body input:focus, .wc-body select:focus, .wc-body textarea:focus { outline: 2px solid var(--wc-primary, #2563eb); outline-offset: 1px; }
+.wc-body .btn, .wc-body button:not(.wc-navbar-toggle):not(.wc-back-to-top) {
+	display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+	padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14.5px;
+	border: 1px solid var(--wc-border, #e5e7eb); background: #fff; cursor: pointer;
+}
+.wc-body .btn-primary { background: var(--wc-primary, #2563eb); color: #fff; border-color: var(--wc-primary, #2563eb); }
+.wc-body .container { max-width: 1140px; margin: 0 auto; padding: 0 var(--wc-space-4, 24px); }
 
 :root {
 	--wc-primary: #2563eb;
@@ -98,9 +130,6 @@ body.web-page, .wc-home, .wc-section, .navbar, .web-footer {
 .wc-rating-muted { color: var(--wc-border); }
 .wc-rating-count { color: var(--wc-text-muted); font-size: 13px; letter-spacing: normal; margin-left: 4px; }
 
-/* Nav */
-.wc-nav-cta > a { font-weight: 600; color: var(--wc-primary) !important; margin-right: 8px; }
-
 /* Sections */
 .wc-section { max-width: 1280px; margin: 0 auto; padding: var(--wc-space-5) var(--wc-space-4); }
 .wc-section-muted { background: var(--gray-50, #f9fafb); max-width: none; }
@@ -173,6 +202,9 @@ body.web-page, .wc-home, .wc-section, .navbar, .web-footer {
 .wc-badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--wc-space-2); }
 .wc-badge-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #fef3c7; color: #92400e; }
 
+.wc-professional-id-banner { max-width: 1100px; margin: 0 auto var(--wc-space-3); padding: var(--wc-space-3); background: var(--wc-primary-tint); border: 1px dashed var(--wc-primary); border-radius: var(--wc-radius); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.wc-worcent-score-card .value { color: var(--wc-primary); }
+
 @media (max-width: 900px) {
 	.wc-profile-body { grid-template-columns: 1fr; }
 }
@@ -183,20 +215,31 @@ body.web-page, .wc-home, .wc-section, .navbar, .web-footer {
 }
 
 /* ==========================================================================
-   Navbar — overriding Frappe's default Bootstrap chrome for a proper
-   product-marketing look: sticky, blurred on scroll, custom brand mark.
+   Navbar — 100% custom markup (no Bootstrap), sticky + blur on scroll.
    ========================================================================== */
-.navbar { background: #fff !important; border-bottom: 1px solid var(--wc-border); padding: 14px 0; position: sticky; top: 0; z-index: 999; transition: box-shadow 0.2s ease, background 0.2s ease; }
-.navbar.wc-navbar-scrolled { box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: rgba(255,255,255,0.92) !important; backdrop-filter: saturate(180%) blur(8px); }
-.navbar-brand { display: flex; align-items: center; }
+.wc-navbar { background: #fff; border-bottom: 1px solid var(--wc-border); position: sticky; top: 0; z-index: 999; transition: box-shadow 0.2s ease, background 0.2s ease; }
+.wc-navbar.wc-navbar-scrolled { box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: rgba(255,255,255,0.92); backdrop-filter: saturate(180%) blur(8px); }
+.wc-navbar-inner { max-width: 1280px; margin: 0 auto; padding: 14px var(--wc-space-4); display: flex; align-items: center; justify-content: space-between; gap: var(--wc-space-3); }
+.wc-navbar-brand { display: flex; align-items: center; }
 .wc-brand-mark { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 19px; color: var(--gray-900, #111827); }
 .wc-brand-mark svg { flex: none; }
-.navbar .nav-link { color: var(--gray-700, #374151) !important; font-weight: 600; font-size: 14.5px; position: relative; padding: 8px 14px !important; }
-.navbar .nav-link::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 2px; height: 2px; background: var(--wc-primary); transform: scaleX(0); transform-origin: left; transition: transform 0.18s ease; }
-.navbar .nav-link:hover::after { transform: scaleX(1); }
-.navbar .nav-link:hover { color: var(--wc-primary) !important; }
-.wc-nav-cta { display: flex; align-items: center; margin-left: 8px; }
+.wc-navbar-links { display: flex; align-items: center; gap: 4px; }
+.wc-navbar-link { color: var(--gray-700, #374151); font-weight: 600; font-size: 14.5px; position: relative; padding: 8px 14px; white-space: nowrap; }
+.wc-navbar-link:hover { color: var(--wc-primary); text-decoration: none; }
+.wc-navbar-link::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 2px; height: 2px; background: var(--wc-primary); transform: scaleX(0); transform-origin: left; transition: transform 0.18s ease; }
+.wc-navbar-link:hover::after { transform: scaleX(1); }
+.wc-navbar-cta { margin-left: 8px; }
+.wc-navbar-toggle { display: none; background: none; border: none; padding: 6px; cursor: pointer; color: var(--gray-900, #111827); }
 .wc-btn-sm { padding: 8px 18px; font-size: 13.5px; }
+@media (max-width: 900px) {
+	.wc-navbar-toggle { display: flex; }
+	.wc-navbar-links { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--wc-border); flex-direction: column; align-items: stretch; gap: 0; padding: 8px; display: none; box-shadow: var(--wc-shadow-lg); }
+	.wc-navbar-links.wc-open { display: flex; }
+	.wc-navbar-link { padding: 12px 14px; }
+	.wc-navbar-cta { margin: 8px 14px; }
+	.wc-nav-dropdown-menu { position: static; box-shadow: none; border: none; opacity: 1; visibility: visible; transform: none; display: none; padding-left: 14px; }
+	.wc-nav-dropdown.wc-open .wc-nav-dropdown-menu { display: block; }
+}
 
 .wc-nav-dropdown { position: relative; }
 .wc-nav-dropdown-toggle { display: flex; align-items: center; gap: 5px; }
@@ -222,6 +265,20 @@ body.web-page, .wc-home, .wc-section, .navbar, .web-footer {
 .wc-hero-shape-2 { width: 160px; height: 160px; bottom: -50px; right: 8%; animation: wc-float 9s ease-in-out infinite reverse; }
 .wc-hero-shape-3 { width: 90px; height: 90px; top: 20%; right: 18%; background: rgba(245,158,11,0.18); animation: wc-float 6s ease-in-out infinite; }
 @keyframes wc-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+
+/* "I Need Work" emergency button */
+.wc-need-work-banner { text-align: center; padding: var(--wc-space-5) var(--wc-space-4); }
+.wc-need-work-btn {
+	display: inline-flex; align-items: center; gap: 14px; padding: 22px 48px; border-radius: 999px;
+	background: var(--wc-dark); color: #fff; font-size: 26px; font-weight: 800; letter-spacing: 0.02em;
+	box-shadow: 0 12px 30px rgba(15,23,42,0.25); transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.wc-need-work-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 16px 36px rgba(15,23,42,0.3); color: #fff; text-decoration: none; }
+.wc-need-work-emoji { font-size: 30px; }
+.wc-need-work-banner p { margin-top: var(--wc-space-2); color: var(--wc-text-muted); font-size: 14px; }
+@media (max-width: 560px) {
+	.wc-need-work-btn { padding: 16px 28px; font-size: 19px; }
+}
 
 /* Stats strip */
 .wc-stats-strip { max-width: none; background: var(--wc-surface); border-bottom: 1px solid var(--wc-border); padding: var(--wc-space-4); }
@@ -308,6 +365,17 @@ body.web-page, .wc-home, .wc-section, .navbar, .web-footer {
 .wc-score-bar-fill { height: 100%; background: linear-gradient(90deg, var(--wc-primary), var(--wc-accent)); border-radius: 999px; transition: width 0.4s ease; }
 .wc-tool-history-table { width: 100%; border-collapse: collapse; margin-top: var(--wc-space-3); font-size: 13.5px; }
 .wc-tool-history-table th, .wc-tool-history-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--wc-border); }
+
+.wc-challenge-days { display: flex; flex-direction: column; gap: 8px; }
+.wc-challenge-day { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--wc-border); border-radius: var(--wc-radius-sm); }
+.wc-challenge-day.wc-day-complete { background: var(--wc-primary-tint); border-color: var(--wc-primary); }
+.wc-challenge-day-num { width: 28px; height: 28px; border-radius: 50%; background: var(--gray-100, #f3f4f6); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex: none; }
+.wc-day-complete .wc-challenge-day-num { background: var(--wc-primary); color: #fff; }
+.wc-challenge-day-body { flex: 1; }
+.wc-challenge-day-title { font-weight: 600; font-size: 14.5px; }
+.wc-challenge-day-desc { font-size: 12.5px; color: var(--wc-text-muted); }
+.wc-challenge-day-check { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--wc-border); background: #fff; cursor: pointer; font-size: 15px; flex: none; }
+.wc-challenge-day-check:disabled { cursor: default; color: var(--wc-primary); border-color: var(--wc-primary); }
 
 /* Floating action buttons */
 .wc-whatsapp-float { position: fixed; right: 24px; bottom: 24px; width: 56px; height: 56px; border-radius: 50%; background: #25d366; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.4); z-index: 998; transition: transform 0.15s ease; }

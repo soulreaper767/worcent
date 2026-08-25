@@ -268,6 +268,91 @@ def seed_masters():
 	seed_ticket_categories()
 	seed_badges()
 	seed_currencies()
+	seed_skill_challenges()
+
+
+def seed_skill_challenges():
+	challenges = {
+		"excel-job-ready": ("30 Days to Excel Job Ready", "Web Development", [
+			"Interface basics: cells, sheets, ribbon tour", "Entering & formatting data cleanly",
+			"Basic formulas: SUM, AVERAGE, COUNT", "Relative vs absolute references ($)",
+			"IF statements", "Nested IF / AND / OR", "Text functions: CONCAT, LEFT/RIGHT, TRIM",
+			"Date functions", "Conditional formatting", "Data validation (dropdowns)",
+			"Sorting & filtering", "Removing duplicates & cleaning messy data",
+			"VLOOKUP basics", "XLOOKUP / INDEX-MATCH", "Practice: build a budget tracker",
+			"Intro to Pivot Tables", "Pivot Table calculated fields", "Pivot Charts",
+			"Charts: bar, line, pie — when to use which", "Combo charts",
+			"Named ranges", "Data tables & what-if analysis", "Goal Seek",
+			"Intro to macros (recording one)", "Keyboard shortcuts speed round",
+			"Building a dashboard layout", "Linking sheets & workbooks",
+			"Error handling: IFERROR, ISNA", "Practice: analyze a real dataset end-to-end",
+			"Polish your practice workbook for a portfolio", "Apply to 3 jobs that need Excel",
+		]),
+		"python-developer-ready": ("30 Days to Python Developer Ready", "Web Development", [
+			"Set up your environment (Python + editor)", "Variables & data types",
+			"Strings & string methods", "Lists and list methods", "Dictionaries & sets",
+			"Conditionals (if/elif/else)", "Loops: for & while", "Functions basics",
+			"Function arguments & return values", "Practice: build a simple calculator",
+			"File I/O basics", "Error handling: try/except", "Intro to classes & objects",
+			"Class methods & attributes", "Practice: build a small OOP project",
+			"Intro to pip & virtual environments", "Working with JSON", "Intro to APIs & requests",
+			"Practice: consume a public API", "Intro to Git & GitHub",
+			"Writing your first tests", "Intro to a web framework (Flask/Frappe basics)",
+			"Building a simple route/endpoint", "Connecting to a database (basic SQL)",
+			"CRUD operations", "Practice: build a mini CRUD app",
+			"Debugging techniques", "Code readability & clean code habits",
+			"Push your project to GitHub with a README", "Apply to 3 junior developer roles/gigs",
+		]),
+		"accounting-basics-ready": ("30 Days to Accounting Job Ready", "Admin Support", [
+			"The accounting equation (assets = liabilities + equity)", "Debits & credits basics",
+			"Chart of accounts", "Journal entries", "The general ledger",
+			"Trial balance", "Practice: record 10 sample transactions",
+			"Intro to financial statements", "The income statement", "The balance sheet",
+			"The cash flow statement", "Accounts receivable basics",
+			"Accounts payable basics", "Practice: reconcile a sample AR/AP ledger",
+			"Bank reconciliation step by step", "Practice: reconcile a bank statement",
+			"Intro to an accounting tool (QuickBooks/Xero/ERPNext)", "Setting up a company in the tool",
+			"Recording invoices", "Recording bills/expenses", "Payroll basics",
+			"Tax basics in your market", "Depreciation basics", "Month-end close checklist",
+			"Budgeting basics", "Practice: build a simple budget",
+			"Common bookkeeping mistakes to avoid", "Client communication for bookkeepers",
+			"Build a sample bookkeeping case study", "Apply to 3 bookkeeping/accounting gigs",
+		]),
+		"freelancing-starter": ("30 Days to Your First Freelance Client", "Admin Support", [
+			"Pick your one strongest skill to lead with", "Write a one-line value proposition",
+			"List 10 things you could offer as a starter gig", "Set an intro price",
+			"Create/clean up your Worcent profile", "Write a strong headline & bio",
+			"Add 3 portfolio pieces (real or practice)", "Get your Worcent Score up",
+			"List your skills accurately", "Take the Job Readiness test for your track",
+			"Write 3 message templates for proposals", "Study 5 successful gig listings in your niche",
+			"Create your first Gig listing", "Browse & shortlist 10 relevant jobs",
+			"Send your first 3 proposals", "Follow up on any responses",
+			"Ask 2 people for a testimonial/review", "Send 3 more proposals",
+			"Join a community/forum in your niche", "Reach out to 5 past contacts about work",
+			"Refine your pricing based on responses so far", "Send 3 more proposals",
+			"Review what's working/not working, adjust", "Offer a small free sample to a promising lead",
+			"Send 3 more proposals", "Follow up on all open conversations",
+			"Ask for your first review after delivering work", "Update your profile with new proof",
+			"Set a weekly proposal-sending habit going forward", "Celebrate — you're in motion",
+		]),
+	}
+
+	for slug, (title, category, tasks) in challenges.items():
+		if frappe.db.exists("Skill Challenge", slug):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Skill Challenge",
+				"title": title,
+				"slug": slug,
+				"category": category,
+				"total_days": len(tasks),
+				"description": f"A day-by-day plan to go from zero to job-ready: {title}.",
+				"daily_tasks": [
+					{"day_number": i + 1, "task_title": task} for i, task in enumerate(tasks)
+				],
+			}
+		).insert(ignore_permissions=True)
 
 
 def seed_currencies():

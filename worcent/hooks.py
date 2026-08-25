@@ -27,6 +27,12 @@ fixtures = [
 web_include_css = "/assets/worcent/css/worcent.css"
 web_include_js = "/assets/worcent/js/worcent.js"
 
+# Worcent's website pages get a fully custom shell (own navbar/footer, no
+# Bootstrap) instead of Frappe's default templates/base.html — this is what
+# actually wires that override in (file-path Jinja overrides alone, like the
+# footer_powered.html one below, don't apply to base_template_path).
+base_template = "templates/base.html"
+
 brand_html = '<span class="wc-brand-mark"><svg viewBox="0 0 32 32" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="9" fill="#2563eb"/><path d="M8 11L13 21L16 14L19 21L24 11" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="wc-brand-word">Worcent</span></span>'
 
 # Website route rules
@@ -88,6 +94,7 @@ permission_query_conditions = {
 	"Referral Code": "worcent.worcent_core.permissions.referral_code_query_conditions",
 	"Referral": "worcent.worcent_core.permissions.referral_query_conditions",
 	"Growth Tool Result": "worcent.worcent_core.permissions.growth_tool_result_query_conditions",
+	"Skill Challenge Enrollment": "worcent.worcent_core.permissions.skill_challenge_enrollment_query_conditions",
 }
 
 has_permission = {
@@ -103,4 +110,5 @@ has_permission = {
 	"Referral Code": "worcent.worcent_core.permissions.referral_code_has_permission",
 	"Referral": "worcent.worcent_core.permissions.referral_has_permission",
 	"Growth Tool Result": "worcent.worcent_core.permissions.growth_tool_result_has_permission",
+	"Skill Challenge Enrollment": "worcent.worcent_core.permissions.skill_challenge_enrollment_has_permission",
 }

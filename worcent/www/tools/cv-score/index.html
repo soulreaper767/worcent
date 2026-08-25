@@ -1,0 +1,58 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("CV Score") }} — Worcent{% endblock %}
+
+{% block page_content %}
+<div class="wc-tool-page">
+	<h1>{{ _("CV Score") }}</h1>
+	<p class="wc-muted">{{ _("Paste a job description and your CV text — see your match % and what's missing.") }}</p>
+
+	<form class="wc-tool-form" id="wc-cv-form">
+		<div>
+			<label>{{ _("Job Description") }}</label>
+			<textarea id="job_description" rows="6" placeholder="Paste the job description here..." required></textarea>
+		</div>
+		<div>
+			<label>{{ _("Your CV / Resume Text") }}</label>
+			<textarea id="cv_text" rows="8" placeholder="Paste your CV text here..." required></textarea>
+		</div>
+		<button type="submit" class="wc-btn wc-btn-primary">{{ _("Check My Match") }}</button>
+	</form>
+
+	<div class="wc-tool-result" id="wc-tool-result">
+		<h3 id="wc-cv-headline"></h3>
+		<div class="wc-score-bar"><div class="wc-score-bar-fill" id="wc-cv-fill" style="width:0%"></div></div>
+		<div style="margin-top:12px;">
+			<strong style="color:#16a34a;">✅ {{ _("Matched") }}:</strong>
+			<div id="wc-cv-matched" class="wc-skill-tags"></div>
+		</div>
+		<div style="margin-top:12px;">
+			<strong style="color:#b91c1c;">❌ {{ _("Missing") }}:</strong>
+			<div id="wc-cv-missing" class="wc-skill-tags"></div>
+		</div>
+	</div>
+
+	<div id="wc-tool-footer"></div>
+</div>
+
+<script>
+document.getElementById("wc-cv-form").addEventListener("submit", function (e) {
+	e.preventDefault();
+	var inputs = {
+		job_description: document.getElementById("job_description").value,
+		cv_text: document.getElementById("cv_text").value,
+	};
+	wcRunTool("CV Score", inputs, function (output) {
+		document.getElementById("wc-tool-result").classList.add("wc-visible");
+		document.getElementById("wc-cv-headline").textContent = output.headline;
+		document.getElementById("wc-cv-fill").style.width = output.match_percent + "%";
+		document.getElementById("wc-cv-matched").innerHTML = output.matched_keywords.map(function (k) {
+			return '<span class="wc-skill-tag">' + k + '</span>';
+		}).join("") || "<span class='wc-muted'>—</span>";
+		document.getElementById("wc-cv-missing").innerHTML = output.missing_keywords.map(function (k) {
+			return '<span class="wc-skill-tag">' + k + '</span>';
+		}).join("") || "<span class='wc-muted'>—</span>";
+	});
+});
+</script>
+{% endblock %}

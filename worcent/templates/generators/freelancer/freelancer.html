@@ -29,6 +29,23 @@
 		</div>
 	</div>
 
+	{% if doc.user == frappe.session.user %}
+	<div class="wc-section" style="padding-top:0;">
+		<div class="wc-professional-id-banner">
+			<span>{{ _("This is your Worcent — your professional identity. Share the link instead of a CV.") }}</span>
+			<button type="button" class="wc-btn wc-btn-outline wc-btn-sm" id="wc-copy-profile-link">{{ _("Copy Link") }}</button>
+		</div>
+	</div>
+	<script>
+	document.getElementById("wc-copy-profile-link").addEventListener("click", function () {
+		navigator.clipboard.writeText(window.location.href).then(() => {
+			this.textContent = "{{ _('Copied!') }}";
+			setTimeout(() => { this.textContent = "{{ _('Copy Link') }}"; }, 1500);
+		});
+	});
+	</script>
+	{% endif %}
+
 	<div class="wc-profile-body">
 		<div class="wc-profile-main">
 			{% if doc.bio %}
@@ -90,6 +107,12 @@
 		</div>
 
 		<div class="wc-profile-side">
+			<div class="wc-side-card wc-worcent-score-card">
+				<div class="label">{{ _("Worcent Score") }}</div>
+				<div class="value">{{ worcent_score.total_score }}/1000</div>
+				<div class="wc-score-bar"><div class="wc-score-bar-fill" style="width:{{ (worcent_score.total_score / 10) | round | int }}%"></div></div>
+				<div style="font-size:12px; color:var(--wc-text-muted);">{{ worcent_score.tier }}</div>
+			</div>
 			<div class="wc-side-card">
 				<div class="label">{{ _("Hourly Rate") }}</div>
 				<div class="value">{{ frappe.utils.fmt_money(doc.hourly_rate) if doc.hourly_rate else "-" }}</div>

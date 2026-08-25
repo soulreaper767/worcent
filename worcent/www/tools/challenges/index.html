@@ -1,0 +1,28 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("30-Day Skill Challenges") }} — Worcent{% endblock %}
+
+{% block page_content %}
+<div class="wc-home">
+	<section class="wc-hero">
+		<div class="wc-hero-shape wc-hero-shape-1"></div>
+		<div class="wc-hero-shape wc-hero-shape-2"></div>
+		<div class="wc-hero-inner">
+			<h1>{{ _("30-Day Skill Challenges") }}</h1>
+			<p>{{ _("A day-by-day plan to go from zero to job-ready. Free to browse — register to track your daily progress.") }}</p>
+		</div>
+	</section>
+
+	<section class="wc-section">
+		<div class="wc-grid">
+			{% for c in challenges %}
+			<a class="wc-card" href="/tools/challenges/detail?slug={{ c.slug }}">
+				<div class="wc-job-card-title">{{ c.title }}</div>
+				<div class="wc-job-card-desc">{{ c.description }}</div>
+				<div class="wc-job-card-meta">{{ c.total_days }} {{ _("days") }} &middot; {{ c.enrolled_count }} {{ _("enrolled") }}</div>
+			</a>
+			{% endfor %}
+		</div>
+	</section>
+</div>
+{% endblock %}
