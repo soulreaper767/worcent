@@ -9,16 +9,20 @@ def get_context(context):
 
 	category = frappe.form_dict.get("category")
 	verified_only = frappe.form_dict.get("verified")
+	search = frappe.form_dict.get("search")
 
 	context.categories = frappe.get_all(
 		"Skill Category", fields=["name", "category_name"], order_by="category_name asc"
 	)
 	context.selected_category = category
 	context.verified_only = verified_only
+	context.search = search
 
 	filters = {"published": 1, "status": "Active"}
 	if verified_only:
 		filters["verification_level"] = ["in", ["ID Verified", "Business Verified"]]
+	if search:
+		filters["headline"] = ["like", f"%{search}%"]
 
 	freelancer_names = None
 	if category:

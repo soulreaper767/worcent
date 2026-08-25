@@ -41,6 +41,17 @@ def get_context(context):
 	for job in context.open_jobs:
 		job["employer_name"] = frappe.db.get_value("Employer Profile", job.employer, "company_name")
 
+	context.testimonials = frappe.get_all(
+		"Review",
+		filters={"comment": ["is", "set"]},
+		fields=["reviewer_type", "reviewee_type", "reviewee_profile", "rating", "comment"],
+		order_by="creation desc",
+		limit_page_length=6,
+	)
+	for t in context.testimonials:
+		name_field = "company_name" if t.reviewee_type == "Employer Profile" else "display_name"
+		t["reviewee_name"] = frappe.db.get_value(t.reviewee_type, t.reviewee_profile, name_field)
+
 	context.stats = {
 		"freelancers": frappe.db.count("Freelancer Profile", {"status": "Active"}),
 		"employers": frappe.db.count("Employer Profile", {"status": "Active"}),

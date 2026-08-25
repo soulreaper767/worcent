@@ -43,6 +43,22 @@
 			});
 		});
 
+		// Generic arrow-scroll carousels: any .wc-carousel-wrap with a
+		// .wc-carousel-track and optional prev/next arrow buttons inside it.
+		document.querySelectorAll(".wc-carousel-wrap").forEach(function (wrap) {
+			var track = wrap.querySelector(".wc-carousel-track");
+			var prev = wrap.querySelector(".wc-carousel-arrow-prev");
+			var next = wrap.querySelector(".wc-carousel-arrow-next");
+			if (!track) return;
+			function scrollByCard(dir) {
+				var card = track.querySelector(":scope > *");
+				var amount = card ? card.getBoundingClientRect().width + 16 : 280;
+				track.scrollBy({ left: dir * amount * 2, behavior: "smooth" });
+			}
+			if (prev) prev.addEventListener("click", function () { scrollByCard(-1); });
+			if (next) next.addEventListener("click", function () { scrollByCard(1); });
+		});
+
 		// Fade-up reveal for anything marked .wc-reveal as it enters the viewport.
 		var revealEls = document.querySelectorAll(".wc-reveal");
 		if (revealEls.length && "IntersectionObserver" in window) {

@@ -12,6 +12,20 @@
 		<div class="wc-hero-inner">
 			<h1>{{ _("Find the right freelancer. Get paid for great work.") }}</h1>
 			<p>{{ _("Jobs, gigs, secure escrow payments and verified profiles — all in one freelance marketplace.") }}</p>
+
+			<form class="wc-hero-search" action="/freelancers" method="get">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+				<input type="text" name="search" placeholder="{{ _('Try \"logo design\" or \"WordPress developer\"') }}">
+				<button type="submit" class="wc-btn wc-btn-primary">{{ _("Search") }}</button>
+			</form>
+			<div class="wc-hero-suggest">
+				<span>{{ _("Popular:") }}</span>
+				<a href="/freelancers?category=Web Development">{{ _("Web Development") }}</a>
+				<a href="/freelancers?category=Design %26 Creative">{{ _("Design") }}</a>
+				<a href="/freelancers?category=Writing %26 Translation">{{ _("Writing") }}</a>
+				<a href="/freelancers?category=Sales %26 Marketing">{{ _("Marketing") }}</a>
+			</div>
+
 			<div class="wc-hero-actions">
 				<a class="wc-btn wc-btn-primary" href="/jobs">{{ _("Find Work") }}</a>
 				<a class="wc-btn wc-btn-ghost" href="/freelancers">{{ _("Hire Talent") }}</a>
@@ -21,7 +35,7 @@
 
 	<section class="wc-need-work-banner wc-reveal">
 		<a href="/tools/i-need-work" class="wc-need-work-btn">
-			<span class="wc-need-work-emoji">🧠</span>
+			<span class="wc-need-work-emoji"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
 			<span>{{ _("I NEED WORK") }}</span>
 		</a>
 		<p>{{ _("No job? Don't panic. Press the button — tell us what you can do.") }}</p>
@@ -74,29 +88,62 @@
 	{% if featured_freelancers %}
 	<section class="wc-section wc-reveal">
 		<h2 class="wc-section-title">{{ _("Top Freelancers") }}</h2>
-		<div class="wc-grid">
-			{% for f in featured_freelancers %}
-			<a class="wc-card" href="/{{ f.route }}">
-				<div class="wc-freelancer-card-head">
-					<div class="wc-avatar">
-						{% if f.profile_photo %}<img src="{{ f.profile_photo }}" alt="{{ f.display_name }}">{% else %}{{ f.display_name[0] if f.display_name else "?" }}{% endif %}
-					</div>
-					<div>
-						<div class="wc-freelancer-name">
-							{{ f.display_name }}
-							{% if f.verification_level in ("ID Verified", "Business Verified") %}
-							<span class="wc-badge-tick" title="Verified">✓</span>
-							{% endif %}
+		<div class="wc-carousel-wrap">
+			<button type="button" class="wc-carousel-arrow wc-carousel-arrow-prev" aria-label="{{ _('Previous') }}">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<div class="wc-carousel-track">
+				{% for f in featured_freelancers %}
+				<a class="wc-card" href="/{{ f.route }}">
+					<div class="wc-freelancer-card-head">
+						<div class="wc-avatar">
+							{% if f.profile_photo %}<img src="{{ f.profile_photo }}" alt="{{ f.display_name }}">{% else %}{{ f.display_name[0] if f.display_name else "?" }}{% endif %}
 						</div>
-						<div class="wc-freelancer-headline">{{ f.headline or "" }}</div>
+						<div>
+							<div class="wc-freelancer-name">
+								{{ f.display_name }}
+								{% if f.verification_level in ("ID Verified", "Business Verified") %}
+								<span class="wc-badge-tick" title="Verified">✓</span>
+								{% endif %}
+							</div>
+							<div class="wc-freelancer-headline">{{ f.headline or "" }}</div>
+						</div>
+					</div>
+					{% if f.rating_avg %}
+					<div class="wc-rating">{{ "★" * (f.rating_avg | round | int) }}<span class="wc-rating-muted">{{ "★" * (5 - (f.rating_avg | round | int)) }}</span></div>
+					{% endif %}
+					{% if f.hourly_rate %}<div class="wc-freelancer-rate">{{ frappe.utils.fmt_money(f.hourly_rate) }}/hr</div>{% endif %}
+				</a>
+				{% endfor %}
+			</div>
+			<button type="button" class="wc-carousel-arrow wc-carousel-arrow-next" aria-label="{{ _('Next') }}">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+		</div>
+	</section>
+	{% endif %}
+
+	{% if testimonials %}
+	<section class="wc-section wc-section-muted wc-reveal">
+		<h2 class="wc-section-title">{{ _("What people are saying") }}</h2>
+		<div class="wc-carousel-wrap">
+			<button type="button" class="wc-carousel-arrow wc-carousel-arrow-prev" aria-label="{{ _('Previous') }}">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<div class="wc-carousel-track">
+				{% for t in testimonials %}
+				<div class="wc-testimonial-card">
+					<div class="wc-rating">{{ "★" * ((t.rating * 5) | round | int) }}<span class="wc-rating-muted">{{ "★" * (5 - ((t.rating * 5) | round | int)) }}</span></div>
+					<div class="wc-testimonial-quote">{{ t.comment }}</div>
+					<div class="wc-testimonial-footer">
+						<div class="wc-testimonial-who">{{ t.reviewee_name or "Worcent user" }}<div class="wc-testimonial-role">{{ _("Reviewed by an") }} {{ t.reviewer_type }}</div></div>
 					</div>
 				</div>
-				{% if f.rating_avg %}
-				<div class="wc-rating">{{ "★" * (f.rating_avg | round | int) }}<span class="wc-rating-muted">{{ "★" * (5 - (f.rating_avg | round | int)) }}</span></div>
-				{% endif %}
-				{% if f.hourly_rate %}<div class="wc-freelancer-rate">{{ frappe.utils.fmt_money(f.hourly_rate) }}/hr</div>{% endif %}
-			</a>
-			{% endfor %}
+				{% endfor %}
+			</div>
+			<button type="button" class="wc-carousel-arrow wc-carousel-arrow-next" aria-label="{{ _('Next') }}">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
 		</div>
 	</section>
 	{% endif %}
@@ -170,17 +217,17 @@
 		<h2 class="wc-section-title">{{ _("Free Career Tools") }}</h2>
 		<div class="wc-grid">
 			<a class="wc-card wc-tool-card" href="/tools/worcent-score">
-				<div class="wc-why-icon">🏆</div>
+				<div class="wc-why-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 21h8M12 17v4M17 5h3a1 1 0 011 1c0 2.8-2 5-4.5 5.5M7 5H4a1 1 0 00-1 1c0 2.8 2 5 4.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 3h10v6a5 5 0 01-10 0V3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
 				<div class="wc-job-card-title">{{ _("What's your Worcent Score?") }}</div>
 				<div class="wc-job-card-desc">{{ _("Free instantly. Register to save it and track it over time.") }}</div>
 			</a>
 			<a class="wc-card wc-tool-card" href="/tools/am-i-underpaid">
-				<div class="wc-why-icon">🚨</div>
+				<div class="wc-why-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l10 18H2L12 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9v5M12 17h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
 				<div class="wc-job-card-title">{{ _("Am I Underpaid?") }}</div>
 				<div class="wc-job-card-desc">{{ _("See your estimated market range in seconds.") }}</div>
 			</a>
 			<a class="wc-card wc-tool-card" href="/tools/i-need-work">
-				<div class="wc-why-icon">🧠</div>
+				<div class="wc-why-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
 				<div class="wc-job-card-title">{{ _("I Need Work") }}</div>
 				<div class="wc-job-card-desc">{{ _("Tell us what you can do, get real opportunities right now.") }}</div>
 			</a>

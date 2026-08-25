@@ -9,18 +9,22 @@ def get_context(context):
 
 	category = frappe.form_dict.get("category")
 	budget_type = frappe.form_dict.get("budget_type")
+	search = frappe.form_dict.get("search")
 
 	context.categories = frappe.get_all(
 		"Skill Category", fields=["name", "category_name"], order_by="category_name asc"
 	)
 	context.selected_category = category
 	context.selected_budget_type = budget_type
+	context.search = search
 
 	filters = {"published": 1, "status": "Open"}
 	if category:
 		filters["category"] = category
 	if budget_type:
 		filters["budget_type"] = budget_type
+	if search:
+		filters["title"] = ["like", f"%{search}%"]
 
 	context.jobs = frappe.get_all(
 		"Job Posting",
