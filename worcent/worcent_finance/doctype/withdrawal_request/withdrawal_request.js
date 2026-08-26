@@ -4,7 +4,9 @@ const PAYMENT_ROLES = ["Accounts Manager", "Finance Manager", "Worcent Admin", "
 frappe.ui.form.on("Withdrawal Request", {
 	onload(frm) {
 		if (!frm.is_new()) return;
-		frm.call("get_my_withdrawal_context").then((r) => {
+		frappe.call({
+			method: "worcent.worcent_finance.doctype.withdrawal_request.withdrawal_request.get_my_withdrawal_context",
+		}).then((r) => {
 			const ctx = r.message;
 			if (!ctx) return;
 			frm.__withdrawal_ctx = ctx;
