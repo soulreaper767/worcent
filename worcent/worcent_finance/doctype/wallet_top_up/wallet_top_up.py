@@ -4,6 +4,8 @@ from frappe.model.document import Document
 from frappe.model.naming import set_name_by_naming_series
 from frappe.utils import flt
 
+FINANCE_ROLES = {"Finance Manager", "Worcent Admin", "System Manager"}
+
 
 class WalletTopUp(Document):
 	def autoname(self):
@@ -39,6 +41,8 @@ class WalletTopUp(Document):
 
 	def on_update(self):
 		if self.status == "Approved" and self.has_value_changed("status"):
+			if frappe.session.user != "Administrator" and not FINANCE_ROLES.intersection(frappe.get_roles()):
+				frappe.throw(_("Only Finance can approve a wallet top-up."))
 			self.credit_wallet()
 
 	def credit_wallet(self):

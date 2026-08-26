@@ -566,7 +566,7 @@ def insurance_policy_has_permission(doc, ptype=None, user=None):
 
 def insurance_claim_query_conditions(user):
 	user = user or frappe.session.user
-	if _is_admin(user):
+	if _is_admin(user) or _finance_staff(user):
 		return ""
 	freelancer = get_freelancer_profile(user)
 	if not freelancer:
@@ -579,7 +579,7 @@ def insurance_claim_query_conditions(user):
 
 def insurance_claim_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
-	if _is_admin(user):
+	if _is_admin(user) or _finance_staff(user):
 		return True
 	if ptype == "create":
 		return True

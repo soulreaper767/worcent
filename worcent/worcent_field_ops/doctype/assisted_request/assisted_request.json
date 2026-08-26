@@ -14,6 +14,7 @@
   "requester_phone",
   "section_break_1",
   "details",
+  "related_job_posting",
   "section_break_conversion",
   "converted_to_doctype",
   "converted_to_name"
@@ -81,6 +82,14 @@
    "fieldname": "details",
    "fieldtype": "Text Editor",
    "label": "Details"
+  },
+  {
+   "depends_on": "eval:doc.request_type=='Apply to Job'",
+   "description": "Which Job Posting to apply to on the requester's behalf -- required for \"Apply to Job\".",
+   "fieldname": "related_job_posting",
+   "fieldtype": "Link",
+   "label": "Related Job Posting",
+   "options": "Job Posting"
   },
   {
    "collapsible": 1,

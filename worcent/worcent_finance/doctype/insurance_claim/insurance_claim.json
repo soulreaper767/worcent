@@ -94,6 +94,20 @@
    "read": 1,
    "write": 1,
    "role": "Freelancer"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "role": "Finance Manager"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "role": "Accounts Manager"
   }
  ],
  "sort_field": "creation",

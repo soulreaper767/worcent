@@ -15,7 +15,12 @@ class Proposal(Document):
 	def validate(self):
 		if not self.job_posting and not self.gig:
 			frappe.throw(frappe._("Proposal must reference either a Job Posting or a Gig"))
-		if self.is_new() and frappe.session.user not in ("Administrator",) and not ADMIN_ROLES.intersection(frappe.get_roles()):
+		if (
+			self.is_new()
+			and not self.flags.ignore_owner_check
+			and frappe.session.user not in ("Administrator",)
+			and not ADMIN_ROLES.intersection(frappe.get_roles())
+		):
 			owner = frappe.db.get_value("Freelancer Profile", self.freelancer, "user")
 			if owner != frappe.session.user:
 				frappe.throw(_("You can only submit proposals as yourself."))
