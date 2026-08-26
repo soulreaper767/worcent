@@ -35,7 +35,7 @@ class FreelancerProfile(WebsiteGenerator):
 			self.referred_by_code = previous
 
 	def apply_default_currency(self):
-		if self.country and not self.preferred_currency:
+		if not self.preferred_currency:
 			from worcent.worcent_finance.currency_utils import get_currency_for_country
 
 			self.preferred_currency = get_currency_for_country(self.country)

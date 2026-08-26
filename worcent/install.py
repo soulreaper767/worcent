@@ -256,8 +256,8 @@ def seed_fiscal_years():
 def configure_desk_experience():
 	seed_role_home_pages()
 	hide_irrelevant_workspaces()
-	restrict_workspace_roles()
 	sync_workspace_sidebars()
+	restrict_workspace_roles()
 
 
 def sync_workspace_sidebars():
@@ -299,23 +299,55 @@ def restrict_workspace_roles():
 	them, via the Workspace's own 'roles' child table. Manipulates the 'Has
 	Role' rows directly instead of doc.save() on the parent, so a workspace
 	record that fails full re-validation for an unrelated reason can't abort
-	the whole run."""
+	the whole run.
+
+	Also applies the exact same restriction to the matching Desktop Icon
+	(the tile on Desk's home/app-switcher grid). This matters because the
+	icon's own visibility check does NOT inherit the workspace's role
+	restriction: a Desktop Icon is shown if its Workspace Sidebar has *any*
+	surviving item, and individual DocType-type shortcut items inside a
+	sidebar are gated only by plain doctype-level read permission — not by
+	which workspace they live in. A Freelancer has read on some doctypes
+	that also happen to have a shortcut inside e.g. the Worcent Admin
+	workspace, which was enough to keep that sidebar non-empty and show the
+	whole Worcent Admin tile on their desk. Desktop Icon's own `roles`
+	child table (same Has Role mechanism) is a hard, explicit override for
+	exactly this case."""
 	for name, roles in WORKSPACE_ROLE_RESTRICTIONS.items():
-		if not frappe.db.exists("Workspace", name):
-			continue
-		existing = {
-			d.role for d in frappe.get_all("Has Role", filters={"parent": name, "parenttype": "Workspace"}, fields=["role"])
-		}
 		wanted = {r for r in roles if frappe.db.exists("Role", r)}
-		if existing == wanted:
-			continue
-		frappe.db.delete("Has Role", {"parent": name, "parenttype": "Workspace"})
-		for role in wanted:
-			frappe.get_doc(
-				{"doctype": "Has Role", "parent": name, "parenttype": "Workspace", "parentfield": "roles", "role": role}
-			).insert(ignore_permissions=True)
+
+		if frappe.db.exists("Workspace", name):
+			_sync_has_role_rows(name, "Workspace", wanted)
+
+		if frappe.db.exists("Desktop Icon", name):
+			_sync_has_role_rows(name, "Desktop Icon", wanted)
+
 	frappe.clear_cache(doctype="Workspace")
+	frappe.clear_cache(doctype="Desktop Icon")
 	frappe.db.commit()
+
+
+def _sync_has_role_rows(parent_name, parenttype, wanted_roles):
+	"""Has Role's own before_insert hook checks {"parent": ..., "role": ...}
+	for an existing row WITHOUT filtering by parenttype — harmless for the
+	normal case (parent = a real user's email) but here `parent_name` can
+	collide with an unrelated Has Role row from a different parenttype
+	(e.g. the "Worcent Admin" *role* itself already appears as a role on
+	plenty of Has Role rows, and "Worcent Admin" is also a Workspace/
+	Desktop Icon name), which makes that check misfire. db_insert() writes
+	the row directly and skips that hook — our own existing/wanted diff
+	above is the only uniqueness check that actually matters here."""
+	existing = {
+		d.role for d in frappe.get_all("Has Role", filters={"parent": parent_name, "parenttype": parenttype}, fields=["role"])
+	}
+	if existing == wanted_roles:
+		return
+	frappe.db.delete("Has Role", {"parent": parent_name, "parenttype": parenttype})
+	for role in wanted_roles:
+		doc = frappe.get_doc(
+			{"doctype": "Has Role", "parent": parent_name, "parenttype": parenttype, "parentfield": "roles", "role": role}
+		)
+		doc.db_insert()
 
 
 # ---------------------------------------------------------------------------
@@ -331,8 +363,7 @@ def configure_worcent_settings():
 		settings.dispute_response_days = 14
 	if not settings.min_withdrawal_amount:
 		settings.min_withdrawal_amount = 100
-	if not settings.platform_currency:
-		settings.platform_currency = "USD"
+	settings.platform_currency = "PKR"
 	if not settings.signup_bonus_amount:
 		settings.signup_bonus_amount = 5
 	if not settings.verification_bonus_amount:
@@ -346,6 +377,18 @@ def configure_worcent_settings():
 	settings.kyc_required_for_payout = 1
 	settings.enable_public_profiles = 1
 	settings.save(ignore_permissions=True)
+
+	# Site-wide fallback currency for any fmt_money() call made without an
+	# explicit currency — was left as INR from Frappe/ERPNext's own default
+	# seed data, showing the wrong rupee symbol (₹ instead of PKR's ₨)
+	# anywhere a display didn't pass a currency explicitly.
+	frappe.db.set_default("currency", "PKR")
+
+	for doctype in ("Freelancer Profile", "Employer Profile"):
+		frappe.db.sql(
+			f"""update `tab{doctype}` set preferred_currency = 'PKR'
+			where preferred_currency is null or preferred_currency = ''"""
+		)
 
 
 # ---------------------------------------------------------------------------

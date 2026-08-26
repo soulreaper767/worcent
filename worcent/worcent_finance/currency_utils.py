@@ -20,9 +20,14 @@ COUNTRY_CURRENCY_MAP = {
 
 BASE_CURRENCY = "USD"
 
+# Display-only fallback for a country not in the map above (or no country
+# set at all) — deliberately separate from BASE_CURRENCY, which is the
+# wallet ledger's real unit of account and must never change here.
+DEFAULT_DISPLAY_CURRENCY = "PKR"
+
 
 def get_currency_for_country(country):
-	return COUNTRY_CURRENCY_MAP.get(country, BASE_CURRENCY)
+	return COUNTRY_CURRENCY_MAP.get(country, DEFAULT_DISPLAY_CURRENCY)
 
 
 def get_exchange_rate(from_currency, to_currency):
