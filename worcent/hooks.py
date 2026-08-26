@@ -144,6 +144,7 @@ has_permission = {
 	"Office": "worcent.worcent_core.permissions.office_has_permission",
 	"Franchise Settlement": "worcent.worcent_core.permissions.franchise_settlement_has_permission",
 	"Mentor Program": "worcent.worcent_core.permissions.mentor_program_has_permission",
+	"Review": "worcent.worcent_core.permissions.review_has_permission",
 	"Mentorship Request": "worcent.worcent_core.permissions.mentorship_request_has_permission",
 	"Work Submission": "worcent.worcent_core.permissions.work_submission_has_permission",
 	"Advance Request": "worcent.worcent_core.permissions.advance_request_has_permission",

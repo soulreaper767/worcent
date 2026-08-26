@@ -127,7 +127,7 @@ def assisted_request_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or "Office Manager" in frappe.get_roles(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	return doc.rep == get_rep(user)
 
@@ -202,7 +202,7 @@ def payout_account_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or _finance_staff(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	return doc.party in _own_party_names(user)
 
@@ -229,10 +229,13 @@ def withdrawal_request_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or _withdrawal_staff(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	party = frappe.db.get_value("Wallet", doc.wallet, "party")
-	return party in _own_party_names(user)
+	owns_it = party in _own_party_names(user)
+	if ptype in ("write", "delete", "cancel"):
+		return owns_it and doc.status == "Requested"
+	return owns_it
 
 
 def referral_code_query_conditions(user):
@@ -283,8 +286,10 @@ def growth_tool_result_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
+	if ptype in ("write", "delete", "cancel"):
+		return False
 	return doc.user == user
 
 
@@ -299,8 +304,10 @@ def skill_challenge_enrollment_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
+	if ptype in ("write", "delete", "cancel"):
+		return False
 	return doc.user == user
 
 
@@ -322,9 +329,12 @@ def rank_application_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or _is_rank_reviewer(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
-	return doc.freelancer == get_freelancer_profile(user)
+	owns_it = doc.freelancer == get_freelancer_profile(user)
+	if ptype in ("write", "delete", "cancel"):
+		return owns_it and doc.status == "Pending"
+	return owns_it
 
 
 SUPPORT_STAFF_ROLES = {"Support Agent", "Worcent Admin"}
@@ -349,8 +359,10 @@ def support_ticket_reply_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or _is_support_staff(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
+	if ptype in ("write", "delete", "cancel"):
+		return False
 	if doc.is_internal_note:
 		return False
 	return frappe.db.get_value("Support Ticket", doc.ticket, "raised_by") == user
@@ -372,7 +384,7 @@ def freelancer_profile_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype in ("write", "delete", "cancel"):
+	if ptype in ("write", "delete", "cancel") and not doc.is_new():
 		return doc.user == user
 	return True
 
@@ -381,7 +393,7 @@ def employer_profile_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype in ("write", "delete", "cancel"):
+	if ptype in ("write", "delete", "cancel") and not doc.is_new():
 		return doc.user == user
 	return True
 
@@ -391,11 +403,29 @@ def employer_profile_has_permission(doc, ptype=None, user=None):
 # behalf, the Rep who posted it) can write. ---
 
 
+# --- Review: read stays open (public, shown on profile pages); write is
+# only ever needed to fill in the blank new-doc form -- once posted, a
+# Review is immutable (Review.validate() already checks the reviewer is a
+# real contract party at creation time; nothing should be able to go back
+# and edit a rating/comment after the fact). ---
+
+
+def review_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if ptype == "create" or doc.is_new():
+		return True
+	if ptype in ("write", "delete", "cancel"):
+		return False
+	return True
+
+
 def gig_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype in ("write", "delete", "cancel"):
+	if ptype in ("write", "delete", "cancel") and not doc.is_new():
 		return doc.freelancer == get_freelancer_profile(user)
 	return True
 
@@ -404,7 +434,7 @@ def job_posting_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype in ("write", "delete", "cancel"):
+	if ptype in ("write", "delete", "cancel") and not doc.is_new():
 		if doc.employer == get_employer_profile(user):
 			return True
 		if doc.posted_via_rep and doc.posted_via_rep == get_rep(user):
@@ -439,7 +469,7 @@ def proposal_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	freelancer = get_freelancer_profile(user)
 	if doc.freelancer == freelancer:
@@ -478,7 +508,7 @@ def time_log_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	contract = frappe.db.get_value("Contract", doc.contract, ["freelancer", "employer"], as_dict=True)
 	if not contract:
@@ -515,7 +545,7 @@ def physical_verification_appointment_has_permission(doc, ptype=None, user=None)
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	if doc.rep and doc.rep == get_rep(user):
 		return True
@@ -566,7 +596,7 @@ def insurance_policy_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	return doc.freelancer == get_freelancer_profile(user)
 
@@ -588,7 +618,7 @@ def insurance_claim_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or _finance_staff(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	policy_freelancer = frappe.db.get_value("Insurance Policy", doc.policy, "freelancer")
 	owns_it = policy_freelancer == get_freelancer_profile(user)
@@ -645,12 +675,15 @@ def dispute_case_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or "Dispute Arbitrator" in frappe.get_roles(user):
 		return True
-	if doc.raised_by == user:
+	if ptype == "create" or doc.is_new():
 		return True
 	contract = frappe.db.get_value("Contract", doc.contract, ["freelancer", "employer"], as_dict=True)
-	if not contract:
-		return False
-	return contract.freelancer == get_freelancer_profile(user) or contract.employer == get_employer_profile(user)
+	is_party = doc.raised_by == user or (
+		contract and (contract.freelancer == get_freelancer_profile(user) or contract.employer == get_employer_profile(user))
+	)
+	if ptype in ("write", "delete", "cancel"):
+		return bool(is_party) and doc.status == "Open"
+	return bool(is_party)
 
 
 # --- Agency Membership: a Freelancer only sees their own membership history. ---
@@ -692,7 +725,7 @@ def verification_request_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	owns_it = doc.party in _own_party_names(user)
 	if ptype in ("write", "delete", "cancel"):
@@ -767,7 +800,7 @@ def mentor_program_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype in ("write", "delete", "cancel"):
+	if ptype in ("write", "delete", "cancel") and not doc.is_new():
 		return doc.mentor == get_freelancer_profile(user)
 	return True
 
@@ -794,7 +827,7 @@ def mentorship_request_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	freelancer = get_freelancer_profile(user)
 	if doc.mentee == freelancer:
@@ -833,7 +866,7 @@ def work_submission_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
 	contract_name = frappe.db.get_value("Milestone", doc.milestone, "contract")
 	contract = frappe.db.get_value("Contract", contract_name, ["freelancer", "employer"], as_dict=True)
@@ -860,9 +893,12 @@ def advance_request_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or _finance_staff(user):
 		return True
-	if ptype == "create":
+	if ptype == "create" or doc.is_new():
 		return True
-	return doc.freelancer == get_freelancer_profile(user)
+	owns_it = doc.freelancer == get_freelancer_profile(user)
+	if ptype in ("write", "delete", "cancel"):
+		return owns_it and doc.status == "Requested"
+	return owns_it
 
 
 # --- Wallet Top Up: a Freelancer/Employer only sees their own top-up
@@ -884,11 +920,14 @@ def wallet_top_up_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
 	if _is_admin(user) or _finance_staff(user):
 		return True
-	if not doc.wallet:
+	if ptype == "create" or doc.is_new() or not doc.wallet:
 		# A brand-new Wallet Top Up may not have its wallet resolved yet --
 		# that happens in validate() (auto-creating one if needed), which
-		# runs after this create-permission check. Ownership is enforced
-		# there instead once doc.wallet actually exists.
+		# runs after this permission check. Ownership is enforced there
+		# instead once doc.wallet actually exists.
 		return True
 	party = frappe.db.get_value("Wallet", doc.wallet, "party")
-	return party in _own_party_names(user)
+	owns_it = party in _own_party_names(user)
+	if ptype in ("write", "delete", "cancel"):
+		return owns_it and doc.status == "Pending"
+	return owns_it
