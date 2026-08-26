@@ -355,6 +355,51 @@ def sync_workspace_sidebars():
 		add_workspace_to_desktop(workspace)
 	frappe.db.commit()
 
+	ensure_sidebar_home_links()
+
+
+# A handful of standard ERPNext/HRMS workspaces that worcent roles can reach
+# (per WORKSPACE_ROLE_RESTRICTIONS) turned out to have never had a "Home"
+# item in their sidebar at all -- most of ERPNext/HRMS's own workspaces do
+# (seeded by their own fixtures), these few just didn't. "Home" and "Welcome
+# Workspace" are core first-run pages, deliberately left alone.
+SIDEBARS_NEEDING_HOME_LINK = ["Financial Reports", "ERPNext Settings", "Integrations", "Build"]
+
+
+def ensure_sidebar_home_links():
+	"""Inserts the new Home row directly (db_insert + a raw idx shift) rather
+	than loading and saving the whole Workspace Sidebar document -- some of
+	these ERPNext-native sidebars have pre-existing rows with stale links
+	(e.g. to a doctype not installed on this site) that fail validation the
+	moment the *whole* document is re-saved, even though that row has
+	nothing to do with the Home link being added here."""
+	for workspace in SIDEBARS_NEEDING_HOME_LINK:
+		if not frappe.db.exists("Workspace Sidebar", workspace):
+			continue
+		already_has_home = frappe.db.exists(
+			"Workspace Sidebar Item", {"parent": workspace, "label": "Home", "link_type": "Workspace"}
+		)
+		if already_has_home:
+			continue
+		frappe.db.sql(
+			"update `tabWorkspace Sidebar Item` set idx = idx + 1 where parent = %s", workspace
+		)
+		row = frappe.get_doc(
+			{
+				"doctype": "Workspace Sidebar Item",
+				"parent": workspace,
+				"parenttype": "Workspace Sidebar",
+				"parentfield": "items",
+				"idx": 1,
+				"label": "Home",
+				"type": "Link",
+				"link_type": "Workspace",
+				"link_to": workspace,
+			}
+		)
+		row.db_insert()
+	frappe.db.commit()
+
 
 def seed_role_home_pages():
 	for role, route in ROLE_HOME_PAGE.items():
