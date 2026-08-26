@@ -1,10 +1,12 @@
 {
  "actions": [],
- "autoname": "hash",
+ "autoname": "naming_series:",
  "creation": "2026-08-25 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
+  "title",
   "party_type",
   "party",
   "account_type",
@@ -28,6 +30,23 @@
   "other_method_details"
  ],
  "fields": [
+  {
+   "default": "PYA-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "no_copy": 1,
+   "options": "PYA-.#####",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "read_only": 1,
+   "description": "Auto-generated so this account is easy to recognize in dropdowns and lists."
+  },
   {
    "fieldname": "party_type",
    "fieldtype": "Select",
@@ -90,7 +109,7 @@
    "depends_on": "eval:doc.account_type=='Bank Transfer'",
    "fieldname": "account_holder_name",
    "fieldtype": "Data",
-   "label": "Account Holder Name"
+   "label": "Account Holder Name (Account Title)"
   },
   {
    "depends_on": "eval:doc.account_type=='Bank Transfer'",
@@ -171,8 +190,9 @@
  "modified_by": "Administrator",
  "module": "Worcent Finance",
  "name": "Payout Account",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
+ "title_field": "title",
  "permissions": [
   {
    "create": 1,

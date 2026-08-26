@@ -1,9 +1,13 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.model.naming import set_name_by_naming_series
 
 
 class PayoutAccount(Document):
+	def autoname(self):
+		set_name_by_naming_series(self)
+
 	def validate(self):
 		self.enforce_ownership()
 		if self.account_type == "Bank Transfer" and not (self.account_number or self.iban):
@@ -12,6 +16,8 @@ class PayoutAccount(Document):
 			frappe.throw(_("Enter a PayPal email for a PayPal payout account."))
 		if self.is_default:
 			self.unset_other_defaults()
+		self.set_default_currency()
+		self.set_title()
 
 	def enforce_ownership(self):
 		if frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles():
@@ -27,3 +33,30 @@ class PayoutAccount(Document):
 			"is_default",
 			0,
 		)
+
+	def set_default_currency(self):
+		if self.currency:
+			return
+		preferred = frappe.db.get_value(self.party_type, self.party, "preferred_currency")
+		if preferred:
+			self.currency = preferred
+			return
+		from worcent.worcent_finance.currency_utils import get_currency_for_country
+
+		country = frappe.db.get_value(self.party_type, self.party, "country")
+		self.currency = get_currency_for_country(country)
+
+	def set_title(self):
+		party_label = frappe.db.get_value(self.party_type, self.party, "display_name") or frappe.db.get_value(
+			self.party_type, self.party, "company_name"
+		)
+		if self.account_type == "Bank Transfer":
+			tail_source = self.account_number or self.iban or ""
+			masked = f"****{tail_source[-4:]}" if len(tail_source) >= 4 else tail_source
+			detail = " - ".join(part for part in [self.bank_name, masked] if part)
+		elif self.account_type == "PayPal":
+			detail = self.paypal_email or ""
+		else:
+			detail = self.other_method_label or ""
+
+		self.title = " - ".join(part for part in [self.account_type, detail, party_label] if part)

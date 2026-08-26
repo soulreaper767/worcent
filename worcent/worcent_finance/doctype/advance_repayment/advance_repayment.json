@@ -21,7 +21,8 @@
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Amount",
+   "label": "Amount (USD)",
+   "options": "USD",
    "columns": 3
   },
   {

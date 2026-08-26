@@ -40,21 +40,24 @@
    "fieldname": "balance",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Available Balance",
+   "label": "Available Balance (USD)",
+   "options": "USD",
    "read_only": 1
   },
   {
    "default": "0",
    "fieldname": "held_in_escrow",
    "fieldtype": "Currency",
-   "label": "Held in Escrow",
+   "label": "Held in Escrow (USD)",
+   "options": "USD",
    "read_only": 1
   },
   {
    "default": "0",
    "fieldname": "total_withdrawn",
    "fieldtype": "Currency",
-   "label": "Total Withdrawn",
+   "label": "Total Withdrawn (USD)",
+   "options": "USD",
    "read_only": 1
   }
  ],

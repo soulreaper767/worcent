@@ -39,7 +39,8 @@
    "fieldname": "amount_requested",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Amount Requested",
+   "label": "Amount Requested (USD)",
+   "options": "USD",
    "reqd": 1
   },
   {

@@ -123,6 +123,7 @@ def after_migrate():
 	seed_currency_exchange_rates()
 	seed_currencies()
 	rename_withdrawal_pending_status()
+	backfill_payout_account_titles()
 	grant_cross_app_permissions()
 	configure_desk_experience()
 	frappe.db.commit()
@@ -133,6 +134,19 @@ def rename_withdrawal_pending_status():
 	plus a new In Review stage) to match the Payment Officer / Accounts
 	Manager two-stage workflow -- carry existing rows over to the new label."""
 	frappe.db.sql("update `tabWithdrawal Request` set status = 'Requested' where status = 'Pending'")
+
+
+def backfill_payout_account_titles():
+	"""Payout Account gained a computed title + a default currency in this
+	pass -- existing rows (created before that, still on their old hash-
+	style names) never had validate() re-run to pick either up. Re-save
+	each to backfill both without touching their primary key/name."""
+	for name in frappe.get_all("Payout Account", filters={"title": ["in", ("", None)]}, pluck="name"):
+		try:
+			doc = frappe.get_doc("Payout Account", name)
+			doc.save(ignore_permissions=True)
+		except Exception:
+			frappe.log_error(title="backfill_payout_account_titles")
 
 
 def grant_cross_app_permissions():
