@@ -6,7 +6,7 @@ DEMO_PASSWORD = "Test@12345"
 ALL_WORCENT_ROLES = [
 	"Worcent Admin", "Freelancer", "Employer", "Office Manager", "Franchise Owner",
 	"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager", "Agency Manager",
-	"Accounts Manager", "Office Managing Partner", "Rank Reviewer",
+	"Accounts Manager", "Office Managing Partner", "Rank Reviewer", "Payment Officer",
 ]
 
 # Standard ERPNext/HRMS module workspaces that have nothing to do with a
@@ -37,7 +37,7 @@ WORKSPACE_ROLE_RESTRICTIONS = {
 	"My Agency": ["Agency Manager"],
 	"Support Desk": ["Support Agent", "Worcent Admin"],
 	"Dispute Resolution": ["Dispute Arbitrator", "Rank Reviewer", "Worcent Admin"],
-	"Finance Ops": ["Finance Manager", "Accounts Manager", "Worcent Admin"],
+	"Finance Ops": ["Finance Manager", "Accounts Manager", "Payment Officer", "Worcent Admin"],
 	"Leaves": _HR_SELF_SERVICE_TIER,
 	"Expenses": _HR_SELF_SERVICE_TIER,
 	"Shift & Attendance": _HR_SELF_SERVICE_TIER,
@@ -68,6 +68,7 @@ ROLE_HOME_PAGE = {
 	"Dispute Arbitrator": "desk/dispute-resolution",
 	"Finance Manager": "desk/finance-ops",
 	"Accounts Manager": "desk/finance-ops",
+	"Payment Officer": "desk/finance-ops",
 	"Office Managing Partner": "desk/office-ops",
 	"Rank Reviewer": "desk/dispute-resolution",
 }
@@ -77,6 +78,7 @@ def after_install():
 	configure_worcent_settings()
 	seed_letterhead()
 	seed_accounting_masters()
+	seed_currency_exchange_rates()
 	seed_masters()
 	seed_company_and_users()
 	seed_agency_ecosystem()
@@ -118,10 +120,19 @@ def after_migrate():
 	configure_worcent_settings()
 	seed_letterhead()
 	seed_accounting_masters()
+	seed_currency_exchange_rates()
 	seed_currencies()
+	rename_withdrawal_pending_status()
 	grant_cross_app_permissions()
 	configure_desk_experience()
 	frappe.db.commit()
+
+
+def rename_withdrawal_pending_status():
+	"""Withdrawal Request's status options were renamed (Pending -> Requested,
+	plus a new In Review stage) to match the Payment Officer / Accounts
+	Manager two-stage workflow -- carry existing rows over to the new label."""
+	frappe.db.sql("update `tabWithdrawal Request` set status = 'Requested' where status = 'Pending'")
 
 
 def grant_cross_app_permissions():
@@ -226,6 +237,46 @@ def seed_accounting_masters():
 
 	ensure_accounts()
 	frappe.db.commit()
+
+
+def seed_currency_exchange_rates():
+	"""Worcent's own controlled exchange rates (worcent_finance/
+	currency_utils.py checks this before falling back to the generic
+	Currency Exchange doctype) -- fixed and staff-editable rather than
+	auto-updated, per platform_currency's PKR-first market."""
+	if not frappe.db.exists("Currency Exchange Rate", "USD-PKR"):
+		frappe.get_doc(
+			{
+				"doctype": "Currency Exchange Rate",
+				"from_currency": "USD",
+				"to_currency": "PKR",
+				"rate": 280,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.commit()
+
+
+def ensure_payout_account(party_type, party_name, account_type):
+	existing = frappe.db.get_value("Payout Account", {"party_type": party_type, "party": party_name}, "name")
+	if existing:
+		return existing
+	doc = frappe.get_doc(
+		{
+			"doctype": "Payout Account",
+			"party_type": party_type,
+			"party": party_name,
+			"account_type": account_type,
+			"is_default": 1,
+			"status": "Active",
+			"paypal_email": "demo@worcent.test" if account_type == "PayPal" else None,
+			"account_holder_name": frappe.db.get_value(party_type, party_name, "display_name")
+			or frappe.db.get_value(party_type, party_name, "company_name"),
+			"bank_name": "Demo Bank" if account_type == "Bank Transfer" else None,
+			"account_number": "0123456789" if account_type == "Bank Transfer" else None,
+		}
+	)
+	doc.insert(ignore_permissions=True)
+	return doc.name
 
 
 def seed_fiscal_years():
@@ -502,7 +553,10 @@ def seed_currencies():
 
 	# Approximate reference rates so wallet display-currency conversion has
 	# something sane to work with; a real integration can overwrite these.
-	rates = {"PKR": 278, "EUR": 0.92, "GBP": 0.79, "AED": 3.67, "SAR": 3.75}
+	# PKR is deliberately excluded here -- it's owned by the tracked,
+	# staff-editable Currency Exchange Rate doctype (seed_currency_exchange_rates),
+	# which currency_utils.get_exchange_rate() always checks first.
+	rates = {"EUR": 0.92, "GBP": 0.79, "AED": 3.67, "SAR": 3.75}
 	for code, rate in rates.items():
 		if not frappe.db.exists("Currency Exchange", {"from_currency": BASE_CURRENCY, "to_currency": code}):
 			frappe.get_doc(
@@ -651,6 +705,7 @@ def seed_company_and_users():
 	ensure_company()
 	create_user("admin1.demo@worcent.test", "Ayesha Admin", ["Worcent Admin"])
 	create_user("finance1.demo@worcent.test", "Faisal Finance", ["Finance Manager"])
+	create_user("paymentofficer1.demo@worcent.test", "Parveen Officer", ["Payment Officer"])
 	create_user("support1.demo@worcent.test", "Sara Support", ["Support Agent"])
 	create_user("support2.demo@worcent.test", "Sana Support", ["Support Agent"])
 	create_user("arbitrator1.demo@worcent.test", "Ahmed Arbitrator", ["Dispute Arbitrator"])
@@ -743,6 +798,11 @@ def seed_finance_and_office_roles_demo():
 
 	managing_partner_user = create_user("managingpartner1.demo@worcent.test", "Majid Partner", ["Office Managing Partner"])
 	ensure_employee(managing_partner_user, "Majid", "Field Operations")
+
+	if frappe.db.exists("User", "finance1.demo@worcent.test"):
+		ensure_employee("finance1.demo@worcent.test", "Faisal", "Finance")
+	if frappe.db.exists("User", "paymentofficer1.demo@worcent.test"):
+		ensure_employee("paymentofficer1.demo@worcent.test", "Parveen", "Finance")
 	frappe.db.commit()
 
 
@@ -1585,12 +1645,13 @@ def seed_extra_marketplace_data():
 		).insert(ignore_permissions=True)
 
 	# --- withdrawal requests ---
+	freelancer1_payout_account = ensure_payout_account("Freelancer Profile", freelancer1, "Bank Transfer")
 	freelancer1_wallet = frappe.db.get_value("Wallet", {"party": freelancer1}, "name")
 	if freelancer1_wallet and not frappe.db.exists("Withdrawal Request", {"wallet": freelancer1_wallet}):
 		wr = frappe.get_doc(
 			{
 				"doctype": "Withdrawal Request", "wallet": freelancer1_wallet, "amount": 400,
-				"method": "Bank Transfer", "status": "Paid", "paid_on": frappe.utils.now_datetime(),
+				"payout_account": freelancer1_payout_account, "status": "Paid", "paid_on": frappe.utils.now_datetime(),
 			}
 		)
 		wr.insert(ignore_permissions=True)
@@ -1606,12 +1667,16 @@ def seed_extra_marketplace_data():
 			}
 		).insert(ignore_permissions=True)
 
+	freelancer2_payout_account = ensure_payout_account("Freelancer Profile", freelancer2, "PayPal")
 	freelancer2_wallet = frappe.db.get_value("Wallet", {"party": freelancer2}, "name")
 	if freelancer2_wallet and not frappe.db.exists(
-		"Withdrawal Request", {"wallet": freelancer2_wallet, "status": "Pending"}
+		"Withdrawal Request", {"wallet": freelancer2_wallet, "status": ["in", ("Requested", "Pending")]}
 	):
 		frappe.get_doc(
-			{"doctype": "Withdrawal Request", "wallet": freelancer2_wallet, "amount": 100, "method": "PayPal", "status": "Pending"}
+			{
+				"doctype": "Withdrawal Request", "wallet": freelancer2_wallet, "amount": 100,
+				"payout_account": freelancer2_payout_account, "status": "Requested",
+			}
 		).insert(ignore_permissions=True)
 
 	# --- advance request, disbursed ---

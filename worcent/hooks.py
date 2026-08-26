@@ -15,7 +15,7 @@ fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"Worcent Admin", "Freelancer", "Employer", "Office Manager", "Franchise Owner",
 		"Field Rep", "Support Agent", "Dispute Arbitrator", "Finance Manager", "Agency Manager",
-		"Accounts Manager", "Office Managing Partner", "Rank Reviewer",
+		"Accounts Manager", "Office Managing Partner", "Rank Reviewer", "Payment Officer",
 	]]]},
 ]
 

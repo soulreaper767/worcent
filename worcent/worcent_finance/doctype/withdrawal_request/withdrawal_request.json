@@ -7,12 +7,15 @@
  "field_order": [
   "naming_series",
   "wallet",
+  "available_balance",
   "amount",
   "payout_account",
   "method",
   "column_break_1",
   "status",
   "requested_on",
+  "reviewed_by",
+  "reviewed_on",
   "approved_by",
   "paid_on",
   "section_break_dest",
@@ -40,10 +43,19 @@
    "reqd": 1
   },
   {
+   "description": "Your wallet balance at the time of this request.",
+   "fieldname": "available_balance",
+   "fieldtype": "Currency",
+   "label": "Available Balance",
+   "options": "USD",
+   "read_only": 1
+  },
+  {
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount",
+   "options": "USD",
    "reqd": 1
   },
   {
@@ -68,13 +80,13 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "Pending",
+   "default": "Requested",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Pending\nApproved\nPaid\nRejected"
+   "options": "Requested\nIn Review\nApproved\nPaid\nRejected"
   },
   {
    "default": "Now",
@@ -84,9 +96,22 @@
    "read_only": 1
   },
   {
+   "fieldname": "reviewed_by",
+   "fieldtype": "Link",
+   "label": "Reviewed By (Payment Officer)",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reviewed_on",
+   "fieldtype": "Datetime",
+   "label": "Reviewed On",
+   "read_only": 1
+  },
+  {
    "fieldname": "approved_by",
    "fieldtype": "Link",
-   "label": "Processed By (Accounts Manager)",
+   "label": "Paid By (Accounts Manager)",
    "options": "Employee",
    "read_only": 1
   },
@@ -154,6 +179,11 @@
    "read": 1,
    "role": "Accounts Manager",
    "write": 1
+  },
+  {
+   "read": 1,
+   "write": 1,
+   "role": "Payment Officer"
   },
   {
    "create": 1,

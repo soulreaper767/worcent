@@ -34,6 +34,13 @@ def get_exchange_rate(from_currency, to_currency):
 	if from_currency == to_currency:
 		return 1.0
 	rate = frappe.db.get_value(
+		"Currency Exchange Rate",
+		{"from_currency": from_currency, "to_currency": to_currency},
+		"rate",
+	)
+	if rate:
+		return flt(rate)
+	rate = frappe.db.get_value(
 		"Currency Exchange",
 		{"from_currency": from_currency, "to_currency": to_currency},
 		"exchange_rate",

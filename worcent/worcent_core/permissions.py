@@ -207,9 +207,16 @@ def payout_account_has_permission(doc, ptype=None, user=None):
 	return doc.party in _own_party_names(user)
 
 
+WITHDRAWAL_STAFF_ROLES = FINANCE_STAFF_ROLES | {"Payment Officer"}
+
+
+def _withdrawal_staff(user):
+	return bool(WITHDRAWAL_STAFF_ROLES.intersection(frappe.get_roles(user)))
+
+
 def withdrawal_request_query_conditions(user):
 	user = user or frappe.session.user
-	if _is_admin(user) or _finance_staff(user):
+	if _is_admin(user) or _withdrawal_staff(user):
 		return ""
 	parties = _own_party_names(user)
 	if not parties:
@@ -220,7 +227,7 @@ def withdrawal_request_query_conditions(user):
 
 def withdrawal_request_has_permission(doc, ptype=None, user=None):
 	user = user or frappe.session.user
-	if _is_admin(user) or _finance_staff(user):
+	if _is_admin(user) or _withdrawal_staff(user):
 		return True
 	if ptype == "create":
 		return True

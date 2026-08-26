@@ -4,7 +4,9 @@ from frappe.model.document import Document
 from frappe.model.naming import set_name_by_naming_series
 from frappe.utils import flt, now_datetime
 
-PROCESSING_ROLES = {"Accounts Manager", "Finance Manager", "Worcent Admin", "System Manager"}
+REVIEW_ROLES = {"Payment Officer", "Finance Manager", "Worcent Admin", "System Manager"}
+PAYMENT_ROLES = {"Accounts Manager", "Finance Manager", "Worcent Admin", "System Manager"}
+OPEN_STATUSES = ("Requested", "In Review")
 
 
 class WithdrawalRequest(Document):
@@ -17,9 +19,10 @@ class WithdrawalRequest(Document):
 			self.validate_payout_account()
 			self.validate_amount()
 			self.snapshot_payout_destination()
+			self.available_balance = frappe.db.get_value("Wallet", self.wallet, "balance")
 
 	def validate_requester_owns_wallet(self):
-		if frappe.session.user == "Administrator" or PROCESSING_ROLES.intersection(frappe.get_roles()):
+		if frappe.session.user == "Administrator" or REVIEW_ROLES.intersection(frappe.get_roles()) or PAYMENT_ROLES.intersection(frappe.get_roles()):
 			return
 		party = frappe.db.get_value("Wallet", self.wallet, "party")
 		freelancer = frappe.db.get_value("Freelancer Profile", {"user": frappe.session.user}, "name")
@@ -38,19 +41,26 @@ class WithdrawalRequest(Document):
 	def validate_amount(self):
 		wallet = frappe.get_doc("Wallet", self.wallet)
 		min_amount = flt(frappe.db.get_single_value("Worcent Settings", "min_withdrawal_amount")) or 100
+		if flt(wallet.balance) < min_amount:
+			frappe.throw(
+				_("Your available balance ({0}) is below the minimum withdrawal amount ({1}).").format(
+					frappe.utils.fmt_money(wallet.balance, currency="USD"),
+					frappe.utils.fmt_money(min_amount, currency="USD"),
+				)
+			)
 		if flt(self.amount) < min_amount:
 			frappe.throw(_("Minimum withdrawal amount is {0}").format(frappe.utils.fmt_money(min_amount, currency="USD")))
 
 		already_committed = flt(
 			frappe.db.sql(
 				"""select coalesce(sum(amount), 0) from `tabWithdrawal Request`
-				where wallet = %s and status in ('Pending', 'Approved')""",
+				where wallet = %s and status in ('Requested', 'In Review', 'Approved')""",
 				self.wallet,
 			)[0][0]
 		)
 		if already_committed + flt(self.amount) > flt(wallet.balance):
 			frappe.throw(
-				_("Withdrawal amount exceeds available wallet balance (accounting for {0} already committed to other pending/approved withdrawal requests).").format(
+				_("Withdrawal amount exceeds available wallet balance (accounting for {0} already committed to other pending withdrawal requests).").format(
 					frappe.utils.fmt_money(already_committed, currency="USD")
 				)
 			)
@@ -102,35 +112,89 @@ class WithdrawalRequest(Document):
 		record_withdrawal(wallet.party_type, wallet.party, self.amount, self.name)
 
 	@frappe.whitelist()
+	def start_review(self):
+		if self.status != "Requested":
+			frappe.throw(_("Only a Requested withdrawal can be picked up for review."))
+		self._require_review_role()
+		self.db_set("status", "In Review")
+		self.db_set("reviewed_by", self._current_employee())
+		self.db_set("reviewed_on", now_datetime())
+
+	@frappe.whitelist()
 	def approve_request(self):
-		self._require_processing_role()
-		if self.status != "Pending":
-			frappe.throw(_("Only a Pending request can be approved."))
+		if self.status not in OPEN_STATUSES:
+			frappe.throw(_("Only a Requested or In Review request can be approved."))
+		self._require_review_role()
+		if not self.reviewed_by:
+			self.db_set("reviewed_by", self._current_employee())
+			self.db_set("reviewed_on", now_datetime())
 		self.db_set("status", "Approved")
-		self.db_set("approved_by", self._current_employee())
 
 	@frappe.whitelist()
 	def reject_request(self, reason=None):
-		self._require_processing_role()
-		if self.status not in ("Pending", "Approved"):
-			frappe.throw(_("Only a Pending or Approved request can be rejected."))
+		if self.status not in OPEN_STATUSES:
+			frappe.throw(_("Only a Requested or In Review request can be rejected."))
+		self._require_review_role()
 		self.db_set("status", "Rejected")
 		self.db_set("rejection_reason", reason or "")
-		self.db_set("approved_by", self._current_employee())
+		if not self.reviewed_by:
+			self.db_set("reviewed_by", self._current_employee())
+			self.db_set("reviewed_on", now_datetime())
 
 	@frappe.whitelist()
 	def mark_paid(self):
-		self._require_processing_role()
 		if self.status != "Approved":
 			frappe.throw(_("Only an Approved request can be marked Paid."))
+		self._require_payment_role()
 		if not self.approved_by:
 			self.db_set("approved_by", self._current_employee())
 		self.status = "Paid"
 		self.save(ignore_permissions=True)
 
-	def _require_processing_role(self):
-		if not PROCESSING_ROLES.intersection(frappe.get_roles()):
-			frappe.throw(_("Only an Accounts Manager or Finance team member can process withdrawal requests."))
+	def _require_review_role(self):
+		if not REVIEW_ROLES.intersection(frappe.get_roles()):
+			frappe.throw(_("Only a Payment Officer or Finance team member can review withdrawal requests."))
+
+	def _require_payment_role(self):
+		if not PAYMENT_ROLES.intersection(frappe.get_roles()):
+			frappe.throw(_("Only an Accounts Manager or Finance team member can initiate payment."))
 
 	def _current_employee(self):
 		return frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+
+
+@frappe.whitelist()
+def get_my_withdrawal_context():
+	"""Powers the "your available balance" panel on the New Withdrawal
+	Request form -- looks up the current user's own wallet rather than
+	trusting a client-supplied wallet name."""
+	from worcent.worcent_core.wallet_utils import get_wallet
+	from worcent.worcent_finance.currency_utils import BASE_CURRENCY, convert, get_currency_for_country
+
+	freelancer = frappe.db.get_value("Freelancer Profile", {"user": frappe.session.user}, ["name", "country"], as_dict=True)
+	employer = frappe.db.get_value("Employer Profile", {"user": frappe.session.user}, ["name", "country"], as_dict=True)
+	party_type, party_name, country = (
+		("Freelancer Profile", freelancer.name, freelancer.country) if freelancer
+		else ("Employer Profile", employer.name, employer.country) if employer
+		else (None, None, None)
+	)
+	if not party_name:
+		frappe.throw(_("No Freelancer or Employer profile found for your account."))
+
+	wallet = get_wallet(party_type, party_name)
+	balance = flt(wallet.balance) if wallet else 0
+	min_amount = flt(frappe.db.get_single_value("Worcent Settings", "min_withdrawal_amount")) or 100
+	display_currency = get_currency_for_country(country)
+
+	return {
+		"wallet": wallet.name if wallet else None,
+		"party_type": party_type,
+		"party": party_name,
+		"balance": balance,
+		"min_withdrawal": min_amount,
+		"base_currency": BASE_CURRENCY,
+		"display_currency": display_currency,
+		"balance_in_display_currency": convert(balance, BASE_CURRENCY, display_currency),
+		"min_withdrawal_in_display_currency": convert(min_amount, BASE_CURRENCY, display_currency),
+		"eligible": balance >= min_amount,
+	}
