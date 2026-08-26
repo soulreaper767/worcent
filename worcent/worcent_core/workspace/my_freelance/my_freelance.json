@@ -1,7 +1,7 @@
 {
  "app": "worcent",
  "charts": [],
- "content": "[{\"id\":\"mf-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">My Freelance</span>\",\"col\":12}},{\"id\":\"mf-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Profile\",\"col\":3}},{\"id\":\"mf-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Proposals\",\"col\":3}},{\"id\":\"mf-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Contracts\",\"col\":3}},{\"id\":\"mf-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Gigs\",\"col\":3}},{\"id\":\"mf-sc-5\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Wallet\",\"col\":3}},{\"id\":\"mf-sc-5b\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Wallet Ledger\",\"col\":3}},{\"id\":\"mf-sc-6\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Withdraw Funds\",\"col\":3}},{\"id\":\"mf-sc-7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Request Advance\",\"col\":3}},{\"id\":\"mf-sc-8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Insurance\",\"col\":3}},{\"id\":\"mf-sc-9\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Get Verified\",\"col\":3}},{\"id\":\"mf-sc-10\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Support Tickets\",\"col\":3}}]",
+ "content": "[{\"id\":\"mf-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">My Freelance</span>\",\"col\":12}},{\"id\":\"mf-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Profile\",\"col\":3}},{\"id\":\"mf-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Proposals\",\"col\":3}},{\"id\":\"mf-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Contracts\",\"col\":3}},{\"id\":\"mf-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Gigs\",\"col\":3}},{\"id\":\"mf-sc-5\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Receivable\",\"col\":3}},{\"id\":\"mf-sc-5b\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Wallet Ledger\",\"col\":3}},{\"id\":\"mf-sc-6\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Withdraw Funds\",\"col\":3}},{\"id\":\"mf-sc-7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Request Advance\",\"col\":3}},{\"id\":\"mf-sc-8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Insurance\",\"col\":3}},{\"id\":\"mf-sc-9\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Get Verified\",\"col\":3}},{\"id\":\"mf-sc-10\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Support Tickets\",\"col\":3}}]",
  "creation": "2026-08-25 00:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -31,7 +31,7 @@
   {"color": "Green", "doc_view": "List", "label": "My Proposals", "link_to": "Proposal", "type": "DocType"},
   {"color": "Orange", "doc_view": "List", "label": "My Contracts", "link_to": "Contract", "type": "DocType"},
   {"color": "Blue", "doc_view": "List", "label": "My Gigs", "link_to": "Gig", "type": "DocType"},
-  {"color": "Green", "doc_view": "List", "label": "My Wallet", "link_to": "Wallet", "type": "DocType"},
+  {"color": "Green", "doc_view": "List", "label": "My Receivable", "link_to": "Wallet", "type": "DocType"},
   {"color": "Blue", "doc_view": "List", "label": "Wallet Ledger", "link_to": "Wallet Transaction", "type": "DocType"},
   {"color": "Grey", "doc_view": "List", "label": "Withdraw Funds", "link_to": "Withdrawal Request", "type": "DocType"},
   {"color": "Yellow", "doc_view": "List", "label": "Request Advance", "link_to": "Advance Request", "type": "DocType"},

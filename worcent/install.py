@@ -398,8 +398,20 @@ def ensure_sidebar_item(workspace, after_label, label, link_type, link_to):
 
 
 def ensure_wallet_ledger_shortcuts():
-	ensure_sidebar_item("My Freelance", "My Wallet", "Wallet Ledger", "DocType", "Wallet Transaction")
-	ensure_sidebar_item("My Business", "My Wallet", "Wallet Ledger", "DocType", "Wallet Transaction")
+	for workspace in ("My Freelance", "My Business"):
+		ensure_sidebar_item(workspace, "My Wallet", "Wallet Ledger", "Page", "wallet-ledger")
+		# The dedicated Wallet Ledger page (currency-selectable, 3-column)
+		# replaced the earlier version of this shortcut, which pointed
+		# straight at the raw Wallet Transaction list -- repoint it if it's
+		# still on the old link.
+		frappe.db.sql(
+			"""update `tabWorkspace Sidebar Item` set link_type = 'Page', link_to = 'wallet-ledger'
+			where parent = %s and label = 'Wallet Ledger' and link_to != 'wallet-ledger'""",
+			workspace,
+		)
+	frappe.db.set_value(
+		"Workspace Sidebar Item", {"parent": "My Freelance", "label": "My Wallet"}, "label", "My Receivable"
+	)
 	frappe.db.commit()
 
 
