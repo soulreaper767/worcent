@@ -51,13 +51,16 @@
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Amount",
+   "label": "Amount (USD)",
+   "options": "USD",
    "reqd": 1
   },
   {
    "fieldname": "balance_after",
    "fieldtype": "Currency",
-   "label": "Balance After",
+   "in_list_view": 1,
+   "label": "Balance After (USD)",
+   "options": "USD",
    "read_only": 1
   },
   {

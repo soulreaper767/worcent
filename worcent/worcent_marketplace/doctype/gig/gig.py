@@ -17,8 +17,19 @@ class Gig(WebsiteGenerator):
 		set_name_by_naming_series(self)
 
 	def validate(self):
+		self.set_freelancer()
 		if not self.route:
 			self.route = unique_route("Gig", "gigs", self.title)
+
+	def set_freelancer(self):
+		if frappe.session.user == "Administrator" or "Worcent Admin" in frappe.get_roles():
+			if not self.freelancer:
+				frappe.throw(_("Set a Freelancer for this Gig."))
+			return
+		own_freelancer = frappe.db.get_value("Freelancer Profile", {"user": frappe.session.user}, "name")
+		if not own_freelancer:
+			frappe.throw(_("Only a Freelancer Profile can create a Gig."))
+		self.freelancer = own_freelancer
 
 	def get_context(self, context):
 		context.no_cache = 1

@@ -356,6 +356,7 @@ def sync_workspace_sidebars():
 	frappe.db.commit()
 
 	ensure_sidebar_home_links()
+	ensure_wallet_ledger_shortcuts()
 
 
 # A handful of standard ERPNext/HRMS workspaces that worcent roles can reach
@@ -364,6 +365,42 @@ def sync_workspace_sidebars():
 # (seeded by their own fixtures), these few just didn't. "Home" and "Welcome
 # Workspace" are core first-run pages, deliberately left alone.
 SIDEBARS_NEEDING_HOME_LINK = ["Financial Reports", "ERPNext Settings", "Integrations", "Build"]
+
+
+def ensure_sidebar_item(workspace, after_label, label, link_type, link_to):
+	"""Insert a single Workspace Sidebar Item right after an existing one,
+	directly (not via loading/saving the parent doc -- see
+	ensure_sidebar_home_links for why)."""
+	if not frappe.db.exists("Workspace Sidebar", workspace):
+		return
+	if frappe.db.exists("Workspace Sidebar Item", {"parent": workspace, "label": label}):
+		return
+	anchor_idx = frappe.db.get_value("Workspace Sidebar Item", {"parent": workspace, "label": after_label}, "idx")
+	if anchor_idx is None:
+		return
+	frappe.db.sql(
+		"update `tabWorkspace Sidebar Item` set idx = idx + 1 where parent = %s and idx > %s",
+		(workspace, anchor_idx),
+	)
+	frappe.get_doc(
+		{
+			"doctype": "Workspace Sidebar Item",
+			"parent": workspace,
+			"parenttype": "Workspace Sidebar",
+			"parentfield": "items",
+			"idx": anchor_idx + 1,
+			"label": label,
+			"type": "Link",
+			"link_type": link_type,
+			"link_to": link_to,
+		}
+	).db_insert()
+
+
+def ensure_wallet_ledger_shortcuts():
+	ensure_sidebar_item("My Freelance", "My Wallet", "Wallet Ledger", "DocType", "Wallet Transaction")
+	ensure_sidebar_item("My Business", "My Wallet", "Wallet Ledger", "DocType", "Wallet Transaction")
+	frappe.db.commit()
 
 
 def ensure_sidebar_home_links():

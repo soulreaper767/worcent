@@ -43,6 +43,7 @@
    "in_standard_filter": 1,
    "label": "Freelancer",
    "options": "Freelancer Profile",
+   "depends_on": "eval:in_list([\"Worcent Admin\", \"System Manager\"], frappe.user_roles)",
    "reqd": 1
   },
   {
