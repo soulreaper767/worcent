@@ -333,3 +333,394 @@ def support_ticket_reply_has_permission(doc, ptype=None, user=None):
 	if doc.is_internal_note:
 		return False
 	return frappe.db.get_value("Support Ticket", doc.ticket, "raised_by") == user
+
+
+def get_office_for_manager(user):
+	employee = frappe.db.get_value("Employee", {"user_id": user}, "name")
+	if not employee:
+		return None
+	return frappe.db.get_value("Office", {"manager": employee}, "name")
+
+
+# --- Freelancer Profile / Employer Profile: read stays open (public marketplace
+# directory, matches the public /freelancer //employer website pages), only
+# writing/deleting is restricted to the profile's own owner. ---
+
+
+def freelancer_profile_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if ptype in ("write", "delete", "cancel"):
+		return doc.user == user
+	return True
+
+
+def employer_profile_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if ptype in ("write", "delete", "cancel"):
+		return doc.user == user
+	return True
+
+
+# --- Gig / Job Posting: read stays open (public marketplace listings), only
+# the owning freelancer/employer (or, for a Job Posting raised on someone's
+# behalf, the Rep who posted it) can write. ---
+
+
+def gig_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if ptype in ("write", "delete", "cancel"):
+		return doc.freelancer == get_freelancer_profile(user)
+	return True
+
+
+def job_posting_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if ptype in ("write", "delete", "cancel"):
+		if doc.employer == get_employer_profile(user):
+			return True
+		if doc.posted_via_rep and doc.posted_via_rep == get_rep(user):
+			return True
+		return False
+	return True
+
+
+# --- Proposal: a Freelancer only sees/edits their own proposals; an Employer
+# only sees/edits proposals submitted against their own Job Postings. ---
+
+
+def proposal_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	employer = get_employer_profile(user)
+	parts = []
+	if freelancer:
+		parts.append(f"`tabProposal`.freelancer = {frappe.db.escape(freelancer)}")
+	if employer:
+		parts.append(
+			f"`tabProposal`.job_posting in (select name from `tabJob Posting` where employer = {frappe.db.escape(employer)})"
+		)
+	if not parts:
+		return "1=0"
+	return "(" + " or ".join(parts) + ")"
+
+
+def proposal_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	freelancer = get_freelancer_profile(user)
+	if doc.freelancer == freelancer:
+		return True
+	employer = get_employer_profile(user)
+	if employer and doc.job_posting:
+		return frappe.db.get_value("Job Posting", doc.job_posting, "employer") == employer
+	return False
+
+
+# --- Time Log: scoped to the contract's own freelancer/employer, same shape
+# as milestone_query_conditions above. ---
+
+
+def time_log_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	employer = get_employer_profile(user)
+	parts = []
+	if freelancer:
+		parts.append(
+			f"`tabTime Log`.contract in (select name from `tabContract` where freelancer = {frappe.db.escape(freelancer)})"
+		)
+	if employer:
+		parts.append(
+			f"`tabTime Log`.contract in (select name from `tabContract` where employer = {frappe.db.escape(employer)})"
+		)
+	if not parts:
+		return "1=0"
+	return "(" + " or ".join(parts) + ")"
+
+
+def time_log_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	contract = frappe.db.get_value("Contract", doc.contract, ["freelancer", "employer"], as_dict=True)
+	if not contract:
+		return False
+	return contract.freelancer == get_freelancer_profile(user) or contract.employer == get_employer_profile(user)
+
+
+# --- Physical Verification Appointment: the freelancer/employer being
+# verified only sees their own appointment; a Field Rep only their own
+# assigned appointments; an Office Manager only their own office's. ---
+
+
+def physical_verification_appointment_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	rep = get_rep(user)
+	office = get_office_for_manager(user)
+	parties = _own_party_names(user)
+	parts = []
+	if rep:
+		parts.append(f"`tabPhysical Verification Appointment`.rep = {frappe.db.escape(rep)}")
+	if office:
+		parts.append(f"`tabPhysical Verification Appointment`.office = {frappe.db.escape(office)}")
+	if parties:
+		quoted = ", ".join(frappe.db.escape(p) for p in parties)
+		parts.append(f"`tabPhysical Verification Appointment`.party in ({quoted})")
+	if not parts:
+		return "1=0"
+	return "(" + " or ".join(parts) + ")"
+
+
+def physical_verification_appointment_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if doc.rep and doc.rep == get_rep(user):
+		return True
+	if doc.office and doc.office == get_office_for_manager(user):
+		return True
+	return doc.party in _own_party_names(user)
+
+
+# --- Rep: a Field Rep only sees their own record; an Office Manager only
+# their own office's reps. ---
+
+
+def rep_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	office = get_office_for_manager(user)
+	parts = [f"`tabRep`.user = {frappe.db.escape(user)}"]
+	if office:
+		parts.append(f"`tabRep`.office = {frappe.db.escape(office)}")
+	return "(" + " or ".join(parts) + ")"
+
+
+def rep_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if doc.user == user:
+		return True
+	return doc.office == get_office_for_manager(user)
+
+
+# --- Insurance Policy / Insurance Claim: a Freelancer only sees/edits their
+# own policy, and only their own claims (via the claim's policy). ---
+
+
+def insurance_policy_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	if not freelancer:
+		return "1=0"
+	return f"`tabInsurance Policy`.freelancer = {frappe.db.escape(freelancer)}"
+
+
+def insurance_policy_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	return doc.freelancer == get_freelancer_profile(user)
+
+
+def insurance_claim_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	if not freelancer:
+		return "1=0"
+	return (
+		f"`tabInsurance Claim`.policy in (select name from `tabInsurance Policy` where freelancer = "
+		f"{frappe.db.escape(freelancer)})"
+	)
+
+
+def insurance_claim_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	policy_freelancer = frappe.db.get_value("Insurance Policy", doc.policy, "freelancer")
+	owns_it = policy_freelancer == get_freelancer_profile(user)
+	if ptype in ("write", "delete", "cancel"):
+		# Only Submitted status/amount/reason are self-service; anything under
+		# review or decided is staff-only from here, same as an Insurance
+		# Claim's status options moving straight to Approved/Rejected/Paid
+		# with no wallet-crediting side effect coded in yet — a freelancer
+		# must not be able to self-mark their own claim decided.
+		return owns_it and doc.status == "Submitted"
+	return owns_it
+
+
+# --- Premium Subscription: a user only sees/edits their own. ---
+
+
+def premium_subscription_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	return f"`tabPremium Subscription`.user = {frappe.db.escape(user)}"
+
+
+def premium_subscription_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	return doc.user == user
+
+
+# --- Dispute Case: visible to whoever raised it, either party on the
+# underlying contract, or a Dispute Arbitrator/Admin. ---
+
+
+def dispute_case_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user) or "Dispute Arbitrator" in frappe.get_roles(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	employer = get_employer_profile(user)
+	parts = [f"`tabDispute Case`.raised_by = {frappe.db.escape(user)}"]
+	if freelancer:
+		parts.append(
+			f"`tabDispute Case`.contract in (select name from `tabContract` where freelancer = {frappe.db.escape(freelancer)})"
+		)
+	if employer:
+		parts.append(
+			f"`tabDispute Case`.contract in (select name from `tabContract` where employer = {frappe.db.escape(employer)})"
+		)
+	return "(" + " or ".join(parts) + ")"
+
+
+def dispute_case_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user) or "Dispute Arbitrator" in frappe.get_roles(user):
+		return True
+	if doc.raised_by == user:
+		return True
+	contract = frappe.db.get_value("Contract", doc.contract, ["freelancer", "employer"], as_dict=True)
+	if not contract:
+		return False
+	return contract.freelancer == get_freelancer_profile(user) or contract.employer == get_employer_profile(user)
+
+
+# --- Agency Membership: a Freelancer only sees their own membership history. ---
+
+
+def agency_membership_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user) or "Agency Manager" in frappe.get_roles(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	if not freelancer:
+		return "1=0"
+	return f"`tabAgency Membership`.freelancer = {frappe.db.escape(freelancer)}"
+
+
+def agency_membership_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user) or "Agency Manager" in frappe.get_roles(user):
+		return True
+	return doc.freelancer == get_freelancer_profile(user)
+
+
+# --- Verification Request: a Freelancer/Employer only sees/edits their own
+# verification requests, and only while still Pending. ---
+
+
+def verification_request_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	parties = _own_party_names(user)
+	if not parties:
+		return "1=0"
+	quoted = ", ".join(frappe.db.escape(p) for p in parties)
+	return f"`tabVerification Request`.party in ({quoted})"
+
+
+def verification_request_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	owns_it = doc.party in _own_party_names(user)
+	if ptype in ("write", "delete", "cancel"):
+		return owns_it and doc.status == "Pending"
+	return owns_it
+
+
+# --- Office / Franchise Settlement: an Office Manager or Field Rep only sees
+# their own office; a Franchise Owner only their own franchised office(s) —
+# this matters most for Franchise Settlement, which carries real revenue
+# figures that shouldn't leak between competing franchisees. ---
+
+
+def _offices_for_user(user):
+	offices = set()
+	office = get_office_for_manager(user)
+	if office:
+		offices.add(office)
+	rep_office = get_rep_office(user)
+	if rep_office:
+		offices.add(rep_office)
+	for o in frappe.get_all("Office", filters={"franchisee_user": user}, pluck="name"):
+		offices.add(o)
+	return offices
+
+
+def get_rep_office(user):
+	return frappe.db.get_value("Rep", {"user": user}, "office")
+
+
+def office_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user) or "Office Managing Partner" in frappe.get_roles(user):
+		return ""
+	offices = _offices_for_user(user)
+	if not offices:
+		return "1=0"
+	quoted = ", ".join(frappe.db.escape(o) for o in offices)
+	return f"`tabOffice`.name in ({quoted})"
+
+
+def office_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user) or "Office Managing Partner" in frappe.get_roles(user):
+		return True
+	return doc.name in _offices_for_user(user)
+
+
+def franchise_settlement_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user) or {"Office Managing Partner", "Finance Manager", "Accounts Manager"}.intersection(frappe.get_roles(user)):
+		return ""
+	offices = _offices_for_user(user)
+	if not offices:
+		return "1=0"
+	quoted = ", ".join(frappe.db.escape(o) for o in offices)
+	return f"`tabFranchise Settlement`.office in ({quoted})"
+
+
+def franchise_settlement_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user) or {"Office Managing Partner", "Finance Manager", "Accounts Manager"}.intersection(frappe.get_roles(user)):
+		return True
+	return doc.office in _offices_for_user(user)

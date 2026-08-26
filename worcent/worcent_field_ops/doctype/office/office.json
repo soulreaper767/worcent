@@ -10,6 +10,7 @@
   "status",
   "column_break_head",
   "franchisee_name",
+  "franchisee_user",
   "franchise_fee_percent",
   "manager",
   "hr_branch",
@@ -56,6 +57,13 @@
    "fieldname": "franchisee_name",
    "fieldtype": "Data",
    "label": "Franchisee Name"
+  },
+  {
+   "depends_on": "eval:doc.office_type=='Franchised'",
+   "fieldname": "franchisee_user",
+   "fieldtype": "Link",
+   "label": "Franchisee User",
+   "options": "User"
   },
   {
    "depends_on": "eval:doc.office_type=='Franchised'",

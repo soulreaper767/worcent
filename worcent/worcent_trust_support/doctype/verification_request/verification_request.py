@@ -20,6 +20,8 @@ class VerificationRequest(Document):
 
 	def on_update(self):
 		if self.status == "Approved" and self.has_value_changed("status"):
+			if frappe.session.user != "Administrator" and not REVIEW_ROLES.intersection(frappe.get_roles()):
+				frappe.throw(_("Only an Office Manager, Field Rep or Admin can approve a verification request."))
 			self.approve()
 
 	def approve(self):

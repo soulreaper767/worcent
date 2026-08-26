@@ -657,7 +657,7 @@ def seed_company_and_users():
 	create_user("arbitrator2.demo@worcent.test", "Bushra Arbitrator", ["Dispute Arbitrator"])
 	create_user("rankreviewer1.demo@worcent.test", "Rafay Reviewer", ["Rank Reviewer"])
 	create_user("rankreviewer2.demo@worcent.test", "Rida Reviewer", ["Rank Reviewer"])
-	create_user("franchiseowner1.demo@worcent.test", "Farhan Franchise", ["Franchise Owner"])
+	franchiseowner1_user = create_user("franchiseowner1.demo@worcent.test", "Farhan Franchise", ["Franchise Owner"])
 
 	freelancer1_user = create_user("freelancer1.demo@worcent.test", "Zara Freelancer")
 	freelancer2_user = create_user("freelancer2.demo@worcent.test", "Bilal Freelancer")
@@ -673,7 +673,8 @@ def seed_company_and_users():
 
 	owned_office = ensure_office("Worcent HQ - Karachi", "Owned", manager_user=office_manager_user)
 	franchised_office = ensure_office(
-		"Worcent Partner - Lahore", "Franchised", franchisee_name="Farhan Franchise", franchise_fee_percent=30
+		"Worcent Partner - Lahore", "Franchised", franchisee_name="Farhan Franchise",
+		franchisee_user=franchiseowner1_user, franchise_fee_percent=30,
 	)
 	franchised_office_2 = ensure_office(
 		"Worcent Partner - Islamabad", "Franchised", franchisee_name="Islamabad Business Services", franchise_fee_percent=25
@@ -934,7 +935,9 @@ def create_user(email, full_name, roles=None):
 	return user.name
 
 
-def ensure_office(office_name, office_type, manager_user=None, franchisee_name=None, franchise_fee_percent=None):
+def ensure_office(
+	office_name, office_type, manager_user=None, franchisee_name=None, franchisee_user=None, franchise_fee_percent=None
+):
 	if frappe.db.exists("Office", office_name):
 		return office_name
 
@@ -954,6 +957,7 @@ def ensure_office(office_name, office_type, manager_user=None, franchisee_name=N
 			"office_type": office_type,
 			"status": "Active",
 			"franchisee_name": franchisee_name,
+			"franchisee_user": franchisee_user,
 			"franchise_fee_percent": franchise_fee_percent,
 			"manager": manager_employee,
 			"city": office_name.split("-")[-1].strip() if "-" in office_name else "",
