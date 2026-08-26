@@ -29,6 +29,14 @@ def _resolve_wallet(wallet):
 	return wallet_doc.name if wallet_doc else None
 
 
+def _money(amount, currency):
+	"""Formatted server-side (not left to the client's format_currency, which
+	depends on that currency's symbol/precision being cached client-side) so
+	the label and the figure can never disagree about which currency they're
+	in."""
+	return fmt_money(amount, currency=currency)
+
+
 @frappe.whitelist()
 def get_wallet_ledger(wallet=None, currency=None):
 	wallet_name = _resolve_wallet(wallet)
@@ -37,8 +45,9 @@ def get_wallet_ledger(wallet=None, currency=None):
 	if not wallet_name:
 		return {
 			"wallet": None, "party_type": None, "currency": currency, "rows": [],
-			"current_balance": 0, "current_balance_fmt": fmt_money(0, currency=currency),
-			"total_earnings": 0, "total_deductions": 0, "currencies": DISPLAY_CURRENCIES,
+			"current_balance_fmt": _money(0, currency),
+			"total_earnings_fmt": _money(0, currency), "total_deductions_fmt": _money(0, currency),
+			"currencies": DISPLAY_CURRENCIES,
 		}
 
 	wallet_doc = frappe.db.get_value("Wallet", wallet_name, ["party_type", "party", "balance"], as_dict=True)
@@ -59,14 +68,17 @@ def get_wallet_ledger(wallet=None, currency=None):
 		deductions = flt(t.amount) if t.direction == "Debit" else 0
 		total_earnings += earnings
 		total_deductions += deductions
+		earnings_disp = convert(earnings, BASE_CURRENCY, currency) if earnings else 0
+		deductions_disp = convert(deductions, BASE_CURRENCY, currency) if deductions else 0
+		balance_disp = convert(flt(t.balance_after), BASE_CURRENCY, currency)
 		rows.append(
 			{
-				"date": t.creation,
+				"date": frappe.utils.format_datetime(t.creation, "medium"),
 				"label": t.transaction_type,
 				"remarks": t.remarks or "",
-				"earnings": convert(earnings, BASE_CURRENCY, currency) if earnings else 0,
-				"deductions": convert(deductions, BASE_CURRENCY, currency) if deductions else 0,
-				"balance": convert(flt(t.balance_after), BASE_CURRENCY, currency),
+				"earnings_fmt": _money(earnings_disp, currency) if earnings else "",
+				"deductions_fmt": _money(deductions_disp, currency) if deductions else "",
+				"balance_fmt": _money(balance_disp, currency),
 			}
 		)
 
@@ -77,9 +89,8 @@ def get_wallet_ledger(wallet=None, currency=None):
 		"party_type": wallet_doc.party_type,
 		"currency": currency,
 		"rows": rows,
-		"current_balance": current_balance,
-		"current_balance_fmt": fmt_money(current_balance, currency=currency),
-		"total_earnings": convert(total_earnings, BASE_CURRENCY, currency),
-		"total_deductions": convert(total_deductions, BASE_CURRENCY, currency),
+		"current_balance_fmt": _money(current_balance, currency),
+		"total_earnings_fmt": _money(convert(total_earnings, BASE_CURRENCY, currency), currency),
+		"total_deductions_fmt": _money(convert(total_deductions, BASE_CURRENCY, currency), currency),
 		"currencies": DISPLAY_CURRENCIES,
 	}

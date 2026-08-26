@@ -17,20 +17,23 @@ class WalletLedger {
 	}
 
 	render_shell() {
-		this.currency_select = this.page.add_field({
-			fieldtype: "Select",
-			fieldname: "currency",
-			label: __("Currency"),
-			options: ["USD"],
-			default: "USD",
-			change: () => {
-				this.currency = this.currency_select.get_value() || "USD";
-				this.load();
-			},
+		this.$toolbar = $(`
+			<div class="wc-ledger-toolbar" style="display:flex; align-items:center; gap: 8px; margin: 8px 0 16px;">
+				<label style="margin:0; font-weight: 500;">${__("Currency")}:</label>
+				<select class="form-control wc-ledger-currency" style="width: auto; display:inline-block;">
+					<option value="USD">USD</option>
+				</select>
+			</div>
+		`).appendTo(this.page.body);
+
+		this.$currency_select = this.$toolbar.find(".wc-ledger-currency");
+		this.$currency_select.on("change", () => {
+			this.currency = this.$currency_select.val();
+			this.load();
 		});
 
 		this.$summary = $(`
-			<div class="wc-ledger-summary" style="display:flex; gap: 24px; margin: 16px 0; flex-wrap: wrap;">
+			<div class="wc-ledger-summary" style="display:flex; gap: 24px; margin: 0 0 16px; flex-wrap: wrap;">
 				<div><div class="text-muted small">${__("Current Balance")}</div><div class="wc-ledger-balance" style="font-size: 22px; font-weight: 600;">--</div></div>
 				<div><div class="text-muted small">${__("Total Earnings")}</div><div class="wc-ledger-earnings" style="font-size: 18px; color: var(--green-600, green);">--</div></div>
 				<div><div class="text-muted small">${__("Total Deductions / Payments")}</div><div class="wc-ledger-deductions" style="font-size: 18px; color: var(--red-600, red);">--</div></div>
@@ -49,17 +52,25 @@ class WalletLedger {
 			const data = r.message;
 			if (!data) return;
 
-			if (data.currencies && this.currency_select.df.options.length <= 1) {
-				this.currency_select.df.options = data.currencies;
-				this.currency_select.refresh();
-			}
+			this.populate_currency_options(data.currencies, data.currency);
 
-			this.$summary.find(".wc-ledger-balance").text(data.current_balance_fmt || format_currency(data.current_balance, data.currency));
-			this.$summary.find(".wc-ledger-earnings").text(format_currency(data.total_earnings, data.currency));
-			this.$summary.find(".wc-ledger-deductions").text(format_currency(data.total_deductions, data.currency));
+			this.$summary.find(".wc-ledger-balance").text(data.current_balance_fmt);
+			this.$summary.find(".wc-ledger-earnings").text(data.total_earnings_fmt);
+			this.$summary.find(".wc-ledger-deductions").text(data.total_deductions_fmt);
 
 			this.render_table(data);
 		});
+	}
+
+	populate_currency_options(currencies, selected) {
+		if (!currencies || !currencies.length) return;
+		const current_options = this.$currency_select.find("option").map((_, o) => o.value).get();
+		const same = current_options.length === currencies.length && current_options.every((c, i) => c === currencies[i]);
+		if (!same) {
+			this.$currency_select.empty();
+			currencies.forEach((c) => this.$currency_select.append(`<option value="${c}">${c}</option>`));
+		}
+		this.$currency_select.val(selected);
 	}
 
 	render_table(data) {
@@ -76,11 +87,11 @@ class WalletLedger {
 			.map(
 				(row) => `
 			<tr>
-				<td>${frappe.datetime.str_to_user(row.date)}</td>
+				<td>${frappe.utils.escape_html(row.date)}</td>
 				<td>${frappe.utils.escape_html(row.label)}${row.remarks ? `<div class="text-muted small">${frappe.utils.escape_html(row.remarks)}</div>` : ""}</td>
-				<td style="text-align:right; color: var(--green-600, green);">${row.earnings ? format_currency(row.earnings, data.currency) : ""}</td>
-				<td style="text-align:right; color: var(--red-600, red);">${row.deductions ? format_currency(row.deductions, data.currency) : ""}</td>
-				<td style="text-align:right; font-weight: 500;">${format_currency(row.balance, data.currency)}</td>
+				<td style="text-align:right; color: var(--green-600, green);">${frappe.utils.escape_html(row.earnings_fmt)}</td>
+				<td style="text-align:right; color: var(--red-600, red);">${frappe.utils.escape_html(row.deductions_fmt)}</td>
+				<td style="text-align:right; font-weight: 500;">${frappe.utils.escape_html(row.balance_fmt)}</td>
 			</tr>`
 			)
 			.join("");
