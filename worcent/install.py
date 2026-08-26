@@ -261,19 +261,20 @@ def configure_desk_experience():
 
 
 def sync_workspace_sidebars():
-	"""In v16 a Workspace record alone doesn't make it appear in the Desk
-	sidebar — that's driven by a separate Workspace Sidebar/Workspace Sidebar
-	Item pair, normally only auto-created once by Frappe's own
-	after_app_install hook. Since worcent's workspaces get created/updated by
-	this install.py (not by bench install-app timing), that auto-creation
-	can miss them entirely — this keeps the sidebar in sync on every
-	migrate. frappe's own helper is idempotent (skips any workspace that
-	already has a same-named sidebar)."""
-	from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import (
-		create_workspace_sidebar_for_workspaces,
-	)
+	"""In v16 a Workspace record alone doesn't make it appear anywhere in
+	Desk — the sidebar is driven by a separate Workspace Sidebar/Workspace
+	Sidebar Item pair, and the icon on the Desk home/app-switcher grid is a
+	separate Desktop Icon record again, both normally only auto-created
+	once by Frappe's own after_app_install hook. Since worcent's workspaces
+	get created/updated by this install.py (not by bench install-app
+	timing), that auto-creation can miss them entirely — this keeps both in
+	sync on every migrate. add_workspace_to_desktop() is Frappe's own
+	helper (used for e.g. the caonline app's own workspace icon) and does
+	both halves in one idempotent call."""
+	from frappe.desk.doctype.desktop_icon.desktop_icon import add_workspace_to_desktop
 
-	create_workspace_sidebar_for_workspaces()
+	for workspace in frappe.get_all("Workspace", filters={"module": ["like", "Worcent%"], "public": 1}, pluck="name"):
+		add_workspace_to_desktop(workspace)
 	frappe.db.commit()
 
 
