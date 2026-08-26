@@ -4,6 +4,8 @@ from frappe.model.document import Document
 from frappe.model.naming import set_name_by_naming_series
 from frappe.utils import now_datetime
 
+SUPPORT_ROLES = {"Support Agent", "Worcent Admin", "System Manager"}
+
 OWNERSHIP_CHECKS = {
 	"Job Posting": lambda name, user: frappe.db.get_value("Job Posting", name, "employer") in _own_parties(user),
 	"Gig": lambda name, user: frappe.db.get_value("Gig", name, "freelancer") in _own_parties(user),
@@ -69,7 +71,7 @@ class SupportTicket(Document):
 
 	@frappe.whitelist()
 	def reassign(self, to_user=None):
-		if not {"Worcent Admin", "System Manager", "Support Agent"}.intersection(frappe.get_roles()):
+		if not SUPPORT_ROLES.intersection(frappe.get_roles()):
 			frappe.throw(_("Only Support Agents or Admin can reassign a ticket."))
 		agent = to_user or _least_loaded_support_agent(exclude=self.assigned_to)
 		if not agent:
@@ -78,6 +80,62 @@ class SupportTicket(Document):
 		self.db_set("assigned_on", now_datetime())
 		self.db_set("escalation_count", (self.escalation_count or 0) + 1)
 		self.add_comment("Info", _("Reassigned to {0}").format(agent))
+
+	@frappe.whitelist()
+	def get_replies(self):
+		is_support = bool(SUPPORT_ROLES.intersection(frappe.get_roles()))
+		filters = {"ticket": self.name}
+		if not is_support:
+			filters["is_internal_note"] = 0
+		return frappe.get_all(
+			"Support Ticket Reply",
+			filters=filters,
+			fields=["name", "sender", "sender_role", "is_internal_note", "message", "creation"],
+			order_by="creation asc",
+		)
+
+	@frappe.whitelist()
+	def add_reply(self, message, is_internal_note=0):
+		if not SUPPORT_ROLES.intersection(frappe.get_roles()) and frappe.utils.cint(is_internal_note):
+			frappe.throw(_("Only Support can add an internal note."))
+		frappe.get_doc(
+			{
+				"doctype": "Support Ticket Reply",
+				"ticket": self.name,
+				"message": message,
+				"is_internal_note": frappe.utils.cint(is_internal_note),
+			}
+		).insert()
+		self.reload()
+		return self.get_replies()
+
+	@frappe.whitelist()
+	def mark_resolved(self):
+		self._require_support()
+		self.status = "Resolved"
+		self.save(ignore_permissions=True)
+		self.add_comment("Info", _("Marked Resolved by {0}").format(frappe.session.user))
+
+	@frappe.whitelist()
+	def close_ticket(self):
+		self._require_support()
+		if self.status not in ("Resolved", "In Progress", "Open"):
+			frappe.throw(_("Invalid status transition."))
+		self.status = "Closed"
+		self.save(ignore_permissions=True)
+
+	@frappe.whitelist()
+	def reopen_ticket(self):
+		if frappe.session.user == "Administrator" or SUPPORT_ROLES.intersection(frappe.get_roles()):
+			pass
+		elif self.raised_by != frappe.session.user:
+			frappe.throw(_("Only the requester or Support can reopen a ticket."))
+		self.status = "Open"
+		self.save(ignore_permissions=True)
+
+	def _require_support(self):
+		if not SUPPORT_ROLES.intersection(frappe.get_roles()):
+			frappe.throw(_("Only Support Agents or Admin can do that."))
 
 
 def _least_loaded_support_agent(exclude=None):
@@ -90,17 +148,3 @@ def _least_loaded_support_agent(exclude=None):
 		for a in agents
 	}
 	return min(load, key=load.get)
-
-
-def on_comment_after_insert(doc, method=None):
-	"""Stamps first_response_on the first time the assigned agent (or any
-	Support Agent/Admin) comments on a ticket — used as the 'did anyone
-	actually respond' signal for the 1-hour escalation job."""
-	if doc.reference_doctype != "Support Ticket" or not doc.reference_name:
-		return
-	ticket = frappe.db.get_value("Support Ticket", doc.reference_name, "first_response_on")
-	if ticket:
-		return
-	commenter_roles = frappe.get_roles(doc.owner)
-	if {"Support Agent", "Worcent Admin", "System Manager"}.intersection(commenter_roles):
-		frappe.db.set_value("Support Ticket", doc.reference_name, "first_response_on", now_datetime())

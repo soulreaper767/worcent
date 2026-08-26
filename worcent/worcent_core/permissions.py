@@ -306,3 +306,30 @@ def rank_application_has_permission(doc, ptype=None, user=None):
 	if _is_admin(user) or _is_rank_reviewer(user):
 		return True
 	return doc.freelancer == get_freelancer_profile(user)
+
+
+SUPPORT_STAFF_ROLES = {"Support Agent", "Worcent Admin"}
+
+
+def _is_support_staff(user):
+	return bool(SUPPORT_STAFF_ROLES.intersection(frappe.get_roles(user)))
+
+
+def support_ticket_reply_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user) or _is_support_staff(user):
+		return ""
+	return (
+		f"`tabSupport Ticket Reply`.ticket in "
+		f"(select name from `tabSupport Ticket` where raised_by = {frappe.db.escape(user)}) "
+		f"and `tabSupport Ticket Reply`.is_internal_note = 0"
+	)
+
+
+def support_ticket_reply_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user) or _is_support_staff(user):
+		return True
+	if doc.is_internal_note:
+		return False
+	return frappe.db.get_value("Support Ticket", doc.ticket, "raised_by") == user
