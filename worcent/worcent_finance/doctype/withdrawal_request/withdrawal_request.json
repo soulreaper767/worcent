@@ -86,7 +86,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Requested\nIn Review\nApproved\nPaid\nRejected"
+   "options": "Requested\nIn Review\nApproved\nPaid\nRejected",
+   "read_only_depends_on": "eval:!in_list([\"Payment Officer\", \"Accounts Manager\", \"Finance Manager\", \"Worcent Admin\", \"System Manager\"], frappe.user_roles)"
   },
   {
    "default": "Now",
