@@ -76,6 +76,7 @@ ROLE_HOME_PAGE = {
 def after_install():
 	configure_worcent_settings()
 	seed_letterhead()
+	seed_accounting_masters()
 	seed_masters()
 	seed_company_and_users()
 	seed_agency_ecosystem()
@@ -116,6 +117,7 @@ def reseed_demo_data():
 def after_migrate():
 	configure_worcent_settings()
 	seed_letterhead()
+	seed_accounting_masters()
 	seed_currencies()
 	grant_cross_app_permissions()
 	configure_desk_experience()
@@ -171,6 +173,77 @@ def seed_letterhead():
 		}
 	).insert(ignore_permissions=True)
 	frappe.db.set_value("Print Settings", "Print Settings", "pdf_page_size", "A4")
+
+
+def seed_accounting_masters():
+	"""Prerequisites for the accounting engine (worcent_finance/
+	accounting_engine.py) to be able to auto-create a Customer per Employer
+	and a Supplier per Freelancer, and to post Journal Entries against
+	Worcent Platform's Chart of Accounts. This site was never run through
+	ERPNext's Setup Wizard, so a surprising amount of "standard" ERPNext
+	master data (Party Type, UOM, real Customer/Supplier Groups...) simply
+	doesn't exist — call ERPNext's own fixture installer (the same one the
+	wizard calls) rather than re-inventing it piecemeal."""
+	if not frappe.db.exists("Company", "Worcent Platform"):
+		return
+
+	if not frappe.db.exists("Party Type", "Customer"):
+		from erpnext.setup.setup_wizard.operations.install_fixtures import install as install_erpnext_fixtures
+
+		install_erpnext_fixtures(country="United States")
+
+	seed_fiscal_years()
+
+	if not frappe.db.exists("Customer Group", "All Customer Groups"):
+		frappe.get_doc(
+			{"doctype": "Customer Group", "customer_group_name": "All Customer Groups", "is_group": 1}
+		).insert(ignore_permissions=True)
+	if not frappe.db.exists("Customer Group", "Employers"):
+		frappe.get_doc(
+			{
+				"doctype": "Customer Group",
+				"customer_group_name": "Employers",
+				"parent_customer_group": "All Customer Groups",
+				"is_group": 0,
+			}
+		).insert(ignore_permissions=True)
+
+	if not frappe.db.exists("Supplier Group", "All Supplier Groups"):
+		frappe.get_doc(
+			{"doctype": "Supplier Group", "supplier_group_name": "All Supplier Groups", "is_group": 1}
+		).insert(ignore_permissions=True)
+	if not frappe.db.exists("Supplier Group", "Freelancers"):
+		frappe.get_doc(
+			{
+				"doctype": "Supplier Group",
+				"supplier_group_name": "Freelancers",
+				"parent_supplier_group": "All Supplier Groups",
+				"is_group": 0,
+			}
+		).insert(ignore_permissions=True)
+
+	from worcent.worcent_finance.accounting_engine import ensure_accounts
+
+	ensure_accounts()
+	frappe.db.commit()
+
+
+def seed_fiscal_years():
+	from frappe.utils import getdate
+
+	current_year = getdate().year
+	for year in range(current_year - 1, current_year + 3):
+		name = str(year)
+		if frappe.db.exists("Fiscal Year", name):
+			continue
+		frappe.get_doc(
+			{
+				"doctype": "Fiscal Year",
+				"year": name,
+				"year_start_date": f"{year}-01-01",
+				"year_end_date": f"{year}-12-31",
+			}
+		).insert(ignore_permissions=True)
 
 
 # ---------------------------------------------------------------------------

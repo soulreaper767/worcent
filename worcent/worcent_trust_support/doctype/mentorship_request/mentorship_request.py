@@ -52,3 +52,7 @@ class MentorshipRequest(Document):
 		)
 
 		self.db_set("payment_status", "Paid")
+
+		from worcent.worcent_finance.accounting_engine import record_mentorship_fee
+
+		record_mentorship_fee(self.mentee, mentor, self.fee_charged, commission, net, self.name)

@@ -41,6 +41,10 @@ def apply_signup_bonus(profile_type, profile_name):
 	bonus = flt(frappe.db.get_single_value("Worcent Settings", "signup_bonus_amount")) or 5
 	_credit(profile_type, profile_name, bonus, "Signup Bonus", "Welcome to Worcent!", profile_type, profile_name)
 
+	from worcent.worcent_finance.accounting_engine import record_bonus
+
+	record_bonus(profile_type, profile_name, bonus, profile_name, label="Signup bonus")
+
 
 def apply_verification_bonus(profile_type, profile_name):
 	"""One-time bonus the first time a profile reaches ID/Business
@@ -59,6 +63,10 @@ def apply_verification_bonus(profile_type, profile_name):
 		profile_type, profile_name, bonus, "Verification Bonus",
 		"Bonus for completing identity verification", profile_type, profile_name,
 	)
+
+	from worcent.worcent_finance.accounting_engine import record_bonus
+
+	record_bonus(profile_type, profile_name, bonus, profile_name, label="Verification bonus")
 
 
 def apply_referral_signup(profile_type, profile_name, referral_code_name):
@@ -115,17 +123,20 @@ def maybe_pay_referrer_commission(profile_type, profile_name, platform_earning_a
 	referrer_freelancer = frappe.db.get_value("Freelancer Profile", {"user": code.owner_user}, "name")
 	referrer_employer = frappe.db.get_value("Employer Profile", {"user": code.owner_user}, "name")
 	if referrer_freelancer:
-		_credit(
-			"Freelancer Profile", referrer_freelancer, commission, "Referral Commission",
-			f"Referral commission for {profile_name}", "Referral", referral_doc.name,
-		)
+		referrer_type, referrer = "Freelancer Profile", referrer_freelancer
 	elif referrer_employer:
-		_credit(
-			"Employer Profile", referrer_employer, commission, "Referral Commission",
-			f"Referral commission for {profile_name}", "Referral", referral_doc.name,
-		)
+		referrer_type, referrer = "Employer Profile", referrer_employer
 	else:
 		return
+
+	_credit(
+		referrer_type, referrer, commission, "Referral Commission",
+		f"Referral commission for {profile_name}", "Referral", referral_doc.name,
+	)
+
+	from worcent.worcent_finance.accounting_engine import record_referral_commission
+
+	record_referral_commission(referrer_type, referrer, commission, referral_doc.name)
 
 	referral_doc.status = "Rewarded"
 	referral_doc.commission_paid = commission

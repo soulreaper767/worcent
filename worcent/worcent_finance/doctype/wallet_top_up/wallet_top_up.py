@@ -34,3 +34,7 @@ class WalletTopUp(Document):
 				"remarks": self.reference_note,
 			}
 		).insert(ignore_permissions=True)
+
+		from worcent.worcent_finance.accounting_engine import record_topup
+
+		record_topup(wallet.party_type, wallet.party, self.amount, "Wallet Top Up", self.name)

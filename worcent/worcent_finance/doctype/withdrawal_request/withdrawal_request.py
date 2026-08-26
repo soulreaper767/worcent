@@ -87,6 +87,10 @@ class WithdrawalRequest(Document):
 			}
 		).insert(ignore_permissions=True)
 
+		from worcent.worcent_finance.accounting_engine import record_withdrawal
+
+		record_withdrawal(wallet.party_type, wallet.party, self.amount, self.name)
+
 	@frappe.whitelist()
 	def approve_request(self):
 		self._require_processing_role()

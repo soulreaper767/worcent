@@ -100,6 +100,11 @@ def fund_milestone(milestone_name):
 
 	milestone.db_set("status", "Funded")
 	milestone.db_set("funded_on", now_datetime())
+
+	from worcent.worcent_finance.accounting_engine import record_milestone_fund
+
+	record_milestone_fund(contract.employer, milestone.amount, fee_amount, milestone.name)
+
 	return escrow.name
 
 
@@ -156,6 +161,10 @@ def release_milestone(milestone_name):
 
 	_recompute_completion(contract.name)
 
+	from worcent.worcent_finance.accounting_engine import record_milestone_release
+
+	record_milestone_release(contract.freelancer, milestone.amount, commission_amount, net_amount, milestone.name)
+
 	return {"freelancer_rate": freelancer_rate, "commission_amount": commission_amount, "net_amount": net_amount}
 
 
@@ -183,6 +192,10 @@ def refund_milestone(milestone_name):
 	milestone.db_set("status", "Pending")
 
 	_recompute_completion(contract.name)
+
+	from worcent.worcent_finance.accounting_engine import record_milestone_refund
+
+	record_milestone_refund(contract.employer, milestone.amount, milestone.name)
 
 
 def split_milestone(milestone_name, freelancer_percent, remarks=None):
@@ -229,6 +242,15 @@ def split_milestone(milestone_name, freelancer_percent, remarks=None):
 	milestone.db_set("released_on", now_datetime())
 
 	_recompute_completion(contract.name)
+
+	from worcent.worcent_finance.accounting_engine import record_milestone_split
+
+	commission_for_je = (freelancer_amount * rate / 100) if freelancer_amount else 0
+	record_milestone_split(
+		contract.employer, employer_refund, contract.freelancer,
+		(freelancer_amount - commission_for_je) if freelancer_amount else 0,
+		commission_for_je, milestone.amount, milestone.name,
+	)
 
 
 def auto_release_overdue_milestones():

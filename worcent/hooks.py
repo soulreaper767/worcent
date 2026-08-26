@@ -21,11 +21,15 @@ fixtures = [
 
 # Includes in <head>
 # ------------------
-# Only the public website gets Worcent's marketing CSS/JS — Desk must stay on
-# Frappe's own styling untouched, so app_include_* is intentionally unset.
+# The public website gets Worcent's marketing CSS/JS; Desk gets its own,
+# separate, much smaller JS file (never the website one) so Frappe's own
+# Desk styling stays untouched.
 
 web_include_css = "/assets/worcent/css/worcent.css"
 web_include_js = "/assets/worcent/js/worcent.js"
+app_include_js = "/assets/worcent/js/worcent_desk.js"
+
+extend_bootinfo = "worcent.boot.extend_bootinfo"
 
 # Worcent's website pages get a fully custom shell (own navbar/footer, no
 # Bootstrap) instead of Frappe's default templates/base.html — this is what

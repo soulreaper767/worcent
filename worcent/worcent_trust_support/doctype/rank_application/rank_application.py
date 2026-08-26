@@ -129,6 +129,13 @@ class RankApplication(Document):
 		self.appeal_used = 1
 		self.appeal_fee_paid = APPEAL_FEE_USD
 		self.save(ignore_permissions=True)
+
+		from worcent.worcent_finance.accounting_engine import record_fee_charged
+
+		record_fee_charged(
+			"Freelancer Profile", self.freelancer, APPEAL_FEE_USD, self.name, label="Rank appeal fee"
+		)
+
 		return self.status
 
 	def _require_reviewer(self):
