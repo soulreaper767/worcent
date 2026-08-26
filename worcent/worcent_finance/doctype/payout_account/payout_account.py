@@ -47,9 +47,8 @@ class PayoutAccount(Document):
 		self.currency = get_currency_for_country(country)
 
 	def set_title(self):
-		party_label = frappe.db.get_value(self.party_type, self.party, "display_name") or frappe.db.get_value(
-			self.party_type, self.party, "company_name"
-		)
+		name_field = "display_name" if self.party_type == "Freelancer Profile" else "company_name"
+		party_label = frappe.db.get_value(self.party_type, self.party, name_field)
 		if self.account_type == "Bank Transfer":
 			tail_source = self.account_number or self.iban or ""
 			masked = f"****{tail_source[-4:]}" if len(tail_source) >= 4 else tail_source

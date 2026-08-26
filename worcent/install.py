@@ -124,6 +124,7 @@ def after_migrate():
 	seed_currencies()
 	rename_withdrawal_pending_status()
 	backfill_payout_account_titles()
+	backfill_wallet_titles()
 	grant_cross_app_permissions()
 	configure_desk_experience()
 	frappe.db.commit()
@@ -147,6 +148,18 @@ def backfill_payout_account_titles():
 			doc.save(ignore_permissions=True)
 		except Exception:
 			frappe.log_error(title="backfill_payout_account_titles")
+
+
+def backfill_wallet_titles():
+	"""Same story as Payout Account -- Wallet gained a naming series +
+	computed title in this pass; re-save existing (still hash-named) rows
+	so they pick up a real title too, without renaming them."""
+	for name in frappe.get_all("Wallet", filters={"title": ["in", ("", None)]}, pluck="name"):
+		try:
+			doc = frappe.get_doc("Wallet", name)
+			doc.save(ignore_permissions=True)
+		except Exception:
+			frappe.log_error(title="backfill_wallet_titles")
 
 
 def grant_cross_app_permissions():

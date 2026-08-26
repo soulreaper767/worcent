@@ -1,10 +1,12 @@
 {
  "actions": [],
- "autoname": "hash",
+ "autoname": "naming_series:",
  "creation": "2026-08-25 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
+  "title",
   "party_type",
   "party",
   "column_break_1",
@@ -13,6 +15,23 @@
   "total_withdrawn"
  ],
  "fields": [
+  {
+   "default": "WAL-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "no_copy": 1,
+   "options": "WAL-.#####",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "read_only": 1,
+   "description": "Auto-generated so this wallet is easy to recognize in dropdowns and lists."
+  },
   {
    "fieldname": "party_type",
    "fieldtype": "Select",
@@ -66,8 +85,9 @@
  "modified_by": "Administrator",
  "module": "Worcent Finance",
  "name": "Wallet",
- "naming_rule": "Random",
+ "naming_rule": "Expression",
  "owner": "Administrator",
+ "title_field": "title",
  "permissions": [
   {
    "create": 1,
