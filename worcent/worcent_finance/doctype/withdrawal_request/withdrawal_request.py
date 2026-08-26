@@ -13,9 +13,19 @@ class WithdrawalRequest(Document):
 
 	def validate(self):
 		if self.is_new():
+			self.validate_requester_owns_wallet()
 			self.validate_payout_account()
 			self.validate_amount()
 			self.snapshot_payout_destination()
+
+	def validate_requester_owns_wallet(self):
+		if frappe.session.user == "Administrator" or PROCESSING_ROLES.intersection(frappe.get_roles()):
+			return
+		party = frappe.db.get_value("Wallet", self.wallet, "party")
+		freelancer = frappe.db.get_value("Freelancer Profile", {"user": frappe.session.user}, "name")
+		employer = frappe.db.get_value("Employer Profile", {"user": frappe.session.user}, "name")
+		if party not in (freelancer, employer):
+			frappe.throw(_("You can only withdraw from your own wallet."))
 
 	def validate_payout_account(self):
 		account = frappe.get_doc("Payout Account", self.payout_account)

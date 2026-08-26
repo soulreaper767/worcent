@@ -724,3 +724,132 @@ def franchise_settlement_has_permission(doc, ptype=None, user=None):
 	if _is_admin(user) or {"Office Managing Partner", "Finance Manager", "Accounts Manager"}.intersection(frappe.get_roles(user)):
 		return True
 	return doc.office in _offices_for_user(user)
+
+
+# --- Mentor Program: read stays open (mentees need to browse mentors), only
+# the mentor themselves can write. ---
+
+
+def mentor_program_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if ptype in ("write", "delete", "cancel"):
+		return doc.mentor == get_freelancer_profile(user)
+	return True
+
+
+# --- Mentorship Request: visible/writable only to the mentee who requested
+# it or the mentor it was requested from -- this is what actually gates the
+# wallet-charging accept() action, since a mentee's funds move on accept. ---
+
+
+def mentorship_request_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	if not freelancer:
+		return "1=0"
+	return (
+		f"(`tabMentorship Request`.mentee = {frappe.db.escape(freelancer)} or "
+		f"`tabMentorship Request`.mentor_program in (select name from `tabMentor Program` where mentor = {frappe.db.escape(freelancer)}))"
+	)
+
+
+def mentorship_request_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	freelancer = get_freelancer_profile(user)
+	if doc.mentee == freelancer:
+		return True
+	return frappe.db.get_value("Mentor Program", doc.mentor_program, "mentor") == freelancer
+
+
+# --- Work Submission: only the freelancer/employer on the underlying
+# contract can see or act on it (approving one is a money-adjacent review
+# step even though the actual release only happens via Milestone). ---
+
+
+def work_submission_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	employer = get_employer_profile(user)
+	parts = []
+	if freelancer:
+		parts.append(
+			f"`tabWork Submission`.milestone in (select name from `tabMilestone` where contract in "
+			f"(select name from `tabContract` where freelancer = {frappe.db.escape(freelancer)}))"
+		)
+	if employer:
+		parts.append(
+			f"`tabWork Submission`.milestone in (select name from `tabMilestone` where contract in "
+			f"(select name from `tabContract` where employer = {frappe.db.escape(employer)}))"
+		)
+	if not parts:
+		return "1=0"
+	return "(" + " or ".join(parts) + ")"
+
+
+def work_submission_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	contract_name = frappe.db.get_value("Milestone", doc.milestone, "contract")
+	contract = frappe.db.get_value("Contract", contract_name, ["freelancer", "employer"], as_dict=True)
+	if not contract:
+		return False
+	return contract.freelancer == get_freelancer_profile(user) or contract.employer == get_employer_profile(user)
+
+
+# --- Advance Request: a Freelancer only sees their own (loan amounts,
+# interest rate and repayment schedule are private financial data). ---
+
+
+def advance_request_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user) or _finance_staff(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	if not freelancer:
+		return "1=0"
+	return f"`tabAdvance Request`.freelancer = {frappe.db.escape(freelancer)}"
+
+
+def advance_request_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user) or _finance_staff(user):
+		return True
+	return doc.freelancer == get_freelancer_profile(user)
+
+
+# --- Wallet Top Up: a Freelancer/Employer only sees their own top-up
+# requests (bank reference notes and amounts are private). ---
+
+
+def wallet_top_up_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user) or _finance_staff(user):
+		return ""
+	parties = _own_party_names(user)
+	if not parties:
+		return "1=0"
+	quoted = ", ".join(frappe.db.escape(p) for p in parties)
+	return f"`tabWallet Top Up`.wallet in (select name from `tabWallet` where party in ({quoted}))"
+
+
+def wallet_top_up_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user) or _finance_staff(user):
+		return True
+	if not doc.wallet:
+		# A brand-new Wallet Top Up may not have its wallet resolved yet --
+		# that happens in validate() (auto-creating one if needed), which
+		# runs after this create-permission check. Ownership is enforced
+		# there instead once doc.wallet actually exists.
+		return True
+	party = frappe.db.get_value("Wallet", doc.wallet, "party")
+	return party in _own_party_names(user)

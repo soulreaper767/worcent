@@ -105,6 +105,10 @@ permission_query_conditions = {
 	"Verification Request": "worcent.worcent_core.permissions.verification_request_query_conditions",
 	"Office": "worcent.worcent_core.permissions.office_query_conditions",
 	"Franchise Settlement": "worcent.worcent_core.permissions.franchise_settlement_query_conditions",
+	"Mentorship Request": "worcent.worcent_core.permissions.mentorship_request_query_conditions",
+	"Work Submission": "worcent.worcent_core.permissions.work_submission_query_conditions",
+	"Advance Request": "worcent.worcent_core.permissions.advance_request_query_conditions",
+	"Wallet Top Up": "worcent.worcent_core.permissions.wallet_top_up_query_conditions",
 }
 
 has_permission = {
@@ -139,4 +143,9 @@ has_permission = {
 	"Verification Request": "worcent.worcent_core.permissions.verification_request_has_permission",
 	"Office": "worcent.worcent_core.permissions.office_has_permission",
 	"Franchise Settlement": "worcent.worcent_core.permissions.franchise_settlement_has_permission",
+	"Mentor Program": "worcent.worcent_core.permissions.mentor_program_has_permission",
+	"Mentorship Request": "worcent.worcent_core.permissions.mentorship_request_has_permission",
+	"Work Submission": "worcent.worcent_core.permissions.work_submission_has_permission",
+	"Advance Request": "worcent.worcent_core.permissions.advance_request_has_permission",
+	"Wallet Top Up": "worcent.worcent_core.permissions.wallet_top_up_has_permission",
 }

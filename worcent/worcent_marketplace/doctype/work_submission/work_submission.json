@@ -87,6 +87,7 @@
   },
   {
    "read": 1,
+   "write": 1,
    "role": "Employer"
   }
  ],
