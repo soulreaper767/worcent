@@ -7,7 +7,8 @@
  "field_order": [
   "due_date",
   "amount",
-  "status"
+  "status",
+  "currency"
  ],
  "fields": [
   {
@@ -22,8 +23,17 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount (USD)",
-   "options": "USD",
+   "options": "currency",
    "columns": 3
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Currency",
+   "print_hide": 1,
+   "read_only": 1
   },
   {
    "default": "Pending",

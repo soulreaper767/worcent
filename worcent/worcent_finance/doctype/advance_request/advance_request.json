@@ -7,6 +7,7 @@
  "field_order": [
   "naming_series",
   "freelancer",
+  "currency",
   "amount_requested",
   "against_contract",
   "column_break_1",
@@ -36,11 +37,20 @@
    "reqd": 1
   },
   {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
    "fieldname": "amount_requested",
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount Requested (USD)",
-   "options": "USD",
+   "options": "currency",
    "reqd": 1
   },
   {

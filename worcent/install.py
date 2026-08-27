@@ -125,6 +125,7 @@ def after_migrate():
 	rename_withdrawal_pending_status()
 	backfill_payout_account_titles()
 	backfill_wallet_titles()
+	backfill_currency_fields()
 	grant_cross_app_permissions()
 	configure_desk_experience()
 	frappe.db.commit()
@@ -160,6 +161,29 @@ def backfill_wallet_titles():
 			doc.save(ignore_permissions=True)
 		except Exception:
 			frappe.log_error(title="backfill_wallet_titles")
+
+
+# All the doctypes bitten by the Currency-field-options bug: a Currency
+# field's "options" has to be a *fieldname* holding a currency code, not a
+# literal code -- these all had literal "USD" in options, which Frappe's
+# client silently resolves as doc["USD"] (a nonexistent field) and falls
+# back to the system default currency (PKR here) instead. Fixed by giving
+# each a real hidden `currency` field defaulting to "USD" and pointing
+# options at that fieldname -- this backfills it onto any existing rows
+# from before that field existed, in case the column's SQL-level DEFAULT
+# didn't retroactively apply.
+CURRENCY_FIELD_BACKFILL_DOCTYPES = [
+	"Wallet", "Wallet Transaction", "Withdrawal Request", "Advance Request",
+]
+
+
+def backfill_currency_fields():
+	for doctype in CURRENCY_FIELD_BACKFILL_DOCTYPES:
+		frappe.db.sql(f"update `tab{doctype}` set currency = 'USD' where currency is null or currency = ''")
+	frappe.db.sql(
+		"update `tabAdvance Repayment` set currency = 'USD' where currency is null or currency = ''"
+	)
+	frappe.db.commit()
 
 
 def grant_cross_app_permissions():

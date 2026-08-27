@@ -7,6 +7,7 @@
  "field_order": [
   "naming_series",
   "title",
+  "currency",
   "party_type",
   "party",
   "column_break_1",
@@ -24,6 +25,15 @@
    "no_copy": 1,
    "options": "WAL-.#####",
    "print_hide": 1
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Currency",
+   "print_hide": 1,
+   "read_only": 1
   },
   {
    "fieldname": "title",
@@ -60,7 +70,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Available Balance (USD)",
-   "options": "USD",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -68,7 +78,7 @@
    "fieldname": "held_in_escrow",
    "fieldtype": "Currency",
    "label": "Held in Escrow (USD)",
-   "options": "USD",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -76,7 +86,7 @@
    "fieldname": "total_withdrawn",
    "fieldtype": "Currency",
    "label": "Total Withdrawn (USD)",
-   "options": "USD",
+   "options": "currency",
    "read_only": 1
   }
  ],

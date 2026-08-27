@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "wallet",
+  "currency",
   "transaction_type",
   "direction",
   "column_break_1",
@@ -25,6 +26,15 @@
    "label": "Wallet",
    "options": "Wallet",
    "reqd": 1
+  },
+  {
+   "default": "USD",
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Currency",
+   "print_hide": 1,
+   "read_only": 1
   },
   {
    "fieldname": "transaction_type",
@@ -52,7 +62,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Amount (USD)",
-   "options": "USD",
+   "options": "currency",
    "reqd": 1
   },
   {
@@ -60,7 +70,7 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Balance After (USD)",
-   "options": "USD",
+   "options": "currency",
    "read_only": 1
   },
   {

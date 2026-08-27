@@ -5,15 +5,34 @@ frappe.pages["wallet-ledger"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
-	new WalletLedger(page);
+	wrapper.wc_wallet_ledger = new WalletLedger(page);
+};
+
+frappe.pages["wallet-ledger"].on_page_show = function (wrapper) {
+	if (wrapper.wc_wallet_ledger) {
+		wrapper.wc_wallet_ledger.consume_route_options();
+		wrapper.wc_wallet_ledger.load();
+	}
 };
 
 class WalletLedger {
 	constructor(page) {
 		this.page = page;
 		this.currency = "USD";
+		this.wallet = null;
 		this.render_shell();
+		this.consume_route_options();
 		this.load();
+	}
+
+	consume_route_options() {
+		// Set by Wallet's "View Full Ledger" button (staff can open a
+		// specific wallet this way); a regular user always just sees their
+		// own regardless, enforced server-side in get_wallet_ledger().
+		if (frappe.route_options && frappe.route_options.wallet) {
+			this.wallet = frappe.route_options.wallet;
+			delete frappe.route_options.wallet;
+		}
 	}
 
 	render_shell() {
@@ -46,7 +65,7 @@ class WalletLedger {
 	load() {
 		frappe.call({
 			method: "worcent.worcent_finance.wallet_ledger_api.get_wallet_ledger",
-			args: { currency: this.currency },
+			args: { currency: this.currency, wallet: this.wallet },
 			freeze: true,
 		}).then((r) => {
 			const data = r.message;

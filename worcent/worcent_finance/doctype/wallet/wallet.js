@@ -11,7 +11,8 @@ frappe.ui.form.on("Wallet", {
 		}
 
 		frm.add_custom_button(__("View Full Ledger"), () => {
-			frappe.set_route("List", "Wallet Transaction", { wallet: frm.doc.name });
+			frappe.route_options = { wallet: frm.doc.name };
+			frappe.set_route("wallet-ledger");
 		}).addClass("btn-primary");
 	},
 });
