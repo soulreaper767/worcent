@@ -76,7 +76,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Open\nIn Progress\nResolved\nClosed"
+   "options": "Open\nIn Progress\nResolved\nClosed",
+   "read_only_depends_on": "eval:!in_list([\"Support Agent\", \"Worcent Admin\", \"System Manager\"], frappe.user_roles)"
   },
   {
    "fieldname": "assigned_to",

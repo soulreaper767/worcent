@@ -83,6 +83,22 @@ class SupportTicket(Document):
 		if not self.raised_by:
 			self.raised_by = frappe.session.user
 		self.validate_related_record_ownership()
+		self.validate_status_change()
+
+	def validate_status_change(self):
+		"""The requester keeps write access to their own ticket (so they can
+		edit the subject/description and reply), but status is the support
+		workflow's to control -- direct field edits are blocked here, while
+		the reopen_ticket() method (which does allow the requester, on
+		purpose) opts back in via a flag since it already does its own,
+		narrower check."""
+		if self.is_new() or not self.has_value_changed("status"):
+			return
+		if self.flags.get("status_change_allowed"):
+			return
+		if frappe.session.user == "Administrator" or SUPPORT_ROLES.intersection(frappe.get_roles()):
+			return
+		frappe.throw(_("Only Support can change a ticket's status."))
 
 	def validate_related_record_ownership(self):
 		if not self.related_record or self.related_doctype in ("General Query", "Other"):
@@ -147,6 +163,7 @@ class SupportTicket(Document):
 	def mark_resolved(self):
 		self._require_support()
 		self.status = "Resolved"
+		self.flags.status_change_allowed = True
 		self.save(ignore_permissions=True)
 		self.add_comment("Info", _("Marked Resolved by {0}").format(frappe.session.user))
 
@@ -156,6 +173,7 @@ class SupportTicket(Document):
 		if self.status not in ("Resolved", "In Progress", "Open"):
 			frappe.throw(_("Invalid status transition."))
 		self.status = "Closed"
+		self.flags.status_change_allowed = True
 		self.save(ignore_permissions=True)
 
 	@frappe.whitelist()
@@ -165,6 +183,7 @@ class SupportTicket(Document):
 		elif self.raised_by != frappe.session.user:
 			frappe.throw(_("Only the requester or Support can reopen a ticket."))
 		self.status = "Open"
+		self.flags.status_change_allowed = True
 		self.save(ignore_permissions=True)
 
 	def _require_support(self):
