@@ -8,7 +8,6 @@
   "naming_series",
   "subject",
   "raised_by",
-  "category",
   "column_break_head",
   "priority",
   "status",
@@ -49,13 +48,6 @@
    "label": "Raised By",
    "options": "User",
    "read_only": 1
-  },
-  {
-   "fieldname": "category",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Category",
-   "options": "Ticket Category"
   },
   {
    "fieldname": "column_break_head",
