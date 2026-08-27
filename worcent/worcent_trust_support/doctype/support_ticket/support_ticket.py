@@ -41,6 +41,40 @@ def _own_parties(user):
 	]
 
 
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def related_record_query(doctype, txt, searchfield, start, page_len, filters):
+	"""Job Posting and Gig are deliberately public-readable everywhere else
+	(marketplace listings), so their own permission_query_conditions don't
+	narrow the "Select Record" search here the way every other related_
+	doctype option already does -- without this, a Freelancer/Employer
+	picking "Related To: Job Posting"/"Gig" saw every listing on the whole
+	platform, not just their own, even though OWNERSHIP_CHECKS above would
+	reject anything but their own at save time anyway."""
+	user = frappe.session.user
+	if user == "Administrator" or "Worcent Admin" in frappe.get_roles():
+		ownership_filters = {}
+	elif doctype == "Job Posting":
+		employer = frappe.db.get_value("Employer Profile", {"user": user}, "name")
+		ownership_filters = {"employer": employer or ""}
+	elif doctype == "Gig":
+		freelancer = frappe.db.get_value("Freelancer Profile", {"user": user}, "name")
+		ownership_filters = {"freelancer": freelancer or ""}
+	else:
+		ownership_filters = {}
+
+	title_field = "title"
+	txt_filter = {title_field: ["like", f"%{txt}%"]} if txt else {}
+	return frappe.get_all(
+		doctype,
+		filters={**ownership_filters, **txt_filter},
+		fields=["name", title_field],
+		start=start,
+		page_length=page_len,
+		as_list=True,
+	)
+
+
 class SupportTicket(Document):
 	def autoname(self):
 		set_name_by_naming_series(self)

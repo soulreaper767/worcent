@@ -1,6 +1,23 @@
 const SUPPORT_ROLES = ["Support Agent", "Worcent Admin", "System Manager"];
 
 frappe.ui.form.on("Support Ticket", {
+	setup(frm) {
+		// Job Posting / Gig are the two related_doctype options that are
+		// otherwise public-readable everywhere (marketplace listings), so
+		// without this the "Select Record" search shows every listing on
+		// the platform instead of just the ones this user actually owns --
+		// every other related_doctype option is already scoped by its own
+		// doctype-level permission_query_conditions.
+		frm.set_query("related_record", () => {
+			if (["Job Posting", "Gig"].includes(frm.doc.related_doctype)) {
+				return {
+					query: "worcent.worcent_trust_support.doctype.support_ticket.support_ticket.related_record_query",
+				};
+			}
+			return {};
+		});
+	},
+
 	refresh(frm) {
 		if (frm.is_new()) return;
 
