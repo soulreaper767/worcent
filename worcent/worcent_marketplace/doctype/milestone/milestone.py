@@ -32,6 +32,9 @@ class Milestone(Document):
 		if self.status != "Pending":
 			frappe.throw(_("Only a Pending milestone can be funded."))
 		self._require_employer_or_admin()
+		from worcent.worcent_core.permissions import assert_not_suspended
+
+		assert_not_suspended("Employer Profile", self._contract().employer)
 		from worcent.worcent_finance.escrow_engine import fund_milestone
 
 		fund_milestone(self.name)

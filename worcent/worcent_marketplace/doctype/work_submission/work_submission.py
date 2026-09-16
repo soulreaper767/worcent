@@ -12,6 +12,18 @@ class WorkSubmission(Document):
 		if self.status == "Submitted" and self.has_value_changed("status"):
 			frappe.db.set_value("Milestone", self.milestone, "status", "Submitted")
 
+	def on_update(self):
+		if self.flags.in_insert:
+			from worcent.worcent_core.notify import notify
+
+			employer_user = frappe.db.get_value("Employer Profile", self._contract().employer, "user")
+			if employer_user:
+				notify(
+					employer_user, _("Work submitted"),
+					_("New work was submitted for your review on {0}.").format(self._contract().name),
+					reference_doctype="Work Submission", reference_name=self.name,
+				)
+
 	def _require_milestone_funded(self):
 		milestone_status = frappe.db.get_value("Milestone", self.milestone, "status")
 		if milestone_status != "Funded":

@@ -10,13 +10,18 @@
 	</div>
 	<h1>{{ doc.title }}</h1>
 
+	{% if worcent_employer_profile %}
+	<button class="wc-btn wc-btn-outline wc-btn-sm" type="button" onclick="wcOpenConversationFor('Gig', '{{ doc.name }}')">{{ _("Contact Seller") }}</button>
+	{% endif %}
+	<button class="wc-btn wc-btn-outline wc-btn-sm" type="button" onclick="wcToggleSave('Gig', '{{ doc.name }}', this)">☆ {{ _("Save") }}</button>
+
 	<h3 class="wc-section-title">{{ _("Description") }}</h3>
 	<div style="margin-bottom: 24px;">{{ doc.description | safe }}</div>
 
 	<h3 class="wc-section-title">{{ _("Packages") }}</h3>
 	<div class="wc-grid">
 		{% for p in doc.packages %}
-		<div class="wc-card">
+		<div class="wc-card {{ 'wc-package-selectable' if worcent_employer_profile else '' }}" data-package="{{ p.package_type }}" data-price="{{ p.price }}" data-requirements="{{ p.requirements or '' }}" {% if worcent_employer_profile %}onclick="wcSelectPackage(this)" style="cursor:pointer;"{% endif %}>
 			<div class="wc-job-card-title">{{ p.package_type }}</div>
 			<div class="wc-freelancer-rate" style="font-size: 20px;">{{ frappe.utils.fmt_money(p.price) }}</div>
 			<div class="wc-muted" style="margin: 8px 0;">{{ p.delivery_days }} {{ _("day delivery") }} &middot; {{ p.revisions }} {{ _("revisions") }}</div>
@@ -24,5 +29,84 @@
 		</div>
 		{% endfor %}
 	</div>
+
+	{% if doc.extras %}
+	<h3 class="wc-section-title" style="margin-top: 24px;">{{ _("Extras") }}</h3>
+	<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+		{% for e in doc.extras %}
+		<label style="display:flex; align-items:center; gap:8px;">
+			<input type="checkbox" class="wc-extra-checkbox" value="{{ e.title }}" data-price="{{ e.price }}">
+			{{ e.title }} (+{{ frappe.utils.fmt_money(e.price) }}{% if e.delivery_days_reduction %}, {{ _("saves") }} {{ e.delivery_days_reduction }} {{ _("day(s)") }}{% endif %})
+		</label>
+		{% endfor %}
+	</div>
+	{% endif %}
+
+	{% if worcent_employer_profile and doc.status == "Active" %}
+	<div class="wc-card" style="max-width: 480px;" id="wc-order-card">
+		<h3 class="wc-section-title">{{ _("Order this gig") }}</h3>
+		<div id="wc-order-form">
+			<p><strong id="wc-order-selected-package">{{ _("Select a package above") }}</strong> &middot; <span id="wc-order-total">{{ frappe.utils.fmt_money(0) }}</span></p>
+			<div id="wc-order-requirements-wrap" style="display:none; margin-bottom: 12px;">
+				<label id="wc-order-requirements-label"></label>
+				<textarea id="wc-order-requirements" rows="3" style="width:100%;"></textarea>
+			</div>
+			<button class="wc-btn wc-btn-primary" type="button" id="wc-order-submit" disabled>{{ _("Order Now") }}</button>
+			<div id="wc-order-message" style="margin-top: 10px; font-size: 13.5px;"></div>
+		</div>
+	</div>
+	<script>
+		var wcSelectedPackage = null;
+		function wcSelectPackage(card) {
+			document.querySelectorAll(".wc-package-selectable").forEach(function (c) { c.classList.remove("wc-package-active"); });
+			card.classList.add("wc-package-active");
+			wcSelectedPackage = card.getAttribute("data-package");
+			document.getElementById("wc-order-selected-package").textContent = wcSelectedPackage + " package";
+			document.getElementById("wc-order-submit").disabled = false;
+			var requirements = card.getAttribute("data-requirements");
+			var wrap = document.getElementById("wc-order-requirements-wrap");
+			if (requirements) {
+				wrap.style.display = "block";
+				document.getElementById("wc-order-requirements-label").textContent = requirements;
+			} else {
+				wrap.style.display = "none";
+			}
+			wcUpdateOrderTotal();
+		}
+		function wcUpdateOrderTotal() {
+			if (!wcSelectedPackage) return;
+			var card = document.querySelector('.wc-package-selectable[data-package="' + wcSelectedPackage + '"]');
+			var total = parseFloat(card.getAttribute("data-price")) || 0;
+			document.querySelectorAll(".wc-extra-checkbox:checked").forEach(function (cb) {
+				total += parseFloat(cb.getAttribute("data-price")) || 0;
+			});
+			document.getElementById("wc-order-total").textContent = frappe.format(total, { fieldtype: "Currency" });
+		}
+		document.querySelectorAll(".wc-extra-checkbox").forEach(function (cb) {
+			cb.addEventListener("change", wcUpdateOrderTotal);
+		});
+		document.getElementById("wc-order-submit") && document.getElementById("wc-order-submit").addEventListener("click", function () {
+			if (!wcSelectedPackage) return;
+			var btn = this;
+			btn.disabled = true;
+			var selectedExtras = Array.prototype.map.call(document.querySelectorAll(".wc-extra-checkbox:checked"), function (cb) { return cb.value; });
+			frappe.call({
+				method: "worcent.worcent_marketplace.proposal_api.order_gig",
+				args: {
+					gig: "{{ doc.name }}",
+					package_type: wcSelectedPackage,
+					requirements_answer: document.getElementById("wc-order-requirements").value,
+					selected_extras: JSON.stringify(selectedExtras),
+				},
+			}).then(function () {
+				document.getElementById("wc-order-form").innerHTML = '<div class="wc-chat-empty">{{ _("Order placed! Track it from your Contracts.") }}</div>';
+			}).catch(function () {
+				btn.disabled = false;
+				document.getElementById("wc-order-message").textContent = "{{ _('Could not place the order. Make sure your wallet has enough balance.') }}";
+			});
+		});
+	</script>
+	{% endif %}
 </div>
+<script src="/assets/worcent/js/saved_items.js"></script>
 {% endblock %}

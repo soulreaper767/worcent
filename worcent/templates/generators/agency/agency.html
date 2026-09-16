@@ -20,8 +20,12 @@
 			{% if doc.rating_avg %}
 			<div class="wc-rating">{{ "★" * (doc.rating_avg | round | int) }}<span class="wc-rating-muted">{{ "★" * (5 - (doc.rating_avg | round | int)) }}</span></div>
 			{% endif %}
+			<div style="margin-top: 10px;">
+				<button class="wc-btn wc-btn-outline wc-btn-sm" type="button" onclick="wcToggleSave('Agency', '{{ doc.name }}', this)">☆ {{ _("Save") }}</button>
+			</div>
 		</div>
 	</div>
+	<script src="/assets/worcent/js/saved_items.js"></script>
 
 	<div class="wc-profile-body">
 		<div class="wc-profile-main">

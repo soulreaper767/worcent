@@ -1,0 +1,21 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Saved") }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-section">
+	<h1>{{ _("Saved") }}</h1>
+	{% if saved_items %}
+	<div class="wc-grid">
+		{% for item in saved_items %}
+		<a class="wc-card" href="/{{ item.route }}">
+			<div class="wc-job-card-title">{{ item.title }}</div>
+			<div class="wc-job-card-meta">{{ item.item_doctype }}</div>
+		</a>
+		{% endfor %}
+	</div>
+	{% else %}
+	<p class="wc-muted">{{ _("Nothing saved yet — look for the ☆ Save button on a Gig, Job, Freelancer, or Agency page.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}

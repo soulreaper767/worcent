@@ -1,0 +1,30 @@
+{% if frappe.session.user != "Guest" and (worcent_freelancer_profile or worcent_employer_profile) %}
+<button class="wc-chat-launcher" id="wc-chat-launcher" type="button" aria-label="{{ _('Messages') }}">
+	<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H7l-3 3V5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+	<span class="wc-chat-unread-dot" id="wc-chat-unread-dot" style="display:none;"></span>
+</button>
+
+<div class="wc-chat-panel" id="wc-chat-panel">
+	<div class="wc-chat-header">
+		<div style="display:flex; align-items:center;">
+			<button class="wc-chat-back" id="wc-chat-back" type="button" aria-label="{{ _('Back') }}">&larr;</button>
+			<strong id="wc-chat-thread-title">{{ _("Messages") }}</strong>
+		</div>
+		<button class="wc-chat-close" id="wc-chat-close" type="button" aria-label="{{ _('Close') }}">&times;</button>
+	</div>
+
+	<div id="wc-chat-list-view">
+		<div class="wc-chat-list" id="wc-chat-list"></div>
+	</div>
+
+	<div id="wc-chat-thread-view" style="display:none; flex-direction: column; flex: 1; min-height: 0;">
+		<div class="wc-chat-body" id="wc-chat-body"></div>
+		<div class="wc-chat-footer">
+			<textarea id="wc-chat-input" placeholder="{{ _('Type a message...') }}"></textarea>
+			<button class="wc-btn wc-btn-primary wc-btn-sm" id="wc-chat-send" type="button">{{ _("Send") }}</button>
+		</div>
+	</div>
+</div>
+
+<script src="/assets/worcent/js/chat_widget.js"></script>
+{% endif %}

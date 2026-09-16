@@ -15,6 +15,10 @@ class Proposal(Document):
 	def validate(self):
 		if not self.job_posting and not self.gig:
 			frappe.throw(frappe._("Proposal must reference either a Job Posting or a Gig"))
+		if self.is_new() and self.freelancer:
+			from worcent.worcent_core.permissions import assert_not_suspended
+
+			assert_not_suspended("Freelancer Profile", self.freelancer)
 		if (
 			self.is_new()
 			and not self.flags.ignore_owner_check
@@ -29,6 +33,20 @@ class Proposal(Document):
 		if self.job_posting:
 			count = frappe.db.count("Proposal", {"job_posting": self.job_posting})
 			frappe.db.set_value("Job Posting", self.job_posting, "proposals_count", count)
+			if self.flags.in_insert:
+				self.notify_employer_of_new_proposal()
+
+	def notify_employer_of_new_proposal(self):
+		from worcent.worcent_core.notify import notify
+
+		job = frappe.db.get_value("Job Posting", self.job_posting, ["title", "employer"], as_dict=True)
+		employer_user = frappe.db.get_value("Employer Profile", job.employer, "user")
+		if employer_user:
+			notify(
+				employer_user, _("New proposal"),
+				_("You received a new proposal on {0}").format(job.title),
+				reference_doctype="Job Posting", reference_name=self.job_posting,
+			)
 
 	def on_trash(self):
 		if self.job_posting:
@@ -87,6 +105,16 @@ class Proposal(Document):
 		self.save(ignore_permissions=True)
 
 		frappe.db.set_value("Job Posting", job_posting.name, "status", "In Progress")
+
+		from worcent.worcent_core.notify import notify
+
+		freelancer_user = frappe.db.get_value("Freelancer Profile", self.freelancer, "user")
+		if freelancer_user:
+			notify(
+				freelancer_user, _("Proposal accepted"),
+				_("Your proposal for {0} was accepted!").format(job_posting.title),
+				reference_doctype="Contract", reference_name=contract.name,
+			)
 
 		for other in frappe.get_all(
 			"Proposal",

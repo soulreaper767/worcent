@@ -1,5 +1,6 @@
 import frappe
-from frappe.utils import flt
+from frappe import _
+from frappe.utils import add_days, flt, random_string
 
 from worcent.worcent_core.wallet_utils import ensure_wallet
 
@@ -21,6 +22,34 @@ def _credit(party_type, party, amount, transaction_type, remarks, reference_doct
 			"reference_doctype": reference_doctype,
 			"reference_name": reference_name,
 			"remarks": remarks,
+		}
+	).insert(ignore_permissions=True)
+
+
+def ensure_referral_code(profile_type, profile_name):
+	"""Every Freelancer/Employer automatically gets a shareable referral code
+	the moment their profile exists -- called from Freelancer/Employer
+	Profile.on_update(), right next to the existing ensure_wallet() call.
+	Idempotent: never creates a second code for the same profile."""
+	user = frappe.db.get_value(profile_type, profile_name, "user")
+	if not user or frappe.db.exists("Referral Code", {"owner_user": user}):
+		return
+
+	name_part = frappe.db.get_value(
+		profile_type, profile_name, "display_name" if profile_type == "Freelancer Profile" else "company_name"
+	) or user.split("@")[0]
+	slug = "".join(ch for ch in name_part.upper() if ch.isalnum())[:10] or "WORCENT"
+
+	code = f"{slug}-{random_string(4).upper()}"
+	while frappe.db.exists("Referral Code", code):
+		code = f"{slug}-{random_string(4).upper()}"
+
+	frappe.get_doc(
+		{
+			"doctype": "Referral Code",
+			"code": code,
+			"owner_user": user,
+			"status": "Active",
 		}
 	).insert(ignore_permissions=True)
 
@@ -71,15 +100,26 @@ def apply_verification_bonus(profile_type, profile_name):
 
 def apply_referral_signup(profile_type, profile_name, referral_code_name):
 	"""Called right after a new Freelancer/Employer Profile is created with a
-	referral code attached: credits the *referred* user's signup bonus (per
-	the code's own configured amount, on top of/replacing the platform
-	default — we use whichever is larger so a referral is never worse than
-	signing up directly) and logs the Referral for later commission payout."""
+	referral code attached: validates the code's Referral Program conditions
+	(active, not expired, under its redemption cap), credits the *referred*
+	user's signup bonus, and logs the Referral for later reward payout."""
 	if not referral_code_name or not frappe.db.exists("Referral Code", referral_code_name):
 		return
 	code = frappe.get_doc("Referral Code", referral_code_name)
 	if code.status != "Active":
+		frappe.throw(_("This referral link is no longer active."))
+
+	if not code.program:
 		return
+	program = frappe.get_cached_doc("Referral Program", code.program)
+	if not program.is_active:
+		frappe.throw(_("This referral link is no longer valid."))
+	if program.applies_to != "Both" and program.applies_to != profile_type.replace(" Profile", ""):
+		frappe.throw(_("This referral link isn't valid for {0} sign-ups.").format(profile_type.replace(" Profile", "")))
+	if program.validity_days and frappe.utils.getdate() > add_days(frappe.utils.getdate(code.creation), program.validity_days):
+		frappe.throw(_("This referral link has expired."))
+	if program.max_redemptions and flt(code.total_signups) >= program.max_redemptions:
+		frappe.throw(_("This referral link has reached its maximum number of uses."))
 
 	if frappe.db.exists("Referral", {"referral_code": code.name, "referred_profile": profile_name}):
 		return
@@ -98,12 +138,18 @@ def apply_referral_signup(profile_type, profile_name, referral_code_name):
 	code.total_signups = flt(code.total_signups) + 1
 	code.save(ignore_permissions=True)
 
+	if program.referred_signup_bonus:
+		_credit(
+			profile_type, profile_name, program.referred_signup_bonus, "Signup Bonus",
+			f"Referral sign-up bonus ({program.program_name})", profile_type, profile_name,
+		)
+
 
 def maybe_pay_referrer_commission(profile_type, profile_name, platform_earning_amount):
-	"""Called whenever the referred user's activity generates the platform's
-	*first* earning from them (freelancer commission or employer fee): pays
-	the referrer a % of that platform earning (not of the raw transaction),
-	once, then marks the Referral Rewarded so it never fires again."""
+	"""Called whenever the referred user's activity generates a platform
+	earning: once that earning crosses the program's min_qualifying_amount,
+	pays the referrer according to the program's reward_type, then marks the
+	Referral Rewarded (one_time_reward_only) so it never fires again."""
 	referral = frappe.db.get_value(
 		"Referral",
 		{"referred_type": profile_type, "referred_profile": profile_name, "status": "Signed Up"},
@@ -113,10 +159,12 @@ def maybe_pay_referrer_commission(profile_type, profile_name, platform_earning_a
 		return
 	referral_doc = frappe.get_doc("Referral", referral)
 	code = frappe.get_doc("Referral Code", referral_doc.referral_code)
+	if not code.program:
+		return
+	program = frappe.get_cached_doc("Referral Program", code.program)
 
-	commission = flt(platform_earning_amount) * flt(code.commission_percent_referrer) / 100
-	if commission <= 0:
-		referral_doc.status = "Rewarded"
+	referral_doc.total_earning_seen = flt(referral_doc.get("total_earning_seen")) + flt(platform_earning_amount)
+	if program.min_qualifying_amount and flt(referral_doc.total_earning_seen) < flt(program.min_qualifying_amount):
 		referral_doc.save(ignore_permissions=True)
 		return
 
@@ -129,18 +177,45 @@ def maybe_pay_referrer_commission(profile_type, profile_name, platform_earning_a
 	else:
 		return
 
-	_credit(
-		referrer_type, referrer, commission, "Referral Commission",
-		f"Referral commission for {profile_name}", "Referral", referral_doc.name,
-	)
+	reward = _compute_reward(program, referrer_type, referrer, platform_earning_amount)
+	if reward:
+		_credit(
+			referrer_type, referrer, reward, "Referral Commission",
+			f"Referral reward for {profile_name} ({program.program_name})", "Referral", referral_doc.name,
+		)
 
-	from worcent.worcent_finance.accounting_engine import record_referral_commission
+		from worcent.worcent_finance.accounting_engine import record_referral_commission
 
-	record_referral_commission(referrer_type, referrer, commission, referral_doc.name)
+		record_referral_commission(referrer_type, referrer, reward, referral_doc.name)
+
+		code.total_commission_earned = flt(code.total_commission_earned) + reward
+		code.save(ignore_permissions=True)
 
 	referral_doc.status = "Rewarded"
-	referral_doc.commission_paid = commission
+	referral_doc.commission_paid = flt(reward)
 	referral_doc.save(ignore_permissions=True)
 
-	code.total_commission_earned = flt(code.total_commission_earned) + commission
-	code.save(ignore_permissions=True)
+
+def _compute_reward(program, referrer_type, referrer, platform_earning_amount):
+	if program.reward_type == "Percent of First Platform Earning":
+		return flt(platform_earning_amount) * flt(program.reward_value) / 100
+	if program.reward_type in ("Flat Signup Bonus", "Flat Bonus on First Milestone"):
+		return flt(program.reward_value)
+	if program.reward_type == "Free Premium Days":
+		_extend_premium_days(referrer_type, referrer, int(program.reward_value))
+		return 0
+	return 0
+
+
+def _extend_premium_days(referrer_type, referrer, days):
+	if not days:
+		return
+	tier_for = "Freelancer" if referrer_type == "Freelancer Profile" else "Employer"
+	sub = frappe.db.get_value(
+		"Premium Subscription",
+		{"user": frappe.db.get_value(referrer_type, referrer, "user"), "status": "Active"},
+		"name",
+	)
+	if sub:
+		current = frappe.db.get_value("Premium Subscription", sub, "renews_on")
+		frappe.db.set_value("Premium Subscription", sub, "renews_on", add_days(current, days))

@@ -26,6 +26,25 @@ class FreelancerProfile(WebsiteGenerator):
 		self.sync_employer_link()
 		self.apply_default_currency()
 		self.lock_referral_code()
+		self.validate_licenses()
+		self.validate_sports_profiles()
+
+	def validate_licenses(self):
+		for row in self.licenses:
+			requires_license = frappe.db.get_value("Skill Category", row.category, "requires_license")
+			if not requires_license:
+				frappe.throw(
+					_(
+						"Row #{0}: {1} is not a Regulated Service category. Add it under Skills instead, "
+						"or pick a category that actually requires a license."
+					).format(row.idx, row.category)
+				)
+
+	def validate_sports_profiles(self):
+		for row in self.sports_profiles:
+			parent = frappe.db.get_value("Skill Category", row.sport, "parent_skill_category")
+			if parent != "Sports":
+				frappe.throw(_("Row #{0}: {1} is not listed under the Sports category.").format(row.idx, row.sport))
 
 	def lock_referral_code(self):
 		if self.is_new():
@@ -57,9 +76,10 @@ class FreelancerProfile(WebsiteGenerator):
 	def on_update(self):
 		self.sync_freelancer_role()
 		from worcent.worcent_core.wallet_utils import ensure_wallet
-		from worcent.worcent_finance.referral_engine import apply_referral_signup, apply_signup_bonus
+		from worcent.worcent_finance.referral_engine import apply_referral_signup, apply_signup_bonus, ensure_referral_code
 
 		ensure_wallet("Freelancer Profile", self.name)
+		ensure_referral_code("Freelancer Profile", self.name)
 		apply_signup_bonus("Freelancer Profile", self.name)
 		if self.referred_by_code:
 			apply_referral_signup("Freelancer Profile", self.name, self.referred_by_code)
@@ -76,11 +96,12 @@ class FreelancerProfile(WebsiteGenerator):
 		from worcent.worcent_growth.tools_engine import calculate_worcent_score
 
 		years_experience = max([s.years_experience or 0 for s in self.skills], default=0)
+		verified_certifications = len([l for l in self.licenses if l.verification_status == "Verified"])
 		return calculate_worcent_score(
 			{
 				"skills": [s.skill for s in self.skills],
 				"years_experience": years_experience,
-				"certifications": 0,
+				"certifications": verified_certifications,
 				"portfolio_items": len(self.portfolio or []),
 				"completed_jobs": self.jobs_completed or 0,
 				"rating_avg": self.rating_avg or 0,
@@ -91,6 +112,8 @@ class FreelancerProfile(WebsiteGenerator):
 		context.no_cache = 1
 		context.title = self.display_name
 		context.worcent_score = self.compute_worcent_score()
+		if self.user == frappe.session.user:
+			context.referral_code = frappe.db.get_value("Referral Code", {"owner_user": self.user}, "code")
 		context.parents = [{"name": _("Freelancers"), "route": "freelancers"}]
 		context.reviews = frappe.get_all(
 			"Review",

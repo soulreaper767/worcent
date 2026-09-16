@@ -10,6 +10,7 @@
   "raised_by",
   "column_break_head",
   "priority",
+  "category",
   "status",
   "assigned_to",
   "section_break_related",
@@ -70,6 +71,14 @@
    "label": "Status",
    "options": "Open\nIn Progress\nResolved\nClosed",
    "read_only_depends_on": "eval:!in_list([\"Support Agent\", \"Worcent Admin\", \"System Manager\"], frappe.user_roles)"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Category",
+   "options": "Ticket Category"
   },
   {
    "fieldname": "assigned_to",

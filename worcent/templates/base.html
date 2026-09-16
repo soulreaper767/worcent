@@ -46,6 +46,7 @@
 
 			<div class="wc-navbar-links" id="wc-navbar-links">
 				<a class="wc-navbar-link" href="/jobs">{{ _("Find Work") }}</a>
+				<a class="wc-navbar-link" href="/gigs">{{ _("Browse Gigs") }}</a>
 				<a class="wc-navbar-link" href="/freelancers">{{ _("Hire Talent") }}</a>
 				<a class="wc-navbar-link" href="/tools">{{ _("Free Tools") }}</a>
 
@@ -62,6 +63,9 @@
 					<a class="wc-btn wc-btn-primary wc-btn-sm wc-navbar-cta" href="/join?type=employer">{{ _("Post a Job") }}</a>
 					<a class="wc-navbar-link" href="/login">{{ _("Login") }}</a>
 				{% else %}
+					{% if worcent_freelancer_profile or worcent_employer_profile %}
+					<a class="wc-navbar-link" href="/messages">{{ _("Messages") }}</a>
+					{% endif %}
 					<a class="wc-navbar-link" href="{% if worcent_freelancer_profile %}/desk/my-freelance{% elif worcent_employer_profile %}/desk/my-business{% else %}/app{% endif %}">{{ _("My Workspace") }}</a>
 					<div class="wc-nav-dropdown">
 						<a class="wc-navbar-link wc-nav-dropdown-toggle" href="#">
@@ -81,6 +85,7 @@
 	{% block content %}{{ content }}{% endblock %}
 
 	{% include "templates/includes/footer/footer.html" %}
+	{% include "templates/includes/chat_widget.html" %}
 
 	<div id="all-symbols" style="display:none"></div>
 	{%- for path in web_include_icons -%}{{ include_icons(path) }}{%- endfor -%}

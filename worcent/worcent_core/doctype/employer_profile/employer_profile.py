@@ -62,9 +62,10 @@ class EmployerProfile(WebsiteGenerator):
 	def on_update(self):
 		self.sync_employer_role()
 		from worcent.worcent_core.wallet_utils import ensure_wallet
-		from worcent.worcent_finance.referral_engine import apply_referral_signup, apply_signup_bonus
+		from worcent.worcent_finance.referral_engine import apply_referral_signup, apply_signup_bonus, ensure_referral_code
 
 		ensure_wallet("Employer Profile", self.name)
+		ensure_referral_code("Employer Profile", self.name)
 		apply_signup_bonus("Employer Profile", self.name)
 		if self.referred_by_code:
 			apply_referral_signup("Employer Profile", self.name, self.referred_by_code)
@@ -81,6 +82,8 @@ class EmployerProfile(WebsiteGenerator):
 		context.no_cache = 1
 		context.title = self.company_name
 		context.parents = [{"name": _("Employers"), "route": "employers"}]
+		if self.user == frappe.session.user:
+			context.referral_code = frappe.db.get_value("Referral Code", {"owner_user": self.user}, "code")
 		context.job_postings = frappe.get_all(
 			"Job Posting",
 			filters={"employer": self.name, "status": "Open"},

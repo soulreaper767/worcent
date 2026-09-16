@@ -76,6 +76,10 @@ class AdvanceRequest(Document):
 		).insert(ignore_permissions=True)
 		self.db_set("status", "Repaying")
 
+		from worcent.worcent_finance.accounting_engine import record_advance_disbursement
+
+		record_advance_disbursement(self.freelancer, self.amount_requested, self.name)
+
 	@frappe.whitelist()
 	def pay_installment(self, row_name):
 		if self.status != "Repaying":
@@ -116,6 +120,15 @@ class AdvanceRequest(Document):
 
 		row.status = "Paid"
 		self.save(ignore_permissions=True)
+
+		total_due = flt(self.amount_requested) * (1 + flt(self.interest_rate) / 100)
+		total_interest = flt(self.amount_requested) * flt(self.interest_rate) / 100
+		interest_portion = round(flt(row.amount) / total_due * total_interest, 2) if total_due else 0
+		principal_portion = flt(row.amount) - interest_portion
+
+		from worcent.worcent_finance.accounting_engine import record_advance_repayment
+
+		record_advance_repayment(self.freelancer, principal_portion, interest_portion, self.name)
 
 		if all(r.status == "Paid" for r in self.repayment_schedule):
 			self.db_set("status", "Closed")

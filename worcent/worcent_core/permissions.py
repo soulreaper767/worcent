@@ -1,4 +1,15 @@
 import frappe
+from frappe import _
+
+
+def assert_not_suspended(profile_type, profile_name):
+	"""Blocks a Suspended Freelancer/Employer from taking any action that
+	creates new marketplace activity (posting a Gig/Job, funding a
+	milestone, requesting a withdrawal, submitting a Proposal). Suspension
+	was previously decorative -- this is what actually enforces it."""
+	status = frappe.db.get_value(profile_type, profile_name, "status")
+	if status == "Suspended":
+		frappe.throw(_("This account is suspended and can't do that right now. Contact support."))
 
 
 def _is_admin(user):
@@ -931,3 +942,79 @@ def wallet_top_up_has_permission(doc, ptype=None, user=None):
 	if ptype in ("write", "delete", "cancel"):
 		return owns_it and doc.status == "Pending"
 	return owns_it
+
+
+# --- Conversation / Message: only the two named parties (or an admin) can
+# see a conversation and its messages. ---
+
+
+def conversation_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	employer = get_employer_profile(user)
+	parts = []
+	if freelancer:
+		parts.append(f"`tabConversation`.freelancer_profile = {frappe.db.escape(freelancer)}")
+	if employer:
+		parts.append(f"`tabConversation`.employer_profile = {frappe.db.escape(employer)}")
+	if not parts:
+		return "1=0"
+	return "(" + " or ".join(parts) + ")"
+
+
+def conversation_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if ptype == "create" or doc.is_new():
+		return True
+	return doc.freelancer_profile == get_freelancer_profile(user) or doc.employer_profile == get_employer_profile(user)
+
+
+def message_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	freelancer = get_freelancer_profile(user)
+	employer = get_employer_profile(user)
+	parts = []
+	if freelancer:
+		parts.append(
+			f"`tabMessage`.conversation in (select name from `tabConversation` where freelancer_profile = {frappe.db.escape(freelancer)})"
+		)
+	if employer:
+		parts.append(
+			f"`tabMessage`.conversation in (select name from `tabConversation` where employer_profile = {frappe.db.escape(employer)})"
+		)
+	if not parts:
+		return "1=0"
+	return "(" + " or ".join(parts) + ")"
+
+
+def message_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return True
+	if ptype == "create" or doc.is_new():
+		return True
+	convo = frappe.db.get_value("Conversation", doc.conversation, ["freelancer_profile", "employer_profile"], as_dict=True)
+	if not convo:
+		return False
+	return convo.freelancer_profile == get_freelancer_profile(user) or convo.employer_profile == get_employer_profile(user)
+
+
+# --- Saved Item: strictly private to the user who saved it. ---
+
+
+def saved_item_query_conditions(user):
+	user = user or frappe.session.user
+	if _is_admin(user):
+		return ""
+	return f"`tabSaved Item`.user = {frappe.db.escape(user)}"
+
+
+def saved_item_has_permission(doc, ptype=None, user=None):
+	user = user or frappe.session.user
+	return _is_admin(user) or ptype == "create" or doc.is_new() or doc.user == user

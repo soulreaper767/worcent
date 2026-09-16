@@ -11,6 +11,12 @@ class InsuranceClaim(Document):
 	def autoname(self):
 		set_name_by_naming_series(self)
 
+	def validate(self):
+		if self.has_value_changed("status") and self.status in ("Approved", "Paid") and not self.flags.via_approve_and_pay:
+			frappe.throw(
+				_("A claim can only be approved/paid via the 'Approve & Pay' action — it actually moves the money.")
+			)
+
 	def _require_processing_role(self):
 		if not PROCESSING_ROLES.intersection(frappe.get_roles()):
 			frappe.throw(_("Only Finance can process an insurance claim."))
@@ -69,5 +75,6 @@ class InsuranceClaim(Document):
 		)
 
 		self.status = "Paid"
+		self.flags.via_approve_and_pay = True
 		self.save(ignore_permissions=True)
 		frappe.db.set_value("Insurance Policy", self.policy, "status", "Claimed")

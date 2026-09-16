@@ -9,6 +9,7 @@
   "naming_series",
   "job_posting",
   "gig",
+  "package_type",
   "freelancer",
   "status",
   "column_break_head",
@@ -42,6 +43,13 @@
    "in_list_view": 1,
    "label": "Gig",
    "options": "Gig"
+  },
+  {
+   "depends_on": "eval:doc.gig",
+   "fieldname": "package_type",
+   "fieldtype": "Select",
+   "label": "Package",
+   "options": "\nBasic\nStandard\nPremium"
   },
   {
    "fieldname": "freelancer",
@@ -85,6 +93,12 @@
    "fieldname": "cover_letter",
    "fieldtype": "Text Editor",
    "label": "Cover Letter"
+  },
+  {
+   "fieldname": "buyer_requirements_answer",
+   "fieldtype": "Text",
+   "label": "Buyer's Answer to Requirements",
+   "description": "What the buyer told us before we started, in answer to the package's requirements prompt."
   }
  ],
  "links": [],

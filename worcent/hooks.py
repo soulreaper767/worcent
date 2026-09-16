@@ -69,6 +69,9 @@ after_migrate = "worcent.install.after_migrate"
 scheduler_events = {
 	"daily": [
 		"worcent.worcent_finance.escrow_engine.auto_release_overdue_milestones",
+		"worcent.worcent_growth.badge_engine.evaluate_badges",
+		"worcent.worcent_finance.premium_subscription_engine.process_renewals",
+		"worcent.install.self_heal_desk_experience",
 	],
 	"hourly": [
 		"worcent.worcent_trust_support.doctype.support_ticket.support_ticket_engine.escalate_unanswered_tickets",
@@ -109,6 +112,9 @@ permission_query_conditions = {
 	"Work Submission": "worcent.worcent_core.permissions.work_submission_query_conditions",
 	"Advance Request": "worcent.worcent_core.permissions.advance_request_query_conditions",
 	"Wallet Top Up": "worcent.worcent_core.permissions.wallet_top_up_query_conditions",
+	"Conversation": "worcent.worcent_core.permissions.conversation_query_conditions",
+	"Message": "worcent.worcent_core.permissions.message_query_conditions",
+	"Saved Item": "worcent.worcent_core.permissions.saved_item_query_conditions",
 }
 
 has_permission = {
@@ -149,4 +155,7 @@ has_permission = {
 	"Work Submission": "worcent.worcent_core.permissions.work_submission_has_permission",
 	"Advance Request": "worcent.worcent_core.permissions.advance_request_has_permission",
 	"Wallet Top Up": "worcent.worcent_core.permissions.wallet_top_up_has_permission",
+	"Conversation": "worcent.worcent_core.permissions.conversation_has_permission",
+	"Message": "worcent.worcent_core.permissions.message_has_permission",
+	"Saved Item": "worcent.worcent_core.permissions.saved_item_has_permission",
 }

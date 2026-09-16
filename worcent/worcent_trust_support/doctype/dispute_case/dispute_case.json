@@ -23,7 +23,8 @@
   "section_break_appeal",
   "appeal_status",
   "appeal_notes",
-  "appeal_resolved_by"
+  "appeal_resolved_by",
+  "reversal_applied"
  ],
  "fields": [
   {
@@ -149,6 +150,14 @@
    "fieldtype": "Link",
    "label": "Appeal Resolved By",
    "options": "User",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Set automatically once the original resolution's funds have been reversed back into escrow following an upheld appeal. Guards against reversing twice.",
+   "fieldname": "reversal_applied",
+   "fieldtype": "Check",
+   "label": "Reversal Applied",
    "read_only": 1
   }
  ],

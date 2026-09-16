@@ -1,0 +1,156 @@
+{
+ "actions": [],
+ "autoname": "field:program_name",
+ "creation": "2026-09-16 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "program_name",
+  "is_active",
+  "is_default",
+  "applies_to",
+  "column_break_head",
+  "reward_type",
+  "reward_value",
+  "referred_signup_bonus",
+  "section_break_conditions",
+  "min_qualifying_amount",
+  "max_redemptions",
+  "column_break_conditions",
+  "validity_days",
+  "one_time_reward_only"
+ ],
+ "fields": [
+  {
+   "fieldname": "program_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Program Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Active"
+  },
+  {
+   "default": "0",
+   "description": "New Referral Codes are assigned to whichever program has this checked. Only one program should be the default at a time.",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Default Program"
+  },
+  {
+   "default": "Both",
+   "fieldname": "applies_to",
+   "fieldtype": "Select",
+   "label": "Applies To",
+   "options": "Freelancer\nEmployer\nBoth"
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Percent of First Platform Earning",
+   "fieldname": "reward_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Reward Type",
+   "options": "Flat Signup Bonus\nPercent of First Platform Earning\nFlat Bonus on First Milestone\nFree Premium Days",
+   "reqd": 1
+  },
+  {
+   "description": "Meaning depends on Reward Type: a dollar amount for Flat Signup Bonus / Flat Bonus on First Milestone, a percentage for Percent of First Platform Earning, or a day-count for Free Premium Days.",
+   "fieldname": "reward_value",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Reward Value",
+   "reqd": 1
+  },
+  {
+   "default": "5",
+   "description": "One-time wallet bonus credited to whoever signs up using a code under this program, regardless of the referrer's own reward type.",
+   "fieldname": "referred_signup_bonus",
+   "fieldtype": "Currency",
+   "label": "Sign-up Bonus for Referred User (USD)"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_conditions",
+   "fieldtype": "Section Break",
+   "label": "Conditions"
+  },
+  {
+   "default": "0",
+   "description": "The referred user's activity must generate at least this much in platform earnings before the referrer's reward fires. 0 = no minimum.",
+   "fieldname": "min_qualifying_amount",
+   "fieldtype": "Currency",
+   "label": "Min Qualifying Platform Earning (USD)"
+  },
+  {
+   "default": "0",
+   "description": "Maximum number of successful (rewarded) referrals a single code under this program can produce. 0 = unlimited.",
+   "fieldname": "max_redemptions",
+   "fieldtype": "Int",
+   "label": "Max Redemptions per Code"
+  },
+  {
+   "fieldname": "column_break_conditions",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "A Referral Code under this program stops accepting new signups this many days after the code was created. 0 = never expires.",
+   "fieldname": "validity_days",
+   "fieldtype": "Int",
+   "label": "Code Validity (days)"
+  },
+  {
+   "default": "1",
+   "description": "The referrer reward fires once per referred user and never again. Reserved for future recurring-reward support if unchecked.",
+   "fieldname": "one_time_reward_only",
+   "fieldtype": "Check",
+   "label": "One-Time Reward Only"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-16 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Finance",
+ "name": "Referral Program",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Finance Manager"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

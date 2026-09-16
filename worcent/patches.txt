@@ -4,3 +4,5 @@
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
+worcent.patches.v1_0.seed_service_categories
+worcent.patches.v1_1.seed_referral_programs

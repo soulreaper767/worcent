@@ -18,7 +18,9 @@ def get_context(context):
 	context.selected_budget_type = budget_type
 	context.search = search
 
-	filters = {"published": 1, "status": "Open"}
+	active_employers = frappe.get_all("Employer Profile", filters={"status": ["!=", "Suspended"]}, pluck="name")
+
+	filters = {"published": 1, "status": "Open", "employer": ["in", active_employers]}
 	if category:
 		filters["category"] = category
 	if budget_type:

@@ -90,6 +90,9 @@ def after_install():
 	seed_paid_mentorship_demo()
 	seed_currency_diverse_users()
 	seed_rank_demo()
+	from worcent.demo_data_v2 import seed_v2_demo_data
+
+	seed_v2_demo_data()
 	grant_cross_app_permissions()
 	configure_desk_experience()
 	frappe.db.set_value("Website Settings", "Website Settings", "home_page", "index")
@@ -112,6 +115,9 @@ def reseed_demo_data():
 	seed_paid_mentorship_demo()
 	seed_currency_diverse_users()
 	seed_rank_demo()
+	from worcent.demo_data_v2 import seed_v2_demo_data
+
+	seed_v2_demo_data()
 	configure_desk_experience()
 	frappe.db.commit()
 
@@ -353,6 +359,16 @@ def seed_fiscal_years():
 # shows workspaces relevant to a freelance marketplace (mirrors the proven
 # pattern already running on the caonline site).
 # ---------------------------------------------------------------------------
+
+
+def self_heal_desk_experience():
+	"""Scheduled daily (see hooks.py). apps.txt on this bench lists erpnext
+	*after* worcent, so an ERPNext migrate that runs after ours can silently
+	re-show a workspace we deliberately hid or reset a role restriction --
+	there's no "after every app's migrate" hook to pin the ordering, so this
+	just re-asserts the two cheap, fully idempotent checks daily instead."""
+	hide_irrelevant_workspaces()
+	restrict_workspace_roles()
 
 
 def configure_desk_experience():
@@ -731,9 +747,9 @@ def seed_currencies():
 
 
 def seed_skill_categories():
-	for name in ["Web Development", "Design & Creative", "Writing & Translation", "Sales & Marketing", "Admin Support"]:
-		if not frappe.db.exists("Skill Category", name):
-			frappe.get_doc({"doctype": "Skill Category", "category_name": name}).insert(ignore_permissions=True)
+	from worcent.worcent_core.service_categories import seed_service_categories
+
+	seed_service_categories()
 
 
 def seed_skills():
@@ -1362,6 +1378,11 @@ def seed_demo_marketplace_data():
 		).insert(ignore_permissions=True)
 
 	if not frappe.db.exists("Dispute Case", {"contract": contract}):
+		# Fund it first -- a dispute over a milestone that was never actually
+		# escrowed has nothing for the arbitrator to resolve financially
+		# (DisputeCase.resolve() now throws rather than silently no-opping).
+		if frappe.db.get_value("Milestone", milestone2, "status") == "Pending":
+			fund_milestone(milestone2)
 		frappe.get_doc(
 			{
 				"doctype": "Dispute Case",
@@ -1851,12 +1872,16 @@ def seed_extra_marketplace_data():
 		)
 		policy.insert(ignore_permissions=True)
 		if not frappe.db.exists("Insurance Claim", {"policy": policy.name}):
-			frappe.get_doc(
+			claim = frappe.get_doc(
 				{
 					"doctype": "Insurance Claim", "policy": policy.name, "reason": "Minor medical expense reimbursement",
-					"amount_claimed": 120, "status": "Approved",
+					"amount_claimed": 120,
 				}
-			).insert(ignore_permissions=True)
+			)
+			claim.insert(ignore_permissions=True)
+			# Real approval path -- actually moves the money (wallet credit + JE),
+			# not a bare status label (Insurance Claim.validate() now blocks that).
+			claim.approve_and_pay()
 
 	# --- premium subscriptions ---
 	pro_plan = frappe.db.get_value("Premium Subscription Plan", {"tier_for": "Freelancer"}, "name")

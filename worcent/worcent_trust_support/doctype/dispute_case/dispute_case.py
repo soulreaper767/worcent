@@ -86,23 +86,93 @@ class DisputeCase(Document):
 			self.appeal_notes = (self.appeal_notes or "") + f"\n\nAppeal decision: {notes}"
 		self.save(ignore_permissions=True)
 
-		if upheld:
-			frappe.msgprint(
-				_(
-					"Appeal upheld. The original resolution stands on record for audit purposes — if funds "
-					"need correcting, post a Wallet Transaction of type 'Adjustment' for the affected wallet(s)."
-				)
-			)
 		return self.appeal_status
+
+	@frappe.whitelist()
+	def compute_appeal_reversal(self):
+		"""Read-only preview of exactly what reversing this dispute's original
+		resolution would move -- shown to the admin as a confirm dialog before
+		apply_appeal_reversal() actually commits it."""
+		if self.appeal_status != "Appeal Upheld":
+			frappe.throw(_("This appeal hasn't been upheld."))
+		if self.reversal_applied:
+			frappe.throw(_("The reversal has already been applied."))
+
+		from worcent.worcent_finance.escrow_engine import compute_resolution_reversal
+
+		plan = compute_resolution_reversal(self.name)
+		if not plan:
+			frappe.throw(_("There's nothing to reverse -- the milestone was never released/refunded, or there's no milestone on this dispute."))
+		for line in plan["lines"]:
+			line["party_title"] = frappe.db.get_value(
+				line["party_type"], line["party"], "display_name" if line["party_type"] == "Freelancer Profile" else "company_name"
+			)
+		return plan
+
+	@frappe.whitelist()
+	def apply_appeal_reversal(self):
+		if self.appeal_status != "Appeal Upheld":
+			frappe.throw(_("This appeal hasn't been upheld."))
+		if self.reversal_applied:
+			frappe.throw(_("The reversal has already been applied."))
+		if not ARBITRATION_ROLES.intersection(frappe.get_roles()):
+			frappe.throw(_("Only a Dispute Arbitrator or Admin/Finance can apply a reversal."))
+
+		from worcent.worcent_finance.escrow_engine import apply_resolution_reversal
+
+		plan = apply_resolution_reversal(self.name)
+		self.db_set("reversal_applied", 1)
+
+		from worcent.worcent_core.notify import notify
+
+		contract = frappe.db.get_value("Contract", self.contract, ["freelancer", "employer"], as_dict=True)
+		for profile_type, profile in (("Freelancer Profile", contract.freelancer), ("Employer Profile", contract.employer)):
+			user = frappe.db.get_value(profile_type, profile, "user")
+			if user:
+				notify(
+					user, _("Dispute appeal upheld"),
+					_("The resolution on your dispute was reversed after a successful appeal. Funds are back in escrow pending a new decision."),
+					reference_doctype="Dispute Case", reference_name=self.name,
+				)
+		return plan
 
 	def mark_contract_disputed(self):
 		frappe.db.set_value("Contract", self.contract, "status", "Disputed")
 		if self.milestone:
 			frappe.db.set_value("Milestone", self.milestone, "status", "Disputed")
+		self.notify_other_party()
+
+	def notify_other_party(self):
+		from worcent.worcent_core.notify import notify
+
+		contract = frappe.db.get_value("Contract", self.contract, ["freelancer", "employer"], as_dict=True)
+		freelancer_user = frappe.db.get_value("Freelancer Profile", contract.freelancer, "user")
+		employer_user = frappe.db.get_value("Employer Profile", contract.employer, "user")
+		other_user = employer_user if self.raised_by == freelancer_user else freelancer_user
+		if other_user:
+			notify(
+				other_user, _("Dispute opened"),
+				_("A dispute was opened on your contract: {0}").format(self.reason or ""),
+				reference_doctype="Dispute Case", reference_name=self.name,
+			)
+
+	def notify_resolution(self):
+		from worcent.worcent_core.notify import notify
+
+		contract = frappe.db.get_value("Contract", self.contract, ["freelancer", "employer"], as_dict=True)
+		for profile_type, profile in (("Freelancer Profile", contract.freelancer), ("Employer Profile", contract.employer)):
+			user = frappe.db.get_value(profile_type, profile, "user")
+			if user:
+				notify(
+					user, _("Dispute resolved"),
+					_("Your dispute was resolved: {0}").format(self.status),
+					reference_doctype="Dispute Case", reference_name=self.name,
+				)
 
 	def resolve(self):
 		if not self.milestone:
 			frappe.db.set_value("Contract", self.contract, "status", "Active")
+			self.notify_resolution()
 			return
 
 		from worcent.worcent_finance.escrow_engine import release_milestone, refund_milestone, split_milestone
@@ -110,14 +180,23 @@ class DisputeCase(Document):
 		escrow_status = frappe.db.get_value(
 			"Escrow Transaction", {"milestone": self.milestone, "status": "Held"}, "name"
 		)
-		if escrow_status:
-			if self.status == "Resolved-Freelancer":
-				release_milestone(self.milestone)
-			elif self.status == "Resolved-Employer":
-				refund_milestone(self.milestone)
-			elif self.status == "Resolved-Split":
-				if not self.split_freelancer_percent:
-					frappe.throw(_("Set the Freelancer Share % before resolving as split"))
-				split_milestone(self.milestone, self.split_freelancer_percent, remarks=self.resolution_notes)
+		if not escrow_status:
+			frappe.throw(
+				_(
+					"This milestone has no funds currently held in escrow, so resolving this dispute as "
+					"{0} would move no money. Nothing was ever funded (or it was already resolved) — "
+					"double-check the milestone before resolving."
+				).format(self.status)
+			)
+
+		if self.status == "Resolved-Freelancer":
+			release_milestone(self.milestone)
+		elif self.status == "Resolved-Employer":
+			refund_milestone(self.milestone)
+		elif self.status == "Resolved-Split":
+			if not self.split_freelancer_percent:
+				frappe.throw(_("Set the Freelancer Share % before resolving as split"))
+			split_milestone(self.milestone, self.split_freelancer_percent, remarks=self.resolution_notes)
 
 		frappe.db.set_value("Contract", self.contract, "status", "Active")
+		self.notify_resolution()

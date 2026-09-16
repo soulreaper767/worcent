@@ -21,6 +21,10 @@ ESCROW_ACCOUNT = "Escrow Held"
 COMMISSION_INCOME_ACCOUNT = "Platform Commission Income"
 REFERRAL_EXPENSE_ACCOUNT = "Referral Commission Expense"
 BONUS_EXPENSE_ACCOUNT = "Promotional Bonuses Expense"
+ADVANCES_ACCOUNT = "Advances to Freelancers"
+INTEREST_INCOME_ACCOUNT = "Interest Income"
+INSURANCE_INCOME_ACCOUNT = "Insurance Premium Income"
+SUBSCRIPTION_INCOME_ACCOUNT = "Subscription Income"
 CASH_ACCOUNT = "Cash"
 CUSTOMER_ADVANCES_ACCOUNT = "Customer Advances"
 CREDITORS_ACCOUNT = "Creditors"
@@ -42,6 +46,10 @@ def ensure_accounts():
 	_ensure_account(COMMISSION_INCOME_ACCOUNT, "Direct Income", "Income")
 	_ensure_account(REFERRAL_EXPENSE_ACCOUNT, "Indirect Expenses", "Expense")
 	_ensure_account(BONUS_EXPENSE_ACCOUNT, "Indirect Expenses", "Expense")
+	_ensure_account(ADVANCES_ACCOUNT, "Current Assets", "Asset")
+	_ensure_account(INTEREST_INCOME_ACCOUNT, "Direct Income", "Income")
+	_ensure_account(INSURANCE_INCOME_ACCOUNT, "Direct Income", "Income")
+	_ensure_account(SUBSCRIPTION_INCOME_ACCOUNT, "Direct Income", "Income")
 
 	frappe.db.set_value(
 		"Company",
@@ -147,6 +155,17 @@ def _create_party(party_type, party_name, party_doctype):
 def _post_je(lines, remarks, reference_doctype=None, reference_name=None):
 	"""lines: list of dicts {account, debit=0, credit=0, party_type=None, party=None}."""
 	try:
+		# Frappe's own get_locale_value() (frappe/locale.py) throws
+		# UnboundLocalError when frappe.local.lang is unset -- true in any
+		# script/background context (bench execute/console, scheduled jobs
+		# like auto_release_overdue_milestones), which is exactly where this
+		# function is most often called from. Journal Entry validation always
+		# needs a number format, so without this every JE in a non-request
+		# context silently failed (swallowed by the except below) and no one
+		# would ever notice. Not a worcent bug -- defended here since we
+		# can't patch frappe core from an app.
+		if not getattr(frappe.local, "lang", None):
+			frappe.local.lang = frappe.db.get_default("lang") or "en"
 		je = frappe.get_doc(
 			{
 				"doctype": "Journal Entry",
@@ -311,3 +330,60 @@ def record_bonus(party_type, party_name, amount, reference_name, label="Bonus"):
 		remarks=f"{label}: {reference_name}",
 		reference_name=reference_name,
 	)
+
+
+def record_advance_disbursement(freelancer, amount, reference_name):
+	"""The platform lends a freelancer money against future earnings: an
+	internal loan, tracked as its own asset -- not routed through the
+	freelancer's Creditors/Supplier account, since this isn't platform
+	commission owed to them, it's cash the platform is now owed back."""
+	if not amount:
+		return
+	_post_je(
+		[{"account": _acc(ADVANCES_ACCOUNT), "debit": amount}, {"account": _acc(CASH_ACCOUNT), "credit": amount}],
+		remarks=f"Advance disbursed: {reference_name}",
+		reference_name=reference_name,
+	)
+
+
+def record_advance_repayment(freelancer, principal, interest, reference_name):
+	if not principal and not interest:
+		return
+	lines = [{"account": _acc(CASH_ACCOUNT), "debit": flt(principal) + flt(interest)}]
+	if principal:
+		lines.append({"account": _acc(ADVANCES_ACCOUNT), "credit": principal})
+	if interest:
+		lines.append({"account": _acc(INTEREST_INCOME_ACCOUNT), "credit": interest})
+	_post_je(lines, remarks=f"Advance repayment: {reference_name}", reference_name=reference_name)
+
+
+def record_insurance_premium(freelancer, amount, reference_name):
+	freelancer_line = _wallet_line("Freelancer Profile", freelancer, amount, is_debit=True)
+	if not freelancer_line:
+		return
+	_post_je(
+		[freelancer_line, {"account": _acc(INSURANCE_INCOME_ACCOUNT), "credit": amount}],
+		remarks=f"Insurance premium: {reference_name}",
+		reference_name=reference_name,
+	)
+
+
+def record_subscription_charge(party_type, party_name, amount, reference_name):
+	party_line = _wallet_line(party_type, party_name, amount, is_debit=True)
+	if not party_line:
+		return
+	_post_je(
+		[party_line, {"account": _acc(SUBSCRIPTION_INCOME_ACCOUNT), "credit": amount}],
+		remarks=f"Premium subscription: {reference_name}",
+		reference_name=reference_name,
+	)
+
+
+def record_dispute_reversal(lines, reference_name):
+	"""Posts the exact inverse of whatever the original dispute resolution
+	did -- `lines` is built by escrow_engine.compute_resolution_reversal()
+	and passed straight through, so the JE always matches whatever wallet
+	movements the reversal actually made, line for line."""
+	if not lines:
+		return
+	_post_je(lines, remarks=f"Dispute appeal reversal: {reference_name}", reference_name=reference_name)

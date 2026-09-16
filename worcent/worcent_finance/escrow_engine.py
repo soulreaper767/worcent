@@ -165,6 +165,16 @@ def release_milestone(milestone_name):
 
 	record_milestone_release(contract.freelancer, milestone.amount, commission_amount, net_amount, milestone.name)
 
+	from worcent.worcent_core.notify import notify
+
+	freelancer_user = frappe.db.get_value("Freelancer Profile", contract.freelancer, "user")
+	if freelancer_user:
+		notify(
+			freelancer_user, _("Payment released"),
+			_("{0} was released to your wallet for {1}.").format(frappe.utils.fmt_money(net_amount, currency="USD"), milestone.title),
+			reference_doctype="Milestone", reference_name=milestone.name,
+		)
+
 	return {"freelancer_rate": freelancer_rate, "commission_amount": commission_amount, "net_amount": net_amount}
 
 
@@ -197,6 +207,16 @@ def refund_milestone(milestone_name):
 
 	record_milestone_refund(contract.employer, milestone.amount, milestone.name)
 
+	from worcent.worcent_core.notify import notify
+
+	employer_user = frappe.db.get_value("Employer Profile", contract.employer, "user")
+	if employer_user:
+		notify(
+			employer_user, _("Milestone refunded"),
+			_("{0} was refunded to your wallet for {1}.").format(frappe.utils.fmt_money(milestone.amount, currency="USD"), milestone.title),
+			reference_doctype="Milestone", reference_name=milestone.name,
+		)
+
 
 def split_milestone(milestone_name, freelancer_percent, remarks=None):
 	"""Partial release for a split dispute resolution: freelancer_percent% of
@@ -219,19 +239,22 @@ def split_milestone(milestone_name, freelancer_percent, remarks=None):
 			"Milestone", milestone.name, remarks=remarks or "Dispute split resolution",
 		)
 
+	commission_for_je = 0
+	freelancer_net = 0
+
 	if freelancer_amount:
 		rate = get_freelancer_commission_rate(contract.freelancer, contract.employer)
-		commission = freelancer_amount * rate / 100
-		net = freelancer_amount - commission
+		commission_for_je = freelancer_amount * rate / 100
+		freelancer_net = freelancer_amount - commission_for_je
 		freelancer_wallet = frappe.get_doc("Wallet", ensure_wallet("Freelancer Profile", contract.freelancer))
-		freelancer_wallet.balance = flt(freelancer_wallet.balance) + net
+		freelancer_wallet.balance = flt(freelancer_wallet.balance) + freelancer_net
 		freelancer_wallet.save(ignore_permissions=True)
 		_wallet_txn(
-			freelancer_wallet.name, "Milestone Release", "Credit", net, freelancer_wallet.balance,
+			freelancer_wallet.name, "Milestone Release", "Credit", freelancer_net, freelancer_wallet.balance,
 			"Milestone", milestone.name, remarks=remarks or "Dispute split resolution",
 		)
 		_record_earning(
-			"Freelancer Commission", commission, "Freelancer Profile", contract.freelancer,
+			"Freelancer Commission", commission_for_je, "Freelancer Profile", contract.freelancer,
 			"Milestone", milestone.name, f"{rate}% commission on split-resolved milestone",
 		)
 
@@ -245,12 +268,123 @@ def split_milestone(milestone_name, freelancer_percent, remarks=None):
 
 	from worcent.worcent_finance.accounting_engine import record_milestone_split
 
-	commission_for_je = (freelancer_amount * rate / 100) if freelancer_amount else 0
 	record_milestone_split(
 		contract.employer, employer_refund, contract.freelancer,
-		(freelancer_amount - commission_for_je) if freelancer_amount else 0,
-		commission_for_je, milestone.amount, milestone.name,
+		freelancer_net, commission_for_je, milestone.amount, milestone.name,
 	)
+
+
+def compute_resolution_reversal(dispute_name):
+	"""Read-only: works out exactly what reversing a dispute's original
+	milestone resolution would mean in plain numbers, so an admin can see
+	the real impact before committing to it (an upheld appeal doesn't say
+	what the *correct* outcome should have been -- only that the original
+	one was wrong -- so reversing puts the money back into escrow, neutral,
+	for a fresh decision, rather than guessing a replacement outcome).
+
+	Known limitation: if the original release already triggered a referral
+	commission payout to a third party, that payout is NOT reversed here --
+	it's rare enough (an appeal on a milestone whose freelancer was also a
+	referred user) to leave as a manual correction rather than risk
+	compounding the reversal logic."""
+	dispute = frappe.get_doc("Dispute Case", dispute_name)
+	if not dispute.milestone:
+		return None
+	milestone = frappe.get_doc("Milestone", dispute.milestone)
+	contract = frappe.get_doc("Contract", dispute.contract)
+	escrow = frappe.db.get_value(
+		"Escrow Transaction", {"milestone": dispute.milestone, "status": "Released"}, ["name", "amount"], as_dict=True
+	)
+	if not escrow:
+		return None
+
+	result = {"milestone": milestone.name, "escrow_transaction": escrow.name, "milestone_amount": escrow.amount, "lines": []}
+	if dispute.status == "Resolved-Freelancer":
+		commission_amount = flt(frappe.db.get_value(
+			"Platform Earning", {"reference_doctype": "Milestone", "reference_name": milestone.name, "earning_type": "Freelancer Commission"}, "amount"
+		))
+		net_amount = flt(escrow.amount) - commission_amount
+		result["lines"].append({"party_type": "Freelancer Profile", "party": contract.freelancer, "debit_wallet": net_amount})
+	elif dispute.status == "Resolved-Employer":
+		result["lines"].append({"party_type": "Employer Profile", "party": contract.employer, "debit_wallet": escrow.amount})
+	elif dispute.status == "Resolved-Split":
+		freelancer_amount = flt(escrow.amount) * flt(dispute.split_freelancer_percent) / 100
+		employer_refund = flt(escrow.amount) - freelancer_amount
+		commission_amount = flt(frappe.db.get_value(
+			"Platform Earning", {"reference_doctype": "Milestone", "reference_name": milestone.name, "earning_type": "Freelancer Commission"}, "amount"
+		))
+		freelancer_net = freelancer_amount - commission_amount
+		if employer_refund:
+			result["lines"].append({"party_type": "Employer Profile", "party": contract.employer, "debit_wallet": employer_refund})
+		if freelancer_net:
+			result["lines"].append({"party_type": "Freelancer Profile", "party": contract.freelancer, "debit_wallet": freelancer_net})
+	else:
+		return None
+
+	result["total_back_to_escrow"] = escrow.amount
+	return result
+
+
+def apply_resolution_reversal(dispute_name):
+	"""Actually performs what compute_resolution_reversal() described: debits
+	each party's wallet back by the amount they received, and restores the
+	milestone to Funded / the Escrow Transaction to Held so an admin can
+	make a fresh decision with Milestone.approve_and_release()/refund()."""
+	from worcent.worcent_finance.accounting_engine import (
+		COMMISSION_INCOME_ACCOUNT, ESCROW_ACCOUNT, _acc, _wallet_line, record_dispute_reversal,
+	)
+
+	plan = compute_resolution_reversal(dispute_name)
+	if not plan:
+		frappe.throw(_("There's nothing to reverse for this dispute (milestone was never released/refunded, or already reversed)."))
+
+	je_lines = []
+	for line in plan["lines"]:
+		wallet = frappe.get_doc("Wallet", ensure_wallet(line["party_type"], line["party"]))
+		amount = flt(line["debit_wallet"])
+		if flt(wallet.balance) < amount:
+			frappe.throw(
+				_("{0}'s wallet balance is too low to reverse this ({1} needed) -- resolve manually instead.").format(
+					line["party"], frappe.utils.fmt_money(amount, currency="USD")
+				)
+			)
+
+	for line in plan["lines"]:
+		wallet = frappe.get_doc("Wallet", ensure_wallet(line["party_type"], line["party"]))
+		amount = flt(line["debit_wallet"])
+		wallet.balance = flt(wallet.balance) - amount
+		wallet.save(ignore_permissions=True)
+		_wallet_txn(
+			wallet.name, "Adjustment", "Debit", amount, wallet.balance,
+			"Dispute Case", dispute_name, remarks="Appeal upheld -- original resolution reversed",
+		)
+		je_line = _wallet_line(line["party_type"], line["party"], amount, is_debit=True)
+		if je_line:
+			je_lines.append(je_line)
+
+	employer = frappe.db.get_value("Contract", frappe.db.get_value("Milestone", plan["milestone"], "contract"), "employer")
+	employer_wallet = frappe.get_doc("Wallet", ensure_wallet("Employer Profile", employer))
+	employer_wallet.held_in_escrow = flt(employer_wallet.held_in_escrow) + flt(plan["total_back_to_escrow"])
+	employer_wallet.save(ignore_permissions=True)
+
+	je_lines.append({"account": _acc(ESCROW_ACCOUNT), "credit": plan["total_back_to_escrow"]})
+	# The full milestone amount is going back into escrow, but the wallet
+	# debits above only recovered the *net* amounts parties were paid --
+	# the platform's commission on the original release/split was already
+	# recognised as income, so un-recognise it here to make the entry balance
+	# (debit Commission Income, clawing the earning back since the whole
+	# transaction it was earned on is now void).
+	total_debited = sum(flt(l["debit_wallet"]) for l in plan["lines"])
+	unreversed_commission = flt(plan["total_back_to_escrow"]) - total_debited
+	if unreversed_commission:
+		je_lines.append({"account": _acc(COMMISSION_INCOME_ACCOUNT), "debit": unreversed_commission})
+
+	frappe.db.set_value("Escrow Transaction", plan["escrow_transaction"], "status", "Held")
+	frappe.db.set_value("Milestone", plan["milestone"], "status", "Funded")
+
+	record_dispute_reversal(je_lines, dispute_name)
+
+	return plan
 
 
 def auto_release_overdue_milestones():

@@ -23,6 +23,60 @@
 	<div class="wc-side-card" style="margin-top: 32px; max-width: 320px;">
 		<div class="label">{{ _("Posted by") }}</div>
 		<div class="value" style="font-size: 15px;"><a href="/{{ employer_doc.route }}">{{ employer_doc.company_name }}</a></div>
+		{% if worcent_freelancer_profile %}
+		<button class="wc-btn wc-btn-outline wc-btn-sm" type="button" style="margin-top: 12px;" onclick="wcOpenConversationFor('Job Posting', '{{ doc.name }}')">{{ _("Message Employer") }}</button>
+		{% endif %}
+		<button class="wc-btn wc-btn-outline wc-btn-sm" type="button" style="margin-top: 8px;" id="wc-save-toggle" onclick="wcToggleSave('Job Posting', '{{ doc.name }}', this)">☆ {{ _("Save") }}</button>
 	</div>
+
+	{% if doc.status == "Open" %}
+	<div class="wc-card" style="margin-top: 32px; max-width: 480px;" id="wc-apply-card">
+		<h3 class="wc-section-title">{{ _("Apply to this job") }}</h3>
+		{% if worcent_freelancer_profile %}
+		<div id="wc-apply-form">
+			<div style="margin-bottom: 12px;">
+				<label>{{ _("Your bid amount (USD)") }}</label>
+				<input type="number" id="wc-apply-bid" min="1" step="1" style="width:100%;">
+			</div>
+			<div style="margin-bottom: 12px;">
+				<label>{{ _("Delivery time (days)") }}</label>
+				<input type="number" id="wc-apply-days" min="1" step="1" value="7" style="width:100%;">
+			</div>
+			<div style="margin-bottom: 12px;">
+				<label>{{ _("Cover letter") }}</label>
+				<textarea id="wc-apply-cover" rows="4" style="width:100%;"></textarea>
+			</div>
+			<button class="wc-btn wc-btn-primary" type="button" id="wc-apply-submit">{{ _("Submit Proposal") }}</button>
+			<div id="wc-apply-message" style="margin-top: 10px; font-size: 13.5px;"></div>
+		</div>
+		<script>
+			document.getElementById("wc-apply-submit").addEventListener("click", function () {
+				var btn = this;
+				var msg = document.getElementById("wc-apply-message");
+				btn.disabled = true;
+				frappe.call({
+					method: "worcent.worcent_marketplace.proposal_api.submit_job_proposal",
+					args: {
+						job_posting: "{{ doc.name }}",
+						bid_amount: document.getElementById("wc-apply-bid").value,
+						delivery_days: document.getElementById("wc-apply-days").value,
+						cover_letter: document.getElementById("wc-apply-cover").value,
+					},
+				}).then(function () {
+					document.getElementById("wc-apply-form").innerHTML = '<div class="wc-chat-empty">{{ _("Proposal submitted! The employer will be in touch.") }}</div>';
+				}).catch(function () {
+					btn.disabled = false;
+					msg.textContent = "{{ _('Something went wrong. Please check your inputs and try again.') }}";
+				});
+			});
+		</script>
+		{% elif frappe.session.user == "Guest" %}
+		<p>{{ _("Log in as a freelancer to apply.") }} <a href="/login?redirect-to=/{{ doc.route }}">{{ _("Log in") }}</a></p>
+		{% else %}
+		<p>{{ _("Only freelancers can apply to jobs.") }}</p>
+		{% endif %}
+	</div>
+	{% endif %}
 </div>
+<script src="/assets/worcent/js/saved_items.js"></script>
 {% endblock %}

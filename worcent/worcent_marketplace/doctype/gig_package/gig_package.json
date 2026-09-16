@@ -9,7 +9,8 @@
   "price",
   "delivery_days",
   "revisions",
-  "description"
+  "description",
+  "requirements"
  ],
  "fields": [
   {
@@ -47,6 +48,12 @@
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "What's Included"
+  },
+  {
+   "fieldname": "requirements",
+   "fieldtype": "Small Text",
+   "label": "What Do You Need From The Buyer?",
+   "description": "Shown to the buyer at checkout so they can answer before you start work."
   }
  ],
  "istable": 1,

@@ -17,6 +17,10 @@ class JobPosting(WebsiteGenerator):
 		set_name_by_naming_series(self)
 
 	def validate(self):
+		if self.is_new() and self.employer:
+			from worcent.worcent_core.permissions import assert_not_suspended
+
+			assert_not_suspended("Employer Profile", self.employer)
 		if not self.route:
 			self.route = unique_route("Job Posting", "jobs", self.title)
 
@@ -31,7 +35,8 @@ class JobPosting(WebsiteGenerator):
 def has_website_permission(doc, ptype, user, verbose=False):
 	if user == "Administrator":
 		return True
-	if doc.published and doc.status == "Open":
+	employer_status = frappe.db.get_value("Employer Profile", doc.employer, "status")
+	if doc.published and doc.status == "Open" and employer_status != "Suspended":
 		return True
 	employer_user = frappe.db.get_value("Employer Profile", doc.employer, "user")
 	return employer_user == user

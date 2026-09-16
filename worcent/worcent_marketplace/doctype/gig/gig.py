@@ -18,6 +18,10 @@ class Gig(WebsiteGenerator):
 
 	def validate(self):
 		self.set_freelancer()
+		if self.is_new():
+			from worcent.worcent_core.permissions import assert_not_suspended
+
+			assert_not_suspended("Freelancer Profile", self.freelancer)
 		if not self.route:
 			self.route = unique_route("Gig", "gigs", self.title)
 
@@ -41,7 +45,8 @@ class Gig(WebsiteGenerator):
 def has_website_permission(doc, ptype, user, verbose=False):
 	if user == "Administrator":
 		return True
-	if doc.published and doc.status == "Active":
+	freelancer_status = frappe.db.get_value("Freelancer Profile", doc.freelancer, "status")
+	if doc.published and doc.status == "Active" and freelancer_status != "Suspended":
 		return True
 	freelancer_user = frappe.db.get_value("Freelancer Profile", doc.freelancer, "user")
 	return freelancer_user == user

@@ -64,6 +64,34 @@ frappe.ui.form.on("Dispute Case", {
 					__("Reject Appeal")
 				);
 			});
+		} else if (frm.doc.appeal_status === "Appeal Upheld" && !frm.doc.reversal_applied) {
+			frm.add_custom_button(__("Reverse Original Resolution"), () => {
+				frm.call("compute_appeal_reversal").then((r) => {
+					const plan = r.message;
+					if (!plan) return;
+					const lines = plan.lines
+						.map((l) => `<li>${__("Debit")} ${l.party_title || l.party} ${format_currency(l.debit_wallet, "USD")}</li>`)
+						.join("");
+					const dialog = new frappe.ui.Dialog({
+						title: __("Confirm Reversal"),
+						fields: [
+							{
+								fieldname: "preview",
+								fieldtype: "HTML",
+								options: `<p>${__("This will move real money back into escrow:")}</p><ul>${lines}</ul><p>${__("Total returning to escrow")}: <strong>${format_currency(plan.total_back_to_escrow, "USD")}</strong></p>`,
+							},
+						],
+						primary_action_label: __("Confirm Reversal"),
+						primary_action: () => {
+							frm.call("apply_appeal_reversal").then(() => {
+								dialog.hide();
+								frm.reload_doc();
+							});
+						},
+					});
+					dialog.show();
+				});
+			}).addClass("btn-primary");
 		}
 	},
 });

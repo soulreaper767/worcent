@@ -1,0 +1,139 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-09-16 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employer_profile",
+  "freelancer_profile",
+  "column_break_head",
+  "related_doctype",
+  "related_name",
+  "section_break_1",
+  "status",
+  "last_message_at",
+  "column_break_unread",
+  "employer_unread_count",
+  "freelancer_unread_count"
+ ],
+ "fields": [
+  {
+   "fieldname": "employer_profile",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employer",
+   "options": "Employer Profile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "freelancer_profile",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Freelancer",
+   "options": "Freelancer Profile",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "related_doctype",
+   "fieldtype": "Select",
+   "label": "About",
+   "options": "\nGig\nJob Posting\nContract"
+  },
+  {
+   "fieldname": "related_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Related Record",
+   "options": "related_doctype"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Active\nArchived"
+  },
+  {
+   "fieldname": "last_message_at",
+   "fieldtype": "Datetime",
+   "label": "Last Message At",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_unread",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "employer_unread_count",
+   "fieldtype": "Int",
+   "label": "Employer Unread",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "freelancer_unread_count",
+   "fieldtype": "Int",
+   "label": "Freelancer Unread",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-16 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Marketplace",
+ "name": "Conversation",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Worcent Admin",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "role": "Freelancer"
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "role": "Employer"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

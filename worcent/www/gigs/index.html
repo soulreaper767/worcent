@@ -1,0 +1,33 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Browse Gigs") }}{% endblock %}
+
+{% block page_content %}
+<div class="wc-section">
+	<h1>{{ _("Browse Gigs") }}</h1>
+
+	<div class="wc-filter-bar">
+		<a class="wc-chip {{ 'wc-chip-active' if not selected_category }}" href="/gigs">{{ _("All") }}</a>
+		{% for cat in categories %}
+		<a class="wc-chip {{ 'wc-chip-active' if selected_category == cat.name }}" href="/gigs?category={{ cat.name | urlencode }}">{{ cat.category_name }}</a>
+		{% endfor %}
+	</div>
+
+	{% if gigs %}
+	<div class="wc-grid">
+		{% for g in gigs %}
+		<a class="wc-card" href="/{{ g.route }}">
+			<div class="wc-job-card-title">{{ g.title }}</div>
+			<div class="wc-job-card-meta">{{ g.freelancer_name }}</div>
+			<div class="wc-job-card-desc">{{ frappe.utils.strip_html(g.description or "") }}</div>
+			<div class="wc-job-card-budget">
+				{% if g.starting_price %}{{ _("Starting at") }} {{ frappe.utils.fmt_money(g.starting_price) }}{% endif %}
+			</div>
+		</a>
+		{% endfor %}
+	</div>
+	{% else %}
+	<p class="wc-muted">{{ _("No gigs match this filter right now.") }}</p>
+	{% endif %}
+</div>
+{% endblock %}

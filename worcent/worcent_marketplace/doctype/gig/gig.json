@@ -16,7 +16,8 @@
   "category",
   "section_break_details",
   "description",
-  "packages"
+  "packages",
+  "extras"
  ],
  "fields": [
   {
@@ -94,6 +95,12 @@
    "fieldtype": "Table",
    "label": "Packages",
    "options": "Gig Package"
+  },
+  {
+   "fieldname": "extras",
+   "fieldtype": "Table",
+   "label": "Extras / Add-ons",
+   "options": "Gig Extra"
   }
  ],
  "has_web_view": 1,

@@ -27,8 +27,14 @@
 				{% if doc.premium_tier == "Pro" %}<span class="wc-badge-pill">⭐ {{ _("Pro") }}</span>{% endif %}
 				{% for b in doc.badges %}<span class="wc-badge-pill">{{ b.badge }}</span>{% endfor %}
 			</div>
+			{% if doc.user != frappe.session.user %}
+			<div style="margin-top: 10px; display:flex; gap:8px;">
+				<button class="wc-btn wc-btn-outline wc-btn-sm" type="button" onclick="wcToggleSave('Freelancer Profile', '{{ doc.name }}', this)">☆ {{ _("Save") }}</button>
+			</div>
+			{% endif %}
 		</div>
 	</div>
+	<script src="/assets/worcent/js/saved_items.js"></script>
 
 	{% if doc.user == frappe.session.user %}
 	<div class="wc-section" style="padding-top:0;">
@@ -45,6 +51,23 @@
 		});
 	});
 	</script>
+	{% if referral_code %}
+	<div class="wc-section" style="padding-top:0;">
+		<div class="wc-professional-id-banner">
+			<span>{{ _("Your referral link — earn rewards when someone signs up and gets active.") }}</span>
+			<code id="wc-referral-link">{{ frappe.utils.get_url() }}/r?code={{ referral_code }}</code>
+			<button type="button" class="wc-btn wc-btn-outline wc-btn-sm" id="wc-copy-referral-link">{{ _("Copy Link") }}</button>
+		</div>
+	</div>
+	<script>
+	document.getElementById("wc-copy-referral-link").addEventListener("click", function () {
+		navigator.clipboard.writeText(document.getElementById("wc-referral-link").textContent).then(() => {
+			this.textContent = "{{ _('Copied!') }}";
+			setTimeout(() => { this.textContent = "{{ _('Copy Link') }}"; }, 1500);
+		});
+	});
+	</script>
+	{% endif %}
 	{% endif %}
 
 	<div class="wc-profile-body">

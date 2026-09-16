@@ -7,6 +7,7 @@
  "field_order": [
   "code",
   "owner_user",
+  "program",
   "column_break_head",
   "status",
   "section_break_1",
@@ -37,6 +38,14 @@
    "reqd": 1
   },
   {
+   "fieldname": "program",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Referral Program",
+   "options": "Referral Program"
+  },
+  {
    "fieldname": "column_break_head",
    "fieldtype": "Column Break"
   },
@@ -55,22 +64,22 @@
    "label": "Reward Structure"
   },
   {
-   "default": "5",
-   "description": "One-time wallet bonus credited to whoever signs up with this code.",
+   "description": "Effective value fetched from the linked Referral Program -- edit the program to change this, not the code.",
    "fieldname": "signup_bonus_referred",
    "fieldtype": "Currency",
-   "label": "Sign-up Bonus for Referred User (USD)"
+   "label": "Sign-up Bonus for Referred User (USD)",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_bonus",
    "fieldtype": "Column Break"
   },
   {
-   "default": "1",
-   "description": "% of what the PLATFORM earns (not the transaction value) from the referred user's first commission/fee-generating transaction, credited to the referrer.",
+   "description": "Effective value fetched from the linked Referral Program -- only meaningful when its Reward Type is 'Percent of First Platform Earning'.",
    "fieldname": "commission_percent_referrer",
    "fieldtype": "Percent",
-   "label": "Referrer Commission % (of platform earning)"
+   "label": "Referrer Commission % (of platform earning)",
+   "read_only": 1
   },
   {
    "collapsible": 1,

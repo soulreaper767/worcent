@@ -18,8 +18,33 @@ class WithdrawalRequest(Document):
 			self.validate_requester_owns_wallet()
 			self.validate_payout_account()
 			self.validate_amount()
+			self.validate_kyc()
+			self.validate_not_suspended()
 			self.snapshot_payout_destination()
 			self.available_balance = frappe.db.get_value("Wallet", self.wallet, "balance")
+
+	def validate_not_suspended(self):
+		from worcent.worcent_core.permissions import assert_not_suspended
+
+		party_type, party = frappe.db.get_value("Wallet", self.wallet, ["party_type", "party"])
+		assert_not_suspended(party_type, party)
+
+	def validate_kyc(self):
+		if not frappe.db.get_single_value("Worcent Settings", "kyc_required_for_payout"):
+			return
+		if frappe.session.user == "Administrator" or REVIEW_ROLES.intersection(frappe.get_roles()) or PAYMENT_ROLES.intersection(
+			frappe.get_roles()
+		):
+			return
+		party_type, party = frappe.db.get_value("Wallet", self.wallet, ["party_type", "party"])
+		verification_level = frappe.db.get_value(party_type, party, "verification_level")
+		if verification_level not in ("ID Verified", "Business Verified"):
+			frappe.throw(
+				_(
+					"Withdrawals require ID or Business verification first (currently: {0}). "
+					"Complete verification from your profile before requesting a payout."
+				).format(verification_level or "Unverified")
+			)
 
 	def validate_requester_owns_wallet(self):
 		if frappe.session.user == "Administrator" or REVIEW_ROLES.intersection(frappe.get_roles()) or PAYMENT_ROLES.intersection(frappe.get_roles()):
@@ -85,6 +110,24 @@ class WithdrawalRequest(Document):
 	def on_update(self):
 		if self.status == "Paid" and self.has_value_changed("status"):
 			self.debit_wallet()
+		if self.flags.in_insert:
+			return
+		if self.has_value_changed("status") and self.status in ("Approved", "Rejected", "Paid"):
+			self.notify_requester()
+
+	def notify_requester(self):
+		from worcent.worcent_core.notify import notify
+
+		party_type, party = frappe.db.get_value("Wallet", self.wallet, ["party_type", "party"])
+		user = frappe.db.get_value(party_type, party, "user")
+		if not user:
+			return
+		messages = {
+			"Approved": _("Your withdrawal request for {0} was approved.").format(frappe.utils.fmt_money(self.amount, currency="USD")),
+			"Rejected": _("Your withdrawal request was rejected.{0}").format(f" {self.rejection_reason}" if self.rejection_reason else ""),
+			"Paid": _("Your withdrawal of {0} has been paid out.").format(frappe.utils.fmt_money(self.amount, currency="USD")),
+		}
+		notify(user, _("Withdrawal update"), messages[self.status], reference_doctype="Withdrawal Request", reference_name=self.name)
 
 	def debit_wallet(self):
 		wallet = frappe.get_doc("Wallet", self.wallet)
