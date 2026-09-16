@@ -1,6 +1,5 @@
-import frappe
-from frappe.model.document import Document
+from frappe.utils.nestedset import NestedSet
 
 
-class SkillCategory(Document):
-	pass
+class SkillCategory(NestedSet):
+	nsm_parent_field = "parent_skill_category"

@@ -30,6 +30,10 @@
   "skills",
   "portfolio",
   "languages",
+  "section_break_licenses",
+  "licenses",
+  "section_break_sports",
+  "sports_profiles",
   "section_break_trust",
   "verification_level",
   "rank",
@@ -199,6 +203,34 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.licenses && doc.licenses.length",
+   "description": "Required for services under Regulated Services (audits, medicine, law, engineering, etc.) that need a verified license or professional credential.",
+   "fieldname": "section_break_licenses",
+   "fieldtype": "Section Break",
+   "label": "Regulated Service Licenses"
+  },
+  {
+   "fieldname": "licenses",
+   "fieldtype": "Table",
+   "label": "Licenses & Credentials",
+   "options": "Freelancer License"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.sports_profiles && doc.sports_profiles.length",
+   "description": "For freelancers offering coaching, training, playing, or officiating services under the Sports category.",
+   "fieldname": "section_break_sports",
+   "fieldtype": "Section Break",
+   "label": "Sports Profile"
+  },
+  {
+   "fieldname": "sports_profiles",
+   "fieldtype": "Table",
+   "label": "Sports Profiles",
+   "options": "Freelancer Sports Profile"
+  },
+  {
+   "collapsible": 1,
    "fieldname": "section_break_trust",
    "fieldtype": "Section Break",
    "label": "Verification & Trust"
@@ -293,7 +325,7 @@
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2026-08-25 00:00:00.000000",
+ "modified": "2026-09-16 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Worcent Core",
  "name": "Freelancer Profile",

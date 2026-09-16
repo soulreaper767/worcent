@@ -5,7 +5,15 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "category_name"
+  "category_name",
+  "is_group",
+  "parent_skill_category",
+  "column_break_head",
+  "requires_license",
+  "license_guidance",
+  "lft",
+  "rgt",
+  "old_parent"
  ],
  "fields": [
   {
@@ -15,14 +23,79 @@
    "label": "Category Name",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Group (Parent Category)"
+  },
+  {
+   "fieldname": "parent_skill_category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "ignore_user_permissions": 1,
+   "label": "Parent Category",
+   "options": "Skill Category"
+  },
+  {
+   "fieldname": "column_break_head",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Freelancers must provide a verified license/credential (see Freelancer Profile > Regulated Service Licenses) before offering a service under this category.",
+   "fieldname": "requires_license",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "Requires Valid License"
+  },
+  {
+   "depends_on": "eval:doc.requires_license",
+   "description": "The license, registration, or regulatory body a freelancer must hold for this specific category, e.g. \"ICAP/CPA license with statutory audit signing authority\".",
+   "fieldname": "license_guidance",
+   "fieldtype": "Small Text",
+   "label": "License / Credential Guidance"
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "lft",
+   "no_copy": 1,
+   "print_hide": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "rgt",
+   "no_copy": 1,
+   "print_hide": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "ignore_user_permissions": 1,
+   "label": "old_parent",
+   "no_copy": 1,
+   "options": "Skill Category",
+   "print_hide": 1,
+   "report_hide": 1
   }
  ],
+ "is_tree": 1,
  "links": [],
- "modified": "2026-08-25 00:00:00.000000",
+ "modified": "2026-09-16 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Worcent Core",
  "name": "Skill Category",
  "naming_rule": "By fieldname",
+ "nsm_parent_field": "parent_skill_category",
  "owner": "Administrator",
  "permissions": [
   {
@@ -52,7 +125,7 @@
    "role": "Employer"
   }
  ],
- "sort_field": "creation",
- "sort_order": "DESC",
+ "sort_field": "lft",
+ "sort_order": "ASC",
  "states": []
 }

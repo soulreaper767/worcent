@@ -1,0 +1,88 @@
+{
+ "actions": [],
+ "creation": "2026-09-16 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sport",
+  "role",
+  "skill_level",
+  "column_break_1",
+  "position_or_discipline",
+  "years_experience",
+  "current_team_or_club",
+  "certifications",
+  "achievements"
+ ],
+ "fields": [
+  {
+   "fieldname": "sport",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Sport",
+   "options": "Skill Category",
+   "reqd": 1,
+   "columns": 2
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Role",
+   "options": "Player\nCoach\nTrainer\nReferee / Umpire\nAnalyst\nTeam Manager",
+   "columns": 2
+  },
+  {
+   "fieldname": "skill_level",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Level",
+   "options": "Beginner\nAmateur\nSemi-Professional\nProfessional\nInternational",
+   "columns": 2
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "position_or_discipline",
+   "fieldtype": "Data",
+   "label": "Position / Discipline",
+   "description": "e.g. Striker, Point Guard, 100m Sprint, Middleweight"
+  },
+  {
+   "fieldname": "years_experience",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Years of Experience",
+   "columns": 1
+  },
+  {
+   "fieldname": "current_team_or_club",
+   "fieldtype": "Data",
+   "label": "Current Team / Club"
+  },
+  {
+   "fieldname": "certifications",
+   "fieldtype": "Small Text",
+   "label": "Coaching / Officiating Certifications"
+  },
+  {
+   "fieldname": "achievements",
+   "fieldtype": "Small Text",
+   "label": "Notable Achievements"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-16 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Worcent Core",
+ "name": "Freelancer Sports Profile",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
