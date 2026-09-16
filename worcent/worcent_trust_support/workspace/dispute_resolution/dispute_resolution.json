@@ -1,7 +1,7 @@
 {
  "app": "worcent",
  "charts": [],
- "content": "[{\"id\":\"dr-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Dispute Resolution</span>\",\"col\":12}},{\"id\":\"dr-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dispute Cases\",\"col\":4}},{\"id\":\"dr-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Contracts\",\"col\":4}},{\"id\":\"dr-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Escrow Transactions\",\"col\":4}},{\"id\":\"dr-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Disputes\",\"col\":4}}]",
+ "content": "[{\"id\":\"dr-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Dispute Resolution</span>\",\"col\":12}},{\"id\":\"dr-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dispute Cases\",\"col\":4}},{\"id\":\"dr-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Contracts\",\"col\":4}},{\"id\":\"dr-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Escrow Transactions\",\"col\":4}},{\"id\":\"dr-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Disputes\",\"col\":4}},{\"id\":\"dr-sc-5\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Rank Applications\",\"col\":4}}]",
  "creation": "2026-08-25 00:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Dispute Resolution",
  "links": [],
- "modified": "2026-08-25 00:00:00.000000",
+ "modified": "2026-09-17 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Worcent Trust Support",
  "name": "Dispute Resolution",
@@ -31,7 +31,8 @@
   {"color": "Red", "doc_view": "List", "label": "Dispute Cases", "link_to": "Dispute Case", "type": "DocType"},
   {"color": "Grey", "doc_view": "List", "label": "Contracts", "link_to": "Contract", "type": "DocType"},
   {"color": "Grey", "doc_view": "List", "label": "Escrow Transactions", "link_to": "Escrow Transaction", "type": "DocType"},
-  {"color": "Yellow", "label": "Open Disputes", "link_to": "Open Disputes", "type": "Report"}
+  {"color": "Yellow", "label": "Open Disputes", "link_to": "Open Disputes", "type": "Report"},
+  {"color": "Orange", "doc_view": "List", "label": "Rank Applications", "link_to": "Rank Application", "type": "DocType"}
  ],
  "title": "Dispute Resolution",
  "type": "Workspace"

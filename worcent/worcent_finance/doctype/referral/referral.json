@@ -76,7 +76,7 @@
   }
  ],
  "links": [],
- "modified": "2026-08-25 00:00:00.000000",
+ "modified": "2026-09-17 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Worcent Finance",
  "name": "Referral",
@@ -102,8 +102,16 @@
    "write": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "read": 1,
-   "role": "Referral Agent"
+   "role": "Finance Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager"
   }
  ],
  "sort_field": "creation",

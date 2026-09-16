@@ -1,7 +1,7 @@
 {
  "app": "worcent",
  "charts": [],
- "content": "[{\"id\":\"fo-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Finance Ops</span>\",\"col\":12}},{\"id\":\"fo-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Withdrawal Requests\",\"col\":3}},{\"id\":\"fo-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Wallet Top Ups\",\"col\":3}},{\"id\":\"fo-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Advance Requests\",\"col\":3}},{\"id\":\"fo-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Wallets\",\"col\":3}},{\"id\":\"fo-sc-5\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Franchise Settlements\",\"col\":3}},{\"id\":\"fo-sc-6\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Platform Commission Revenue\",\"col\":3}},{\"id\":\"fo-sc-7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Pending Withdrawal Requests\",\"col\":3}}]",
+ "content": "[{\"id\":\"fo-hdr-1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Finance Ops</span>\",\"col\":12}},{\"id\":\"fo-sc-1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Withdrawal Requests\",\"col\":3}},{\"id\":\"fo-sc-2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Wallet Top Ups\",\"col\":3}},{\"id\":\"fo-sc-3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Advance Requests\",\"col\":3}},{\"id\":\"fo-sc-4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Wallets\",\"col\":3}},{\"id\":\"fo-sc-5\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Franchise Settlements\",\"col\":3}},{\"id\":\"fo-sc-6\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Platform Commission Revenue\",\"col\":3}},{\"id\":\"fo-sc-7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Pending Withdrawal Requests\",\"col\":3}},{\"id\":\"fo-sc-8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Platform Earnings\",\"col\":3}},{\"id\":\"fo-sc-9\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payout Accounts\",\"col\":3}},{\"id\":\"fo-sc-10\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Insurance Claims\",\"col\":3}},{\"id\":\"fo-sc-11\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Referral Codes\",\"col\":3}},{\"id\":\"fo-sc-12\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Referrals\",\"col\":3}},{\"id\":\"fo-sc-13\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Wallet Ledger\",\"col\":3}}]",
  "creation": "2026-08-25 00:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Finance Ops",
  "links": [],
- "modified": "2026-08-25 00:00:00.000000",
+ "modified": "2026-09-17 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Worcent Finance",
  "name": "Finance Ops",
@@ -34,7 +34,13 @@
   {"color": "Grey", "doc_view": "List", "label": "Wallets", "link_to": "Wallet", "type": "DocType"},
   {"color": "Grey", "doc_view": "List", "label": "Franchise Settlements", "link_to": "Franchise Settlement", "type": "DocType"},
   {"color": "Blue", "label": "Platform Commission Revenue", "link_to": "Platform Commission Revenue", "type": "Report"},
-  {"color": "Yellow", "label": "Pending Withdrawal Requests", "link_to": "Pending Withdrawal Requests", "type": "Report"}
+  {"color": "Yellow", "label": "Pending Withdrawal Requests", "link_to": "Pending Withdrawal Requests", "type": "Report"},
+  {"color": "Green", "doc_view": "List", "label": "Platform Earnings", "link_to": "Platform Earning", "type": "DocType"},
+  {"color": "Blue", "doc_view": "List", "label": "Payout Accounts", "link_to": "Payout Account", "type": "DocType"},
+  {"color": "Orange", "doc_view": "List", "label": "Insurance Claims", "link_to": "Insurance Claim", "type": "DocType"},
+  {"color": "Purple", "doc_view": "List", "label": "Referral Codes", "link_to": "Referral Code", "type": "DocType"},
+  {"color": "Purple", "doc_view": "List", "label": "Referrals", "link_to": "Referral", "type": "DocType"},
+  {"color": "Blue", "label": "Wallet Ledger", "link_to": "wallet-ledger", "type": "Page"}
  ],
  "title": "Finance Ops",
  "type": "Workspace"
