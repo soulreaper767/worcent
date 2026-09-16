@@ -99,10 +99,14 @@ def after_install():
 	frappe.db.commit()
 
 
+@frappe.whitelist()
 def reseed_demo_data():
-	"""Callable directly (bench execute worcent.install.reseed_demo_data) to
-	top up demo data on an already-installed site without re-running the
-	whole after_install flow. Every step below is idempotent."""
+	"""Callable directly (bench execute worcent.install.reseed_demo_data) or
+	from the Worcent Admin Tools page to top up demo data on an already-
+	installed site without re-running the whole after_install flow. Every
+	step below is idempotent."""
+	if frappe.session.user != "Administrator" and not {"Worcent Admin", "System Manager"}.intersection(frappe.get_roles()):
+		frappe.throw(frappe._("Only a System Manager or Worcent Admin can reseed demo data."))
 	seed_letterhead()
 	seed_masters()
 	seed_company_and_users()

@@ -120,6 +120,8 @@ def _delete_everything_for(demo_users):
 	_delete_where("Conversation", {"freelancer_profile": ["in", freelancers or [""]]}, counts)
 	_delete_where("Conversation", {"employer_profile": ["in", employers or [""]]}, counts)
 	_delete_where("Saved Item", {"user": ["in", demo_users]}, counts)
+	_delete_where("Growth Tool Result", {"user": ["in", demo_users]}, counts)
+	_delete_where("Skill Challenge Enrollment", {"user": ["in", demo_users]}, counts)
 	_delete_where("Support Ticket Reply", {"ticket": ["in", frappe.get_all(
 		"Support Ticket", filters={"raised_by": ["in", demo_users]}, pluck="name") or [""]]}, counts)
 	_delete_where("Support Ticket", {"raised_by": ["in", demo_users]}, counts)

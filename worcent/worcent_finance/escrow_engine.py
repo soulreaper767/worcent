@@ -292,8 +292,13 @@ def compute_resolution_reversal(dispute_name):
 		return None
 	milestone = frappe.get_doc("Milestone", dispute.milestone)
 	contract = frappe.get_doc("Contract", dispute.contract)
+	# Released covers Resolved-Freelancer/Resolved-Split; Resolved-Employer
+	# uses refund_milestone(), which leaves the Escrow Transaction "Refunded"
+	# instead -- both are "money already left escrow" states that a reversal
+	# needs to find.
 	escrow = frappe.db.get_value(
-		"Escrow Transaction", {"milestone": dispute.milestone, "status": "Released"}, ["name", "amount"], as_dict=True
+		"Escrow Transaction", {"milestone": dispute.milestone, "status": ["in", ["Released", "Refunded"]]},
+		["name", "amount"], as_dict=True,
 	)
 	if not escrow:
 		return None

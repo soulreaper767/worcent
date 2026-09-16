@@ -217,3 +217,17 @@ def _upsert(name, parent, is_group, requires_license=0, license_guidance=None):
 		doc.insert(ignore_permissions=True)
 	else:
 		doc.save(ignore_permissions=True)
+
+
+def category_and_descendants(category_name):
+	"""A visitor picking a group category (e.g. "Sports") to filter/browse by
+	should still match content tagged to its specific leaf children (e.g.
+	"Cricket") -- Skill Category became a tree, but Gig/Job Posting/Skill
+	still store a single exact category name, so filtering needs to expand
+	a group into itself + every descendant rather than exact-match alone."""
+	from frappe.utils.nestedset import get_descendants_of
+
+	if not category_name or not frappe.db.exists("Skill Category", category_name):
+		return [category_name] if category_name else []
+	descendants = get_descendants_of("Skill Category", category_name, ignore_permissions=True)
+	return [category_name] + list(descendants)

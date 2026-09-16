@@ -12,7 +12,10 @@ def get_context(context):
 	search = frappe.form_dict.get("search")
 
 	context.categories = frappe.get_all(
-		"Skill Category", fields=["name", "category_name"], order_by="category_name asc"
+		"Skill Category",
+		filters={"parent_skill_category": "All Categories"},
+		fields=["name", "category_name"],
+		order_by="category_name asc",
 	)
 	context.selected_category = category
 	context.selected_budget_type = budget_type
@@ -22,7 +25,9 @@ def get_context(context):
 
 	filters = {"published": 1, "status": "Open", "employer": ["in", active_employers]}
 	if category:
-		filters["category"] = category
+		from worcent.worcent_core.service_categories import category_and_descendants
+
+		filters["category"] = ["in", category_and_descendants(category)]
 	if budget_type:
 		filters["budget_type"] = budget_type
 	if search:

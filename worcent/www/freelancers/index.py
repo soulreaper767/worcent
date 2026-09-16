@@ -12,7 +12,10 @@ def get_context(context):
 	search = frappe.form_dict.get("search")
 
 	context.categories = frappe.get_all(
-		"Skill Category", fields=["name", "category_name"], order_by="category_name asc"
+		"Skill Category",
+		filters={"parent_skill_category": "All Categories"},
+		fields=["name", "category_name"],
+		order_by="category_name asc",
 	)
 	context.selected_category = category
 	context.verified_only = verified_only
@@ -26,7 +29,9 @@ def get_context(context):
 
 	freelancer_names = None
 	if category:
-		skill_names = frappe.get_all("Skill", filters={"category": category}, pluck="name")
+		from worcent.worcent_core.service_categories import category_and_descendants
+
+		skill_names = frappe.get_all("Skill", filters={"category": ["in", category_and_descendants(category)]}, pluck="name")
 		if skill_names:
 			freelancer_names = frappe.get_all(
 				"Freelancer Skill", filters={"skill": ["in", skill_names]}, pluck="parent"

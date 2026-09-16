@@ -16,7 +16,8 @@
   "bid_amount",
   "delivery_days",
   "section_break_1",
-  "cover_letter"
+  "cover_letter",
+  "buyer_requirements_answer"
  ],
  "fields": [
   {
